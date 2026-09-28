@@ -9,7 +9,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: true,
     credentials: true,
   });
   app.setGlobalPrefix('api');
@@ -19,7 +19,8 @@ async function bootstrap() {
   await seedVocabulary(dataSource);
   await seedDefaultAdmin(dataSource);
 
-  await app.listen(process.env.PORT ?? 3002);
-  console.log(`PassEnglish API running on http://localhost:${process.env.PORT ?? 3002}/api`);
+  const port = process.env.PORT ?? 3002;
+  await app.listen(port, '0.0.0.0');
+  console.log(`PassEnglish API running on http://localhost:${port}/api`);
 }
 await bootstrap();
