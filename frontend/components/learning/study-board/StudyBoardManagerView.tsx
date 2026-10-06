@@ -47,7 +47,7 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
   if (loading) return <div className="flex-1 flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-indigo-500" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 flex flex-col h-full animate-fade-in">
+    <div className="w-full flex flex-col h-full animate-fade-in py-4">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-black text-[var(--text-primary)]">Bảng học từ</h1>
