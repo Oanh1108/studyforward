@@ -293,7 +293,7 @@ export default function LoginPage() {
         <button
           onClick={() => {
             setIsGoogleSubmitting(true);
-            const fallbackUrl = process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
+            const fallbackUrl = process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002';
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || fallbackUrl).replace(/\/+$/, '');
             window.location.href = `${baseUrl}/api/auth/google`;
           }}
