@@ -14,7 +14,7 @@ export class StudyBoardsService {
     return this.studyBoardRepository.find({
       where: { userId },
       order: { updatedAt: 'DESC' },
-      select: ['id', 'name', 'updatedAt', 'createdAt']
+      select: { id: true, name: true, updatedAt: true, createdAt: true }
     });
   }
 

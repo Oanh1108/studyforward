@@ -8,17 +8,17 @@ export class StudyBoardsController {
   constructor(private readonly studyBoardsService: StudyBoardsService) {}
 
   @Get()
-  async findAll(@Request() req) {
+  async findAll(@Request() req: any) {
     return this.studyBoardsService.findAllByUser(req.user.id);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Request() req) {
+  async findOne(@Param('id') id: string, @Request() req: any) {
     return this.studyBoardsService.findOne(id, req.user.id);
   }
 
   @Post()
-  async create(@Body('name') name: string, @Request() req) {
+  async create(@Body('name') name: string, @Request() req: any) {
     return this.studyBoardsService.create(req.user.id, name || 'Bảng không tên');
   }
 
@@ -27,7 +27,7 @@ export class StudyBoardsController {
     @Param('id') id: string,
     @Body('data') data: any,
     @Body('version') version: number,
-    @Request() req
+    @Request() req: any
   ) {
     try {
       return await this.studyBoardsService.updateData(id, req.user.id, data, version);
@@ -43,13 +43,13 @@ export class StudyBoardsController {
   async updateName(
     @Param('id') id: string,
     @Body('name') name: string,
-    @Request() req
+    @Request() req: any
   ) {
     return this.studyBoardsService.updateName(id, req.user.id, name);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
+  async remove(@Param('id') id: string, @Request() req: any) {
     return this.studyBoardsService.remove(id, req.user.id);
   }
 }
