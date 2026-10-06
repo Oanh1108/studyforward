@@ -1,4 +1,4 @@
-export type ActiveTab = 'dashboard' | 'courses' | 'paths' | 'vocabulary' | 'speaking' | 'dictation' | 'analytics' | 'notes' | 'todos' | 'focus' | 'profile' | 'admin' | 'srs' | 'my-vocab' | 'vocabulary_study';
+export type ActiveTab = 'dashboard' | 'courses' | 'paths' | 'vocabulary' | 'speaking' | 'dictation' | 'analytics' | 'notes' | 'todos' | 'focus' | 'profile' | 'admin' | 'srs' | 'my-vocab' | 'vocabulary_study' | 'discover';
 
 export type SkillType = 'all' | 'vocab' | 'grammar' | 'listening' | 'speaking' | 'reading' | 'writing';
 
