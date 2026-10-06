@@ -24,9 +24,9 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      setSavingStatus('saving');
-
+      
       saveTimeoutRef.current = setTimeout(async () => {
+        setSavingStatus('saving');
         try {
           await studyBoardsApi.updateBoardData(boardId, data, 0);
           setSavingStatus('saved');
