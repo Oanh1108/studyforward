@@ -293,7 +293,7 @@ export default function LoginPage() {
         <button
           onClick={() => {
             setIsGoogleSubmitting(true);
-            window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002'}/api/auth/google`;
+            window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'}/api/auth/google`;
           }}
           disabled={isGoogleSubmitting || isSubmitting}
           className="w-full mt-6 py-3.5 px-4 rounded-xl border border-[var(--border)] hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-60 text-[var(--text-primary)] font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-3"
