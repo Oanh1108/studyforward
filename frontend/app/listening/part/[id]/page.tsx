@@ -627,7 +627,7 @@ export default function ToeicPartPage() {
             >
               {soundEnabled ? "🔊" : "🔇"}
             </button>
-            <LogoutButton bgVariant="subtle" />
+            <LogoutButton />
             <ThemeToggle variant="subtle" />
           </div>
         </div>

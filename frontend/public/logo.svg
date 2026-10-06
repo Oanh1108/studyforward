@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 140" fill="none">
+  <style>
+    .brand-green { fill: #0b7348; }
+    .brand-orange { fill: #f16244; }
+    .brand-text { fill: #111827; }
+    @media (prefers-color-scheme: dark) {
+      .brand-green { fill: #10b981; }
+      .brand-orange { fill: #ff6b4a; }
+      .brand-text { fill: #ffffff; }
+    }
+  </style>
+
+  <!-- Left Leaf / Speech Bubble -->
+  <path d="M26 28C26 24.686 28.686 22 32 22C52 22 72 28 82 36V118C72 110 52 104 32 104C28.686 104 26 101.314 26 98V28Z" class="brand-green" />
+  <path d="M28 104C28 104 41 106 54 116C44 126 37 128 34 127C30.5 125.8 27.5 120 28 114L28 104Z" class="brand-green" />
+
+  <!-- Right Leaf -->
+  <path d="M90 48C100 38 122 30 140 32C143.314 32.36 146 35.15 146 38.47V100C146 103.314 143.314 106 140 106C122 106 102 112 90 122V48Z" class="brand-green" />
+
+  <!-- Upward Forward Arrow -->
+  <path d="M112 42L144 20L146 52L132 46L108 70L98 60L122 36L112 42Z" class="brand-orange" />
+
+  <!-- Brand Typography -->
+  <text x="175" y="94" font-family="Inter, -apple-system, sans-serif" font-size="64" font-weight="900" letter-spacing="-2" class="brand-text">StudyForward</text>
+</svg>

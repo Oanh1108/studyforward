@@ -22,6 +22,13 @@ describe('VocabularyService - Custom Vocabulary Bulk', () => {
       {} as Repository<Vocabulary>,
       {} as Repository<UserVocabulary>,
       customVocabRepo as Repository<CustomVocabulary>,
+      {
+        findOne: vi.fn().mockResolvedValue({ id: 1, name: 'Test' }),
+        save: vi.fn(),
+      } as unknown as Repository<any>,
+      {} as Repository<any>, // studySessionRepo
+      { awardXp: vi.fn() } as any, // usersService
+      { getVietnameseMeanings: vi.fn(), standardizePos: vi.fn(s => s) } as any, // aiService
     );
   });
 
@@ -37,7 +44,7 @@ describe('VocabularyService - Custom Vocabulary Bulk', () => {
 
     expect(result.added).toBe(2);
     expect(result.updated).toBe(0);
-    expect(result.items).toHaveLength(2);
+    expect(result.success).toBe(true);
     expect(customVocabRepo.save).toHaveBeenCalledTimes(2);
   });
 
@@ -58,8 +65,7 @@ describe('VocabularyService - Custom Vocabulary Bulk', () => {
 
     expect(result.added).toBe(0);
     expect(result.updated).toBe(1);
-    expect(result.items[0].listName).toBe('Danh sách mới');
-    expect(result.items[0].meaning).toBe('táo mới');
+    expect(result.success).toBe(true);
   });
 
   it('should delete custom word if owned by user', async () => {

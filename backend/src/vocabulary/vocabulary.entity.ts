@@ -10,7 +10,10 @@ export class Vocabulary {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: CourseType })
+  @Column({ type: 'varchar', length: 10, default: 'en' })
+  language: string; // en | th | ko | zh | ja
+
+  @Column({ type: 'enum', enum: CourseType, default: CourseType.TOEIC })
   course: CourseType; // toeic | ielts
 
   @Column()
@@ -19,8 +22,26 @@ export class Vocabulary {
   @Column()
   word: string;
 
-  @Column()
-  phonetic: string; // /ˈbɪznəs/
+  @Column({ type: 'varchar', nullable: true })
+  phonetic: string | null; // /ˈbɪznəs/
+
+  @Column({ type: 'varchar', nullable: true })
+  reading: string | null; // General reading
+
+  @Column({ type: 'varchar', nullable: true })
+  pinyin: string | null; // Pinyin
+
+  @Column({ type: 'varchar', nullable: true })
+  kana: string | null; // Kana
+
+  @Column({ type: 'varchar', nullable: true })
+  romaji: string | null; // Romaji
+
+  @Column({ type: 'varchar', nullable: true })
+  romaja: string | null; // Romaja
+
+  @Column({ type: 'varchar', nullable: true })
+  thaiReading: string | null; // Thai reading
 
   @Column()
   partOfSpeech: string; // noun, verb, adj...
@@ -31,11 +52,11 @@ export class Vocabulary {
   @Column({ type: 'text' })
   example: string; // example sentence
 
-  @Column({ nullable: true })
-  exampleTranslation: string;
+  @Column({ type: 'text', nullable: true })
+  exampleTranslation: string | null;
 
-  @Column({ nullable: true })
-  imageUrl: string;
+  @Column({ type: 'varchar', nullable: true })
+  imageUrl: string | null;
 
   @Column({ default: 0 })
   frequency: number; // how common in exam (1-5)

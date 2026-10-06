@@ -452,7 +452,7 @@ export default function ListeningPracticePage() {
               {soundEnabled ? "🔊" : "🔇"}
             </button>
 
-            <LogoutButton bgVariant="subtle" />
+            <LogoutButton />
             <ThemeToggle variant="subtle" />
           </div>
         </div>

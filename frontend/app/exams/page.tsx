@@ -35,7 +35,7 @@ export default function ExamsPage() {
             </Link>
           </div>
           <div className="flex items-center gap-2.5">
-            <LogoutButton bgVariant="subtle" />
+            <LogoutButton />
             <ThemeToggle variant="subtle" />
           </div>
         </div>

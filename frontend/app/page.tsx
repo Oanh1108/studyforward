@@ -1,384 +1,368 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogoutButton } from "@/components/LogoutButton";
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/authContext';
+import { useTheme } from '@/lib/ThemeProvider';
+import { Sun, Moon, Menu, X, CheckCircle2, Globe2, BrainCircuit, BarChart3, ChevronDown, Sparkles } from 'lucide-react';
 
-const navItems = ["Lộ trình", "Đề thi", "Từ vựng", "Cộng đồng"];
-const tags = ["Giao tiếp tiếng Anh", "TOEIC", "IELTS", "Ngôn ngữ sắp ra mắt"];
-
-const featureCards = [
-  {
-    title: "Lộ trình cá nhân hóa",
-    text: "Bạn học theo mục tiêu rõ ràng, phù hợp năng lực và thời gian hiện có.",
-    accent: "#4f7cff",
-  },
-  {
-    title: "Ôn luyện đề thật",
-    text: "Luyện tập theo format chuẩn, phân tích lỗi nhanh và bám sát điểm yếu của bạn.",
-    accent: "#7c5cff",
-  },
-  {
-    title: "Ghi nhớ bền vững",
-    text: "Từ vựng và ngữ pháp được nhắc lại đúng lúc để tiến bộ đều và lâu dài.",
-    accent: "#22c55e",
-  },
-];
-
-const planCards = [
-  { level: "Starter", title: "Luyện nền tảng", detail: "6 tuần • 15 phút/ngày" },
-  { level: "Accelerate", title: "Tăng tốc đề thật", detail: "8 tuần • 25 phút/ngày" },
-  { level: "Target", title: "Đạt mục tiêu", detail: "12 tuần • 35 phút/ngày" },
-];
-
-const testimonials = [
-  { name: "Lan Anh", quote: "Mình học nhờ StudyForward thấy rõ tiến bộ, đặc biệt là phần từ vựng và đề luyện." },
-  { name: "Minh Khang", quote: "Giao diện dễ dùng, lộ trình rõ ràng, rất hợp cho người đi làm như mình." },
-  { name: "Thảo Vy", quote: "Mỗi ngày có việc phải làm nhưng vẫn học đều nhờ hệ thống nhắc học thông minh." },
-];
-
-export default function Home() {
+export default function LandingPage() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      setIsLoggedIn(true);
-      router.replace("/dashboard");
+    if (!authLoading && isAuthenticated) {
+      router.replace('/dashboard');
     }
-  }, [router]);
+  }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    setMobileMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      const offset = 80; // Header height
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleStartLearning = () => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    } else {
+      router.push('/register');
+    }
+  };
+
+  // Avoid hydration mismatch for theme icon by checking if mounted
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="landing-page min-h-screen bg-[#f5f7ff] text-[#101827]">
-      <header className="sticky top-0 z-20 grid h-[72px] w-full grid-cols-[1fr_auto_1fr] items-center border border-[#dfe9ff] bg-white px-4 shadow-[0_12px_32px_rgba(15,23,42,0.06)] md:px-8">
-        <Link href={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-3 justify-self-start cursor-pointer">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#4f7cff,#7c5cff)] text-lg font-black text-white shadow-[0_14px_28px_rgba(79,124,255,0.35)]">
-              S
-            </div>
-            <span className="text-[1.7rem] font-black tracking-[-0.06em] text-[#101827]">
-              StudyForward
-            </span>
-        </Link>
-
-        <nav className="hidden items-center gap-8 text-sm font-medium text-[#4b5563] md:flex">
-            {navItems.map((item) => (
-              <a key={item} href="#" className="transition-colors hover:text-[#1f2937]">
-                {item}
-              </a>
-            ))}
-        </nav>
-
-        <div className="flex items-center gap-3 justify-self-end">
-            <ThemeToggle />
-            {isLoggedIn ? (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-xl bg-[#4f7cff] px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-[#3d6ef1] transition-colors"
-                >
-                  Vào Dashboard →
-                </Link>
-                <LogoutButton />
+    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-indigo-500/30">
+      {/* HEADER */}
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[var(--bg-card)]/80 backdrop-blur-md border-b border-[var(--border)] shadow-sm' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                <span className="text-white font-black text-xl tracking-tighter">SF</span>
               </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden items-center justify-center rounded-xl border border-[#dfe9ff] bg-[#f7f9ff] px-4 py-2.5 text-sm font-semibold text-[#27344d] transition-colors hover:border-[#8aa9ff] dark:bg-white dark:text-[#101827] sm:inline-flex"
+              <span className="font-bold text-xl tracking-tight hidden sm:block text-[var(--text-primary)]">
+                Study<span className="text-indigo-600 dark:text-indigo-400">Forward</span>
+              </span>
+            </div>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-8 font-medium text-sm">
+              <button onClick={() => scrollTo('features')} className="text-[var(--text-secondary)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Tính năng</button>
+              <button onClick={() => scrollTo('languages')} className="text-[var(--text-secondary)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Ngôn ngữ</button>
+              <button onClick={() => scrollTo('faq')} className="text-[var(--text-secondary)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Hỏi đáp</button>
+            </nav>
+
+            <div className="hidden md:flex items-center gap-4">
+              {mounted && (
+                <button 
+                  onClick={toggleTheme} 
+                  className="p-2.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
+                  aria-label="Chuyển đổi giao diện sáng tối"
+                  title={theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
                 >
-                  Đăng nhập
-                </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center rounded-xl bg-[#101827] px-5 py-2.5 text-sm font-bold text-white shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-[#101827]"
-                >
-                  Bắt đầu học
-                </Link>
-              </>
-            )}
+                  {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+              )}
+              <Link href="/login" className="font-semibold text-sm text-[var(--text-primary)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors px-2">
+                Đăng nhập
+              </Link>
+              <button 
+                onClick={handleStartLearning}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-indigo-600/30 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Bắt đầu học
+              </button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex items-center gap-2 md:hidden">
+              {mounted && (
+                <button onClick={toggleTheme} className="p-2 rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]">
+                  {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+              )}
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-[var(--text-primary)]">
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
         </div>
+
+        {/* Mobile Nav */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-[var(--bg-card)] border-b border-[var(--border)] absolute top-full left-0 w-full shadow-lg">
+            <div className="px-4 py-6 flex flex-col gap-4">
+              <button onClick={() => scrollTo('features')} className="text-left py-2 font-medium text-[var(--text-primary)]">Tính năng</button>
+              <button onClick={() => scrollTo('languages')} className="text-left py-2 font-medium text-[var(--text-primary)]">Ngôn ngữ</button>
+              <button onClick={() => scrollTo('faq')} className="text-left py-2 font-medium text-[var(--text-primary)]">Hỏi đáp</button>
+              <div className="h-px bg-[var(--border)] my-2"></div>
+              <Link href="/login" className="text-center py-3 font-bold text-[var(--text-primary)] border border-[var(--border)] rounded-xl">Đăng nhập</Link>
+              <button onClick={handleStartLearning} className="text-center py-3 font-bold text-white bg-indigo-600 rounded-xl">Bắt đầu học</button>
+            </div>
+          </div>
+        )}
       </header>
 
-      <div className="mx-auto max-w-[1280px] px-4 py-10 md:px-6 md:py-14">
-        <main className="pb-20 pt-10 md:pt-14">
-          <section className="grid items-center gap-14 overflow-hidden rounded-[34px] border border-[#dfe9ff] bg-[radial-gradient(circle_at_15%_15%,rgba(79,124,255,0.14),transparent_20%),linear-gradient(180deg,#ffffff_0%,#eef3ff_100%)] p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] md:p-8 lg:grid-cols-[1.08fr_0.92fr]">
-            <div className="pt-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#b8caff] bg-[#f1f5ff] px-3 py-2 text-sm font-medium text-[#264de2]">
-                <span>✦</span>
-                <span>Học tiếng Anh thông minh cho mọi mục tiêu</span>
+      {/* HERO SECTION */}
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+        {/* Background blobs */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/20 dark:bg-indigo-600/20 rounded-full blur-[100px] -z-10"></div>
+        <div className="absolute top-1/3 right-0 translate-x-1/3 w-[400px] h-[400px] bg-emerald-500/15 dark:bg-emerald-500/10 rounded-full blur-[80px] -z-10"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-[var(--text-primary)] mb-6 max-w-4xl mx-auto leading-tight">
+            Nắm vững mọi ngôn ngữ với <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">StudyForward</span>
+          </h1>
+          <p className="text-lg md:text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">
+            Học hiệu quả nhiều ngôn ngữ trên cùng một nền tảng. Xây dựng sổ từ vựng cá nhân, luyện tập qua flashcard, nghe-chép và ôn tập tự động theo thuật toán SRS.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button 
+              onClick={handleStartLearning}
+              className="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-lg shadow-xl shadow-indigo-600/20 transition-all hover:-translate-y-1 active:translate-y-0"
+            >
+              Bắt đầu học ngay
+            </button>
+            <button 
+              onClick={() => scrollTo('features')}
+              className="w-full sm:w-auto px-8 py-4 bg-[var(--bg-card)] border-2 border-[var(--border)] hover:border-indigo-400 dark:hover:border-indigo-600 text-[var(--text-primary)] font-bold rounded-2xl text-lg transition-all hover:bg-[var(--bg-subtle)]"
+            >
+              Khám phá cách học
+            </button>
+          </div>
+        </div>
+
+        {/* Hero Image */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-16 md:mt-24">
+          <div className="relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-[var(--border)] bg-[var(--bg-card)] ring-1 ring-white/10">
+            <div className="aspect-[16/10] md:aspect-[21/9] relative bg-[var(--bg-subtle)]">
+              <Image 
+                src="/hero-ui.jpg" 
+                alt="Giao diện Dashboard StudyForward" 
+                fill 
+                className="object-cover"
+                priority
+              />
+            </div>
+            {/* Minimal browser UI mock */}
+            <div className="absolute top-0 left-0 right-0 h-10 md:h-12 bg-[var(--bg-card)]/90 backdrop-blur-sm border-b border-[var(--border)] flex items-center px-4 gap-2">
+              <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* LANGUAGES SECTION */}
+      <section id="languages" className="py-24 bg-[var(--bg-card)] border-y border-[var(--border)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-bold mb-4">
+              <Globe2 className="w-4 h-4" />
+              Đa ngôn ngữ
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-4">Một nền tảng, mọi ngôn ngữ</h2>
+            <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+              Hỗ trợ giao diện tiếng Việt thân thiện, giúp bạn dễ dàng tiếp cận các ngôn ngữ phổ biến nhất hiện nay.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+            {[
+              { name: 'Tiếng Anh', flag: '🇬🇧', code: 'en' },
+              { name: 'Tiếng Nhật', flag: '🇯🇵', code: 'ja' },
+              { name: 'Tiếng Hàn', flag: '🇰🇷', code: 'ko' },
+              { name: 'Tiếng Trung', flag: '🇨🇳', code: 'zh' },
+              { name: 'Tiếng Thái', flag: '🇹🇭', code: 'th' },
+            ].map((lang) => (
+              <div key={lang.code} className="bg-[var(--bg-base)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-indigo-500 hover:shadow-lg transition-all group">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{lang.flag}</div>
+                <h3 className="font-bold text-[var(--text-primary)] text-lg">{lang.name}</h3>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <h1
-                className="mt-7 max-w-[620px] text-[#111827]"
-                style={{
-                  fontSize: "clamp(3rem, 4.8vw, 6.3rem)",
-                  lineHeight: 0.94,
-                  letterSpacing: "-0.065em",
-                  fontWeight: 900,
-                }}
-              >
-                <span className="block">Học đúng</span>
-                <span className="block text-[#4f7cff]">lộ trình.</span>
-                <span className="block">Tiến bộ chắc.</span>
-              </h1>
+      {/* FEATURES SECTION */}
+      <section id="features" className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-4">Quy trình học tập tối ưu</h2>
+            <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+              Từ việc thu thập từ vựng đến ôn tập hiệu quả, mọi tính năng đều được thiết kế để não bộ ghi nhớ lâu nhất.
+            </p>
+          </div>
 
-              <p className="mt-8 max-w-[620px] text-lg leading-8 text-[#4b5563] md:text-[1.15rem]">
-                StudyForward giúp bạn luyện nghe, nói, đọc, viết cùng lộ trình cá nhân hóa cho giao tiếp tiếng Anh, TOEIC và IELTS. Những ngôn ngữ và mục tiêu mới sẽ được mở rộng trong tương lai.
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-8 shadow-sm">
+              <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6">
+                <BrainCircuit className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">Sổ từ vựng thông minh</h3>
+              <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
+                Tổ chức thư mục không giới hạn. Nhập từ nhanh bằng cách dán danh sách hoặc file Excel. Trợ lý AI tự động bổ sung nghĩa, từ loại, phiên âm và câu ví dụ.
               </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center rounded-xl bg-[#4f7cff] px-6 py-4 text-base font-bold text-white shadow-[0_16px_35px_rgba(79,124,255,0.3)] transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-[#101827]"
-                >
-                  Bắt đầu miễn phí
-                </Link>
-                <Link
-                  href="/exams"
-                  className="inline-flex items-center justify-center rounded-xl border border-[#cbd8f5] bg-white px-6 py-4 text-base font-semibold text-[#27344d] transition-colors hover:border-[#8aa9ff] dark:border-white dark:bg-white dark:text-[#101827]"
-                >
-                  Xem lộ trình
-                </Link>
-              </div>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center justify-center rounded-full border border-[#dfe9ff] bg-white px-3 py-1.5 text-sm font-medium text-[#52607a] shadow-[0_8px_18px_rgba(15,23,42,0.03)]"
-                  >
-                    {tag}
-                  </span>
+              <ul className="space-y-2">
+                {['Tự động tra cứu nghĩa & ví dụ bằng AI', 'Tổ chức theo chủ đề/thư mục', 'Hỗ trợ import số lượng lớn'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-primary)] font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-8 shadow-sm relative overflow-hidden">
+              <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-6">
+                <Sparkles className="w-7 h-7" />
               </div>
-
-              <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-[#4b5563]">
-                <div>
-                  <span className="block text-2xl font-black text-[#111827]">32K+</span>
-                  <span>học viên</span>
-                </div>
-                <div>
-                  <span className="block text-2xl font-black text-[#111827]">4.9/5</span>
-                  <span>đánh giá</span>
-                </div>
-                <div>
-                  <span className="block text-2xl font-black text-[#111827]">12W</span>
-                  <span>đạt mục tiêu</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative flex justify-center lg:justify-end">
-              <div className="absolute -right-6 top-6 h-28 w-28 rounded-full bg-[#ffd29a]/70 blur-3xl" />
-              <div className="absolute bottom-8 left-2 h-28 w-28 rounded-full bg-[#f7b26d]/40 blur-3xl" />
-
-              <div className="relative w-full max-w-[540px] rounded-[30px] border border-[#dfe9ff] bg-white p-4 shadow-[0_28px_70px_rgba(15,23,42,0.08)] md:p-5">
-                <div className="rounded-[24px] bg-[#eef3ff] p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-[#7b8aa5]">
-                        Tiến độ hôm nay
-                      </div>
-                      <div className="mt-2 text-4xl font-black text-[#111827]">72%</div>
-                    </div>
-                    <div className="rounded-full border border-[#b8caff] bg-[#e7edff] px-2.5 py-1 text-xs font-bold text-[#264de2]">
-                      +18% tuần này
-                    </div>
-                  </div>
-
-                  <div className="mt-5 h-3 overflow-hidden rounded-full bg-[#dfe9ff]">
-                    <div className="h-full w-[72%] rounded-full bg-[linear-gradient(135deg,#4f7cff,#7c5cff)]" />
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-                    <div className="rounded-2xl border border-[#dfe9ff] bg-white p-3">
-                      <div className="text-2xl font-black text-[#111827]">18</div>
-                      <div className="mt-1 text-[0.7rem] text-[#6b7280]">Bài học</div>
-                    </div>
-                    <div className="rounded-2xl border border-[#dfe9ff] bg-white p-3">
-                      <div className="text-2xl font-black text-[#111827]">320</div>
-                      <div className="mt-1 text-[0.7rem] text-[#6b7280]">Từ mới</div>
-                    </div>
-                    <div className="rounded-2xl border border-[#dfe9ff] bg-white p-3">
-                      <div className="text-2xl font-black text-[#111827]">5</div>
-                      <div className="mt-1 text-[0.7rem] text-[#6b7280]">Ngày streak</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-[18px] border border-[#dfe9ff] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.03)]">
-                    <div className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[#7b8aa5]">Đề hôm nay</div>
-                    <div className="mt-2 text-3xl font-black text-[#111827]">3 bài</div>
-                    <div className="mt-1 text-sm text-[#4b5563]">Reading + Listening</div>
-                  </div>
-                  <div className="rounded-[18px] border border-[#dfe9ff] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.03)]">
-                    <div className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[#7b8aa5]">Mục tiêu</div>
-                    <div className="mt-2 text-3xl font-black text-[#111827]">750+</div>
-                    <div className="mt-1 text-sm text-[#4b5563]">TOEIC trong 3 tháng</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="mt-8 rounded-[28px] border border-[#dfe9ff] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.04)] md:p-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8aa5]">Tại sao chọn</div>
-                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-[#111827] md:text-4xl">
-                  Học tập theo cách đúng nhịp độ của bạn
-                </h2>
-              </div>
-              <span className="text-sm text-[#4b5563]">Từ người mới đến luyện thi chuyên sâu</span>
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {featureCards.map((card) => (
-                <div key={card.title} className="rounded-[24px] border border-[#dfe9ff] bg-[#f7f9ff] p-5 shadow-[0_10px_24px_rgba(15,23,42,0.02)]">
-                  <div
-                    className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-black text-white"
-                    style={{ background: card.accent }}
-                  >
-                    ✦
-                  </div>
-                  <h3 className="text-xl font-bold text-[#111827]">{card.title}</h3>
-                  <p className="mt-3 text-base leading-7 text-[#4b5563]">{card.text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mt-8 rounded-[28px] border border-[#dfe9ff] bg-[#eef3ff] p-6 md:p-8">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8aa5]">Lộ trình học</div>
-                <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-[#111827] md:text-4xl">
-                  Chọn lộ trình phù hợp với mục tiêu của bạn
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
-              {planCards.map((plan) => (
-                <div key={plan.level} className="rounded-[24px] border border-[#dfe9ff] bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.03)]">
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b8aa5]">{plan.level}</div>
-                  <h3 className="mt-3 text-2xl font-black text-[#111827]">{plan.title}</h3>
-                  <p className="mt-2 text-[#4b5563]">{plan.detail}</p>
-
-                  <div className="mt-5 h-2 rounded-full bg-[#efe7dc]">
-                    <div className="h-full w-2/3 rounded-full bg-[linear-gradient(135deg,#4f7cff,#7c5cff)]" />
-                  </div>
-
-                  <ul className="mt-5 space-y-2 text-sm text-[#4b5563]">
-                    <li>• Theo dõi tiến độ hàng tuần</li>
-                    <li>• Đề luyện theo mục tiêu</li>
-                    <li>• Nhắc học cá nhân hóa</li>
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[28px] border border-[#dfe9ff] bg-white p-6 md:p-8">
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8aa5]">Hệ thống học</div>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-[#111827] md:text-4xl">
-                Mỗi ngày đều có một bước tiến rõ ràng
-              </h2>
-
-              <div className="mt-8 space-y-4">
-                {[
-                  ["Luyện theo mục tiêu", "Bạn được gợi ý bài học theo năng lực, thời gian và cấp độ hiện tại."],
-                  ["Theo dõi tiến độ thật chi tiết", "Biểu đồ, streak, điểm mạnh/yếu được hiển thị rõ để bạn biết mình đang ở đâu."],
-                  ["Nhắc học đúng lúc", "Không bỏ lỡ buổi luyện vì hệ thống tự nhắc theo thói quen học của bạn."],
-                ].map(([title, text], index) => (
-                  <div key={title} className="flex gap-4 rounded-[20px] border border-[#dfe9ff] bg-[#f7f9ff] p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#111827] text-sm font-black text-white">
-                      0{index + 1}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-[#111827]">{title}</h3>
-                      <p className="mt-1 text-[#4b5563]">{text}</p>
-                    </div>
-                  </div>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">Chế độ học đa dạng</h3>
+              <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
+                Không chỉ lật thẻ (Flashcard), hệ thống cung cấp nhiều cách luyện tập kích thích trí não để bạn không bao giờ nhàm chán.
+              </p>
+              <ul className="space-y-2">
+                {['Lật thẻ Flashcard hai chiều', 'Trắc nghiệm nghĩa & đồng nghĩa', 'Gõ chính tả & Nghe chép (Dictation)'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-primary)] font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-8 shadow-sm">
+              <div className="w-14 h-14 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mb-6">
+                <BarChart3 className="w-7 h-7" />
               </div>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">Ôn tập ngắt quãng (SRS)</h3>
+              <p className="text-[var(--text-secondary)] leading-relaxed mb-6">
+                Hệ thống tự động tính toán thời điểm hoàn hảo để nhắc nhở bạn ôn tập trước khi kịp quên. Bảng điều khiển (Dashboard) hiển thị tức thì các từ đến hạn.
+              </p>
+              <ul className="space-y-2">
+                {['Thuật toán Spaced Repetition', 'Theo dõi tiến độ & chuỗi ngày học', 'Lưu và khôi phục đúng bài đang học dở'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-[var(--text-primary)] font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="rounded-[28px] border border-[#1d2d43] bg-[linear-gradient(180deg,#17233c_0%,#0f1729_100%)] p-6 text-white shadow-[0_20px_60px_rgba(15,23,42,0.18)] md:p-8">
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Dashboard</div>
-              <h3 className="mt-2 text-3xl font-black tracking-[-0.04em]">Bạn đang ở giai đoạn tối ưu</h3>
-
-              <div className="mt-8 space-y-4">
-                <div className="rounded-[20px] bg-white/6 p-4">
-                  <div className="flex items-center justify-between text-sm text-white/75">
-                    <span>Reading Accuracy</span>
-                    <span>86%</span>
-                  </div>
-                  <div className="mt-3 h-2.5 rounded-full bg-white/10">
-                    <div className="h-full w-[86%] rounded-full bg-[linear-gradient(135deg,#f7c76b,#ee7a4a)]" />
-                  </div>
+      {/* FAQ SECTION */}
+      <section id="faq" className="py-24 bg-[var(--bg-card)] border-t border-[var(--border)]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] mb-4">Câu hỏi thường gặp</h2>
+          </div>
+          
+          <div className="space-y-4">
+            {[
+              {
+                q: 'StudyForward có miễn phí không?',
+                a: 'Hiện tại StudyForward cung cấp miễn phí các tính năng cốt lõi như tạo sổ từ vựng, học qua flashcard và ôn tập ngắt quãng (SRS) cho tất cả ngôn ngữ.'
+              },
+              {
+                q: 'Làm sao để hệ thống AI bổ sung từ vựng tự động?',
+                a: 'Khi bạn dán một danh sách từ (hoặc nhập file Excel), bạn chỉ cần chọn "Dùng AI để dịch & điền tự động", hệ thống sẽ nhận diện ngôn ngữ và tự động tìm nghĩa tiếng Việt, phiên âm và ví dụ ngữ cảnh phù hợp.'
+              },
+              {
+                q: 'Tôi có thể dùng StudyForward trên điện thoại không?',
+                a: 'Hoàn toàn được. Giao diện của StudyForward được thiết kế responsive, hiển thị hoàn hảo trên các thiết bị di động. Bạn có thể ôn từ vựng mọi lúc mọi nơi ngay trên trình duyệt web.'
+              },
+              {
+                q: 'Hệ thống gợi ý ôn tập (SRS) hoạt động thế nào?',
+                a: 'Mỗi khi bạn học hoặc ôn một từ, bạn sẽ đánh giá mức độ nhớ của mình (Dễ, Tốt, Khó, Cần học lại). Thuật toán sẽ tính toán và đưa từ đó vào danh sách "Đến hạn ôn" sau một khoảng thời gian nhất định, giúp bạn nhớ lâu với số lần học ít nhất.'
+              }
+            ].map((faq, i) => (
+              <details key={i} className="group border border-[var(--border)] bg-[var(--bg-base)] rounded-2xl overflow-hidden">
+                <summary className="flex items-center justify-between p-6 cursor-pointer font-bold text-lg text-[var(--text-primary)] outline-none focus-visible:ring-2 ring-indigo-500 ring-inset">
+                  {faq.q}
+                  <ChevronDown className="w-5 h-5 text-[var(--text-secondary)] transition-transform group-open:rotate-180 shrink-0" />
+                </summary>
+                <div className="px-6 pb-6 text-[var(--text-secondary)] leading-relaxed border-t border-[var(--border)] pt-4">
+                  {faq.a}
                 </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                <div className="rounded-[20px] bg-white/6 p-4">
-                  <div className="flex items-center justify-between text-sm text-white/75">
-                    <span>Vocabulary retention</span>
-                    <span>91%</span>
-                  </div>
-                  <div className="mt-3 h-2.5 rounded-full bg-white/10">
-                    <div className="h-full w-[91%] rounded-full bg-[linear-gradient(135deg,#8aa9ff,#4f7cff)]" />
-                  </div>
-                </div>
-
-                <div className="rounded-[20px] bg-white/6 p-4">
-                  <div className="flex items-center justify-between text-sm text-white/75">
-                    <span>Listening routine</span>
-                    <span>5 days</span>
-                  </div>
-                  <div className="mt-3 h-2.5 rounded-full bg-white/10">
-                    <div className="h-full w-[72%] rounded-full bg-[linear-gradient(135deg,#ffd29a,#ffb86c)]" />
-                  </div>
-                </div>
+      {/* CTA & FOOTER */}
+      <footer className="bg-slate-950 text-slate-400 py-12 md:py-20 mt-auto border-t-4 border-indigo-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-6">Sẵn sàng để làm chủ ngoại ngữ?</h2>
+            <p className="text-lg text-slate-300 mb-8">
+              Bắt đầu xây dựng vốn từ vựng của riêng bạn ngay hôm nay. Chỉ với 15 phút mỗi ngày cùng StudyForward.
+            </p>
+            <button 
+              onClick={handleStartLearning}
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl text-lg transition-colors"
+            >
+              Tạo tài khoản miễn phí
+            </button>
+          </div>
+          
+          <div className="h-px bg-slate-800 w-full mb-8"></div>
+          
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-xs">SF</span>
               </div>
+              <span className="font-bold text-white tracking-tight">
+                Study<span className="text-indigo-400">Forward</span>
+              </span>
             </div>
-          </section>
-
-          <section className="mt-8 rounded-[28px] border border-[#dfe9ff] bg-white p-6 md:p-8">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b8aa5]">Học viên nói gì</div>
-            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-[#111827] md:text-4xl">
-              Mọi người đều thấy tiến bộ rõ rệt
-            </h2>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {testimonials.map((item) => (
-                <div key={item.name} className="rounded-[24px] border border-[#dfe9ff] bg-[#f7f9ff] p-5 shadow-[0_10px_24px_rgba(15,23,42,0.02)]">
-                  <div className="mb-4 text-xl text-[#4f7cff]">★★★★★</div>
-                  <p className="text-base leading-7 text-[#374151]">“{item.quote}”</p>
-                  <div className="mt-5 text-sm font-bold text-[#111827]">{item.name}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mt-8 rounded-[28px] bg-[linear-gradient(135deg,#101827,#264de2)] p-8 text-white shadow-[0_28px_60px_rgba(38,77,226,0.22)] md:p-10">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">Bắt đầu ngay</div>
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] md:text-4xl">
-                  Chọn StudyForward và kiểm soát cuộc học của bạn
-                </h2>
-              </div>
-              <Link href="/register" className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-4 text-base font-bold text-[#264de2] shadow-lg transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-[#101827]">
-                Tạo tài khoản miễn phí
-              </Link>
-            </div>
-          </section>
-        </main>
-      </div>
+            <p className="text-sm">
+              &copy; {new Date().getFullYear()} StudyForward. Phát triển cho việc tự học ngoại ngữ.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

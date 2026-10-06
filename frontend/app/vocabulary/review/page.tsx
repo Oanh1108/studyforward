@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from "rea
 import { useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { Select } from "@/components/ui/Select";
 import {
   getFarmStars,
   addFarmStars,
@@ -115,10 +116,14 @@ function MatchPairsGame({
   wordPool,
   soundEnabled,
   onSpeech,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
   onSpeech: (word: string) => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [round, setRound] = useState(1);
   const [cards, setCards] = useState<MatchCard[]>([]);
@@ -161,6 +166,7 @@ function MatchPairsGame({
           type: "vi",
           text: item.meaning || "Không có nghĩa",
           subText: itemAnalysis.synonym ? `= ${itemAnalysis.synonym}` : undefined,
+          rawWord: item.word,
           isMatched: false,
         });
       });
@@ -199,7 +205,7 @@ function MatchPairsGame({
     }
 
     playEffectSound("click", soundEnabled);
-    if (card.type === "en" && card.rawWord) {
+    if (card.rawWord) {
       onSpeech(card.rawWord);
     }
 
@@ -224,16 +230,20 @@ function MatchPairsGame({
         );
         setSelectedCards([]);
 
-        // Record successful pair match into DB
+        // Record successful pair match into DB & advance Leitner stage
         const matchedItem = wordPool.find((w) => w.id === first.wordId);
         if (matchedItem) {
-          recordWordProgressToDb({
-            word: matchedItem.word,
-            meaning: matchedItem.meaning,
-            example: matchedItem.example,
-            listName: matchedItem.topic,
-            isCorrect: true,
-          });
+          if (onWordAnswered) {
+            onWordAnswered(matchedItem, true);
+          } else {
+            recordWordProgressToDb({
+              word: matchedItem.word,
+              meaning: matchedItem.meaning,
+              example: matchedItem.example,
+              listName: matchedItem.topic,
+              isCorrect: true,
+            });
+          }
         }
 
         const newMatched = matchedCount + 1;
@@ -243,6 +253,7 @@ function MatchPairsGame({
         if (newMatched >= totalPairsInRound) {
           setIsRoundWon(true);
           playEffectSound("victory", soundEnabled);
+          onGameComplete?.();
         }
       } else {
         // MISMATCH!
@@ -289,18 +300,15 @@ function MatchPairsGame({
 
           <div className="flex items-center gap-1.5 text-xs font-bold">
             <span style={{ color: "var(--text-primary)" }}>Hiệp</span>
-            <select
+            <Select
               value={round}
-              onChange={(e) => setRound(Number(e.target.value))}
-              className="px-2 py-1 rounded-lg border text-xs font-bold bg-[var(--bg-subtle)] cursor-pointer focus:ring-2 focus:ring-purple-500/40 outline-none"
-              style={{ borderColor: "var(--border)", color: "var(--text-primary)" }}
-            >
-              {Array.from({ length: totalRounds }).map((_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  Hiệp {i + 1} / {totalRounds} (Từ {i * pairsPerRound + 1} - {Math.min((i + 1) * pairsPerRound, wordPool.length)})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setRound(Number(val))}
+              options={Array.from({ length: totalRounds }).map((_, i) => ({
+                value: i + 1,
+                label: `Hiệp ${i + 1} / ${totalRounds} (Từ ${i * pairsPerRound + 1} - ${Math.min((i + 1) * pairsPerRound, wordPool.length)})`
+              }))}
+              className="w-48 text-xs font-bold"
+            />
           </div>
 
           <button
@@ -544,9 +552,14 @@ function MatchPairsGame({
 // ==========================================
 // GAME 2: SPEED QUIZ (TRẮC NGHIỆM TỐC ĐỘ 10S)
 // ==========================================
+interface SpeedQuizOption {
+  text: string;
+  englishWord: string;
+}
+
 interface QuizQuestion {
   wordItem: SpacedWordItem;
-  options: string[];
+  options: SpeedQuizOption[];
   correctAnswer: string;
 }
 
@@ -554,10 +567,14 @@ function SpeedQuizGame({
   wordPool,
   soundEnabled,
   onSpeech,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
   onSpeech: (word: string) => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [qIndex, setQIndex] = useState(0);
@@ -582,13 +599,21 @@ function SpeedQuizGame({
 
     const generated: QuizQuestion[] = chosenWords.map((target) => {
       const correct = target.meaning || target.word;
+      const correctOpt: SpeedQuizOption = {
+        text: correct,
+        englishWord: target.word,
+      };
+
       // Pick 3 distractors from rest of pool
-      const distractors = wordPool
+      const distractors: SpeedQuizOption[] = wordPool
         .filter((w) => w.id !== target.id && (w.meaning || w.word) !== correct)
-        .map((w) => w.meaning || w.word);
+        .map((w) => ({
+          text: w.meaning || w.word,
+          englishWord: w.word,
+        }));
 
       const shuffledDistractors = distractors.sort(() => Math.random() - 0.5).slice(0, 3);
-      const allOptions = [correct, ...shuffledDistractors].sort(() => Math.random() - 0.5);
+      const allOptions = [correctOpt, ...shuffledDistractors].sort(() => Math.random() - 0.5);
 
       return {
         wordItem: target,
@@ -636,6 +661,7 @@ function SpeedQuizGame({
     } else {
       setIsFinished(true);
       playEffectSound("victory", soundEnabled);
+      onGameComplete?.();
     }
   }, [qIndex, questions.length, soundEnabled]);
 
@@ -647,15 +673,19 @@ function SpeedQuizGame({
     setStreak(0);
     setWrongQuestions((prev) => [...prev, currentQ]);
 
-    // Save timeout (wrong answer) to DB
+    // Save timeout (wrong answer) to DB & Leitner
     if (currentQ?.wordItem) {
-      recordWordProgressToDb({
-        word: currentQ.wordItem.word,
-        meaning: currentQ.wordItem.meaning,
-        example: currentQ.wordItem.example,
-        listName: currentQ.wordItem.topic,
-        isCorrect: false,
-      });
+      if (onWordAnswered) {
+        onWordAnswered(currentQ.wordItem, false);
+      } else {
+        recordWordProgressToDb({
+          word: currentQ.wordItem.word,
+          meaning: currentQ.wordItem.meaning,
+          example: currentQ.wordItem.example,
+          listName: currentQ.wordItem.topic,
+          isCorrect: false,
+        });
+      }
     }
 
     nextTimerRef.current = setTimeout(() => {
@@ -681,21 +711,28 @@ function SpeedQuizGame({
     return () => clearInterval(timer);
   }, [isFinished, selectedOption, currentQ, handleTimeout]);
 
-  const handleSelectOption = (opt: string) => {
+  const handleSelectOption = (opt: SpeedQuizOption) => {
     if (selectedOption !== null || isFinished || !currentQ) return;
 
-    setSelectedOption(opt);
-    const isCorrect = opt === currentQ.correctAnswer;
+    if (opt.englishWord) {
+      onSpeech(opt.englishWord);
+    }
+    setSelectedOption(opt.text);
+    const isCorrect = opt.text === currentQ.correctAnswer;
 
-    // Record quiz answer directly to DB
+    // Record quiz answer directly to DB & Leitner
     if (currentQ?.wordItem) {
-      recordWordProgressToDb({
-        word: currentQ.wordItem.word,
-        meaning: currentQ.wordItem.meaning,
-        example: currentQ.wordItem.example,
-        listName: currentQ.wordItem.topic,
-        isCorrect,
-      });
+      if (onWordAnswered) {
+        onWordAnswered(currentQ.wordItem, isCorrect);
+      } else {
+        recordWordProgressToDb({
+          word: currentQ.wordItem.word,
+          meaning: currentQ.wordItem.meaning,
+          example: currentQ.wordItem.example,
+          listName: currentQ.wordItem.topic,
+          isCorrect,
+        });
+      }
     }
 
     if (isCorrect) {
@@ -895,8 +932,8 @@ function SpeedQuizGame({
       {/* 4 Choices */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
         {currentQ.options.map((opt, idx) => {
-          const isChosen = selectedOption === opt;
-          const isCorrect = opt === currentQ.correctAnswer;
+          const isChosen = selectedOption === opt.text;
+          const isCorrect = opt.text === currentQ.correctAnswer;
           const showAnswer = selectedOption !== null;
 
           let btnClass = "border hover:border-blue-500/50 hover:bg-[var(--bg-muted)]";
@@ -926,14 +963,34 @@ function SpeedQuizGame({
               className={`p-4 sm:p-5 rounded-2xl text-left transition-all text-sm sm:text-base font-bold flex items-center justify-between gap-3.5 cursor-pointer shadow-2xs ${btnClass}`}
               style={{ background: styleBg || undefined, borderColor: styleBorder || undefined }}
             >
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 <span className="w-8 h-8 rounded-xl bg-black/10 dark:bg-white/10 flex items-center justify-center text-xs sm:text-sm font-black font-mono shrink-0">
                   {String.fromCharCode(65 + idx)}
                 </span>
-                <span className="line-clamp-2 leading-snug">{opt}</span>
+                <div className="min-w-0 flex-1">
+                  <span className="line-clamp-2 leading-snug">{opt.text}</span>
+                  {showAnswer && opt.englishWord && opt.englishWord.toLowerCase() !== opt.text.toLowerCase() && (
+                    <span className="block text-xs opacity-90 font-mono mt-0.5 font-normal">
+                      🇬🇧 {opt.englishWord}
+                    </span>
+                  )}
+                </div>
               </div>
-              {showAnswer && isCorrect && <span className="text-lg">✓</span>}
-              {showAnswer && isChosen && !isCorrect && <span className="text-lg">✕</span>}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (opt.englishWord) onSpeech(opt.englishWord);
+                  }}
+                  className="w-7 h-7 rounded-full bg-blue-500/15 hover:bg-blue-500/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+                  title={`Nghe phát âm: ${opt.englishWord}`}
+                >
+                  🔊
+                </button>
+                {showAnswer && isCorrect && <span className="text-lg">✓</span>}
+                {showAnswer && isChosen && !isCorrect && <span className="text-lg">✕</span>}
+              </div>
             </button>
           );
         })}
@@ -978,6 +1035,8 @@ function WordScrambleGame({
   onSpeech,
   gameInfo,
   onBackToSetup,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
@@ -988,6 +1047,8 @@ function WordScrambleGame({
     totalWords: number;
   };
   onBackToSetup?: () => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [index, setIndex] = useState(0);
   const [scrambledLetters, setScrambledLetters] = useState<{ id: string; char: string }[]>([]);
@@ -1045,14 +1106,18 @@ function WordScrambleGame({
         playEffectSound("correct", soundEnabled);
         if (currentItem) {
           onSpeech(currentItem.word);
-          // Save correct scramble to DB
-          recordWordProgressToDb({
-            word: currentItem.word,
-            meaning: currentItem.meaning,
-            example: currentItem.example,
-            listName: currentItem.topic,
-            isCorrect: true,
-          });
+          // Save correct scramble to DB & Leitner
+          if (onWordAnswered) {
+            onWordAnswered(currentItem, true);
+          } else {
+            recordWordProgressToDb({
+              word: currentItem.word,
+              meaning: currentItem.meaning,
+              example: currentItem.example,
+              listName: currentItem.topic,
+              isCorrect: true,
+            });
+          }
         }
         const nextStreak = streak + 1;
         setStreak(nextStreak);
@@ -1062,14 +1127,18 @@ function WordScrambleGame({
         playEffectSound("wrong", soundEnabled);
         if (currentItem) {
           onSpeech(currentItem.word);
-          // Save wrong scramble to DB
-          recordWordProgressToDb({
-            word: currentItem.word,
-            meaning: currentItem.meaning,
-            example: currentItem.example,
-            listName: currentItem.topic,
-            isCorrect: false,
-          });
+          // Save wrong scramble to DB & Leitner
+          if (onWordAnswered) {
+            onWordAnswered(currentItem, false);
+          } else {
+            recordWordProgressToDb({
+              word: currentItem.word,
+              meaning: currentItem.meaning,
+              example: currentItem.example,
+              listName: currentItem.topic,
+              isCorrect: false,
+            });
+          }
         }
         setStreak(0);
       }
@@ -1106,14 +1175,18 @@ function WordScrambleGame({
     playEffectSound("flip", soundEnabled);
     if (currentItem) {
       onSpeech(currentItem.word);
-      // Save revealed answer (marked needs review) to DB
-      recordWordProgressToDb({
-        word: currentItem.word,
-        meaning: currentItem.meaning,
-        example: currentItem.example,
-        listName: currentItem.topic,
-        isCorrect: false,
-      });
+      // Save revealed answer (marked needs review) to DB & Leitner
+      if (onWordAnswered) {
+        onWordAnswered(currentItem, false);
+      } else {
+        recordWordProgressToDb({
+          word: currentItem.word,
+          meaning: currentItem.meaning,
+          example: currentItem.example,
+          listName: currentItem.topic,
+          isCorrect: false,
+        });
+      }
     }
   };
 
@@ -1131,6 +1204,7 @@ function WordScrambleGame({
       setIndex((i) => i + 1);
     } else {
       setIndex(0);
+      onGameComplete?.();
     }
   };
 
@@ -1625,6 +1699,8 @@ function ListeningVocabGame({
   onSpeech,
   gameInfo,
   onBackToSetup,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
@@ -1635,6 +1711,8 @@ function ListeningVocabGame({
     totalWords: number;
   };
   onBackToSetup?: () => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [index, setIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
@@ -1712,14 +1790,18 @@ function ListeningVocabGame({
       setStreak(0);
     }
 
-    // Persist to Database immediately
-    recordWordProgressToDb({
-      word: currentItem.word,
-      meaning: currentItem.meaning,
-      example: currentItem.example,
-      listName: currentItem.topic,
-      isCorrect: correct,
-    });
+    // Persist to Database & Leitner
+    if (onWordAnswered) {
+      onWordAnswered(currentItem, correct);
+    } else {
+      recordWordProgressToDb({
+        word: currentItem.word,
+        meaning: currentItem.meaning,
+        example: currentItem.example,
+        listName: currentItem.topic,
+        isCorrect: correct,
+      });
+    }
   };
 
   const handleNext = () => {
@@ -1727,6 +1809,7 @@ function ListeningVocabGame({
       setIndex((i) => i + 1);
     } else {
       setIndex(0);
+      onGameComplete?.();
     }
   };
 
@@ -2307,12 +2390,16 @@ function SynonymBlockBlastGame({
   onSpeech,
   gameInfo,
   onBackToSetup,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
   onSpeech: (word: string) => void;
   gameInfo?: { gameName: string; folderName: string; totalWords: number };
   onBackToSetup?: () => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [blocks, setBlocks] = useState<BlockTile[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -2473,12 +2560,21 @@ function SynonymBlockBlastGame({
       setStarsEarned((st) => st + stars);
       addFarmStars(stars);
 
-      // Record to DB
-      recordWordProgressToDb({
-        word: `${firstBlock.word} = ${clickedBlock.word}`,
-        meaning: clickedBlock.meaning,
-        isCorrect: true,
-      });
+      // Record to DB & Leitner
+      const matchedItem = wordPool.find(
+        (w) =>
+          w.word.toLowerCase().includes(firstBlock.word.toLowerCase()) ||
+          w.word.toLowerCase().includes(clickedBlock.word.toLowerCase())
+      );
+      if (matchedItem && onWordAnswered) {
+        onWordAnswered(matchedItem, true);
+      } else {
+        recordWordProgressToDb({
+          word: `${firstBlock.word} = ${clickedBlock.word}`,
+          meaning: clickedBlock.meaning,
+          isCorrect: true,
+        });
+      }
 
       // Announce Combo
       if (newCombo >= 4) {
@@ -2511,6 +2607,7 @@ function SynonymBlockBlastGame({
         if (nextBlastedTotal >= TARGET_PAIRS) {
           setIsGameOver(true);
           playEffectSound("victory", soundEnabled);
+          onGameComplete?.();
           return;
         }
 
@@ -3070,6 +3167,8 @@ const COMMON_EXTRA_SYNONYMS: Record<string, { synonyms: string[]; viMeanings: st
 interface MultiSelectOption {
   id: string;
   text: string;
+  englishWord: string;
+  phonetic?: string;
   isCorrect: boolean;
   type: "meaning" | "synonym" | "distractor";
   badgeLabel?: string;
@@ -3087,12 +3186,16 @@ function MultiSelectQuizGame({
   onSpeech,
   gameInfo,
   onBackToSetup,
+  onWordAnswered,
+  onGameComplete,
 }: {
   wordPool: SpacedWordItem[];
   soundEnabled: boolean;
   onSpeech: (word: string) => void;
   gameInfo?: { gameName: string; folderName: string; totalWords: number };
   onBackToSetup?: () => void;
+  onWordAnswered?: (wordItem: SpacedWordItem, isCorrect: boolean) => void;
+  onGameComplete?: () => void;
 }) {
   const [questions, setQuestions] = useState<MultiSelectQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -3118,7 +3221,7 @@ function MultiSelectQuizGame({
       const headLower = analysis.headword.toLowerCase().trim();
 
       // Collect correct options
-      const correctPool: { text: string; type: "meaning" | "synonym"; badgeLabel?: string }[] = [];
+      const correctPool: { text: string; englishWord: string; phonetic?: string; type: "meaning" | "synonym"; badgeLabel?: string }[] = [];
 
       // A. Meaning chunks from target.meaning
       if (target.meaning) {
@@ -3128,7 +3231,13 @@ function MultiSelectQuizGame({
           .filter((p) => p.length >= 2 && !["hoặc", "và"].includes(p.toLowerCase()));
         parts.forEach((p) => {
           if (!correctPool.some((c) => c.text.toLowerCase() === p.toLowerCase())) {
-            correctPool.push({ text: p, type: "meaning", badgeLabel: "Nghĩa tiếng Việt" });
+            correctPool.push({
+              text: p,
+              englishWord: target.word,
+              phonetic: analysis.phonetic,
+              type: "meaning",
+              badgeLabel: "Nghĩa tiếng Việt",
+            });
           }
         });
       }
@@ -3141,7 +3250,12 @@ function MultiSelectQuizGame({
           .filter((s) => s.length >= 2);
         synParts.forEach((sp) => {
           if (!correctPool.some((c) => c.text.toLowerCase() === sp.toLowerCase())) {
-            correctPool.push({ text: sp, type: "synonym", badgeLabel: "Từ đồng nghĩa" });
+            correctPool.push({
+              text: sp,
+              englishWord: sp,
+              type: "synonym",
+              badgeLabel: "Từ đồng nghĩa",
+            });
           }
         });
       }
@@ -3151,12 +3265,23 @@ function MultiSelectQuizGame({
       if (dictEntry) {
         dictEntry.viMeanings.forEach((vm) => {
           if (!correctPool.some((c) => c.text.toLowerCase() === vm.toLowerCase())) {
-            correctPool.push({ text: vm, type: "meaning", badgeLabel: "Nghĩa tiếng Việt" });
+            correctPool.push({
+              text: vm,
+              englishWord: target.word,
+              phonetic: analysis.phonetic,
+              type: "meaning",
+              badgeLabel: "Nghĩa tiếng Việt",
+            });
           }
         });
         dictEntry.synonyms.forEach((syn) => {
           if (!correctPool.some((c) => c.text.toLowerCase() === syn.toLowerCase())) {
-            correctPool.push({ text: syn, type: "synonym", badgeLabel: "Từ đồng nghĩa (EN)" });
+            correctPool.push({
+              text: syn,
+              englishWord: syn,
+              type: "synonym",
+              badgeLabel: "Từ đồng nghĩa (EN)",
+            });
           }
         });
       }
@@ -3165,11 +3290,21 @@ function MultiSelectQuizGame({
       TOEIC_SYNONYM_PAIRS.forEach((pair) => {
         if (pair.w1.toLowerCase() === headLower) {
           if (!correctPool.some((c) => c.text.toLowerCase() === pair.w2.toLowerCase())) {
-            correctPool.push({ text: pair.w2, type: "synonym", badgeLabel: "Từ đồng nghĩa TOEIC" });
+            correctPool.push({
+              text: pair.w2,
+              englishWord: pair.w2,
+              type: "synonym",
+              badgeLabel: "Từ đồng nghĩa TOEIC",
+            });
           }
         } else if (pair.w2.toLowerCase() === headLower) {
           if (!correctPool.some((c) => c.text.toLowerCase() === pair.w1.toLowerCase())) {
-            correctPool.push({ text: pair.w1, type: "synonym", badgeLabel: "Từ đồng nghĩa TOEIC" });
+            correctPool.push({
+              text: pair.w1,
+              englishWord: pair.w1,
+              type: "synonym",
+              badgeLabel: "Từ đồng nghĩa TOEIC",
+            });
           }
         }
       });
@@ -3178,13 +3313,15 @@ function MultiSelectQuizGame({
       if (correctPool.length === 0) {
         correctPool.push({
           text: target.meaning || target.word,
+          englishWord: target.word,
+          phonetic: analysis.phonetic,
           type: "meaning",
           badgeLabel: "Nghĩa chuẩn",
         });
       }
 
       // Filter and clean duplicate entries
-      const uniqueCorrect: { text: string; type: "meaning" | "synonym"; badgeLabel?: string }[] = [];
+      const uniqueCorrect: { text: string; englishWord: string; phonetic?: string; type: "meaning" | "synonym"; badgeLabel?: string }[] = [];
       correctPool.forEach((item) => {
         const cleanText = item.text.trim();
         if (!cleanText) return;
@@ -3199,22 +3336,39 @@ function MultiSelectQuizGame({
       const chosenCorrect = shuffledCorrect.slice(0, Math.min(3, uniqueCorrect.length));
 
       // Collect distractors from other words in pool
-      const distractorCandidates: string[] = [];
+      const distractorCandidates: { text: string; englishWord: string; phonetic?: string }[] = [];
       wordPool.forEach((other) => {
         if (other.id === target.id) return;
-        const otherHead = analyzeWordStructure(other.word).headword.toLowerCase().trim();
+        const otherAnalysis = analyzeWordStructure(other.word);
+        const otherHead = otherAnalysis.headword.toLowerCase().trim();
         if (otherHead === headLower) return;
 
         if (other.meaning && !chosenCorrect.some((c) => c.text.toLowerCase() === other.meaning.toLowerCase().trim())) {
-          distractorCandidates.push(other.meaning.trim());
+          distractorCandidates.push({
+            text: other.meaning.trim(),
+            englishWord: other.word,
+            phonetic: otherAnalysis.phonetic,
+          });
         }
         if (otherHead && !chosenCorrect.some((c) => c.text.toLowerCase() === otherHead)) {
-          distractorCandidates.push(otherHead);
+          distractorCandidates.push({
+            text: otherHead,
+            englishWord: other.word,
+            phonetic: otherAnalysis.phonetic,
+          });
         }
       });
 
       // Dedup distractors: 3 distractors if 1 correct answer (4 total options); 2-3 if multiple
-      const uniqueDistractors = Array.from(new Set(distractorCandidates)).sort(() => Math.random() - 0.5);
+      const uniqueDistractors: { text: string; englishWord: string; phonetic?: string }[] = [];
+      const seenDistractors = new Set<string>();
+      [...distractorCandidates].sort(() => Math.random() - 0.5).forEach((d) => {
+        const lower = d.text.toLowerCase();
+        if (!seenDistractors.has(lower)) {
+          seenDistractors.add(lower);
+          uniqueDistractors.push(d);
+        }
+      });
       const neededDistractors = chosenCorrect.length === 1 ? 3 : Math.min(3, Math.max(2, 5 - chosenCorrect.length));
       const chosenDistractors = uniqueDistractors.slice(0, neededDistractors);
 
@@ -3223,13 +3377,17 @@ function MultiSelectQuizGame({
         ...chosenCorrect.map((c, i) => ({
           id: `opt-correct-${i}-${Date.now()}-${Math.random()}`,
           text: c.text,
+          englishWord: c.englishWord || (c.type === "synonym" ? c.text : target.word),
+          phonetic: c.phonetic,
           isCorrect: true,
           type: c.type,
           badgeLabel: c.badgeLabel,
         })),
         ...chosenDistractors.map((d, i) => ({
           id: `opt-wrong-${i}-${Date.now()}-${Math.random()}`,
-          text: d,
+          text: d.text,
+          englishWord: d.englishWord,
+          phonetic: d.phonetic,
           isCorrect: false,
           type: "distractor" as const,
           badgeLabel: "Đáp án nhiễu",
@@ -3269,17 +3427,28 @@ function MultiSelectQuizGame({
     }
   }, [currentIndex, currentQ?.targetWord, onSpeech]);
 
-  // Handle option toggle
+  // Handle option toggle & pronounce English word when selected
   const toggleOption = (id: string) => {
     if (isSubmitted || isGameOver) return;
     playEffectSound("click", soundEnabled);
+
+    const targetOpt = currentQ?.options.find((o) => o.id === id);
+
     if (currentQ?.correctAnswersCount === 1) {
       // Khi câu hỏi chỉ có 1 đáp án đúng: chọn ngay đáp án đó
-      setSelectedIds((prev) => (prev.includes(id) ? [] : [id]));
+      const willBeSelected = !selectedIds.includes(id);
+      setSelectedIds(willBeSelected ? [id] : []);
+      if (willBeSelected && targetOpt) {
+        onSpeech(targetOpt.englishWord || targetOpt.text);
+      }
     } else {
+      const willBeSelected = !selectedIds.includes(id);
       setSelectedIds((prev) =>
         prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
       );
+      if (willBeSelected && targetOpt) {
+        onSpeech(targetOpt.englishWord || targetOpt.text);
+      }
     }
   };
 
@@ -3350,6 +3519,21 @@ function MultiSelectQuizGame({
       setStreak(0);
       setSubmissionResult("wrong");
     }
+
+    // Persist to DB & Leitner
+    if (currentQ?.targetWord) {
+      if (onWordAnswered) {
+        onWordAnswered(currentQ.targetWord, isAllCorrect);
+      } else {
+        recordWordProgressToDb({
+          word: currentQ.targetWord.word,
+          meaning: currentQ.targetWord.meaning,
+          example: currentQ.targetWord.example,
+          listName: currentQ.targetWord.topic,
+          isCorrect: isAllCorrect,
+        });
+      }
+    }
   };
 
   // Next Question
@@ -3365,6 +3549,7 @@ function MultiSelectQuizGame({
       playEffectSound("victory", soundEnabled);
       addFarmStars(30);
       setFarmStarsEarned((s) => s + 30);
+      onGameComplete?.();
     }
   };
 
@@ -3451,10 +3636,7 @@ function MultiSelectQuizGame({
         style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
       >
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span className="px-3 py-1 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 font-extrabold text-xs">
-            🎯 {gameInfo?.gameName || "Đa Đáp Án"}
-          </span>
-          <span className="text-xs font-bold text-[var(--text-muted)]">
+          <span className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] bg-[var(--bg-muted)] px-3 py-1 rounded-xl border" style={{ borderColor: "var(--border)" }}>
             Câu {currentIndex + 1} / {questions.length}
           </span>
         </div>
@@ -3502,12 +3684,8 @@ function MultiSelectQuizGame({
           borderColor: "var(--border)",
         }}
       >
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-extrabold">
-          <span>
-            {currentQ.correctAnswersCount === 1
-              ? "🎯 CHỌN 1 ĐÁP ÁN ĐÚNG"
-              : `🎯 TÍCH CHỌN TẤT CẢ CÁC ĐÁP ÁN ĐÚNG (${currentQ.correctAnswersCount} đáp án đúng)`}
-          </span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-wide">
+          <span>🎯 CHỌN {currentQ.correctAnswersCount} ĐÁP ÁN ĐÚNG</span>
         </div>
 
         {/* Word Display & Audio Button */}
@@ -3561,7 +3739,7 @@ function MultiSelectQuizGame({
             const isSelected = selectedIds.includes(opt.id);
 
             // Styling states
-            let cardClasses = "p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 text-left relative overflow-hidden ";
+            let cardClasses = "p-3 sm:p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-1.5 text-left relative overflow-hidden ";
             let indicator = null;
 
             if (!isSubmitted) {
@@ -3614,38 +3792,98 @@ function MultiSelectQuizGame({
                   background: !isSelected && !isSubmitted ? "var(--bg-card)" : undefined,
                 }}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  {/* Number key tag & Checkbox box */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="w-5 h-5 rounded-md bg-[var(--bg-muted)] border text-[10px] font-black text-[var(--text-muted)] flex items-center justify-center" style={{ borderColor: "var(--border)" }}>
+                {/* Hàng 1: Phím số, Checkbox, Từ chính & Nút loa / Kết quả */}
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    {/* Phím số tắt [1-4] */}
+                    <span
+                      className="w-5 h-5 bg-[var(--bg-muted)] border text-[10px] font-black text-[var(--text-muted)] flex items-center justify-center select-none shrink-0"
+                      style={{ borderColor: "var(--border)", borderRadius: "4px" }}
+                      title={`Nhấn phím ${idx + 1} trên bàn phím`}
+                    >
                       {idx + 1}
                     </span>
+
+                    {/* Checkbox box: RÕ RÀNG HÌNH VUÔNG CHUẨN CHECKBOX (border-radius: 4px) */}
                     <div
-                      className={`w-5 h-5 ${
-                        currentQ.correctAnswersCount === 1 ? "rounded-full" : "rounded-md"
-                      } border flex items-center justify-center transition-all ${
-                        isSelected
-                          ? "bg-purple-600 border-purple-600 text-white"
-                          : "border-[var(--border)] bg-[var(--bg-subtle)]"
+                      className={`w-5.5 h-5.5 border-2 flex items-center justify-center transition-all shrink-0 ${
+                        isSubmitted
+                          ? opt.isCorrect && isSelected
+                            ? "bg-emerald-600 border-emerald-600 text-white shadow-xs"
+                            : opt.isCorrect && !isSelected
+                            ? "border-amber-500 bg-amber-500/15 text-amber-600 border-dashed"
+                            : !opt.isCorrect && isSelected
+                            ? "bg-rose-600 border-rose-600 text-white shadow-xs"
+                            : "border-[var(--border)] bg-[var(--bg-subtle)] opacity-40"
+                          : isSelected
+                          ? "bg-purple-600 border-purple-600 text-white shadow-xs scale-105"
+                          : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-purple-500 shadow-2xs"
                       }`}
+                      style={{ borderRadius: "4px" }}
                     >
-                      {isSelected && <span className="text-xs font-black">✓</span>}
+                      {isSubmitted ? (
+                        opt.isCorrect && isSelected ? (
+                          <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        ) : opt.isCorrect && !isSelected ? (
+                          <span className="text-[10px] font-black text-amber-600">✓</span>
+                        ) : !opt.isCorrect && isSelected ? (
+                          <span className="text-xs font-black text-white">✕</span>
+                        ) : null
+                      ) : isSelected ? (
+                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : null}
                     </div>
+
+                    {/* Từ vựng chính */}
+                    <span className="font-extrabold text-sm sm:text-base leading-snug break-words">
+                      {opt.text}
+                    </span>
                   </div>
 
-                  <div className="min-w-0">
-                    <div className="font-extrabold text-sm sm:text-base leading-snug break-words">
-                      {opt.text}
-                    </div>
-                    {opt.badgeLabel && isSubmitted && (
-                      <div className="text-[10px] font-semibold text-[var(--text-muted)] mt-0.5">
-                        {opt.badgeLabel}
-                      </div>
-                    )}
+                  {/* Nút loa & Nhãn kết quả bên phải */}
+                  <div className="shrink-0 flex items-center gap-1.5 ml-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSpeech(opt.englishWord || opt.text);
+                      }}
+                      className="w-7 h-7 rounded-full bg-purple-500/10 hover:bg-purple-500/25 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-2xs"
+                      title={`Nghe phát âm tiếng Anh: "${opt.englishWord || opt.text}"`}
+                    >
+                      🔊
+                    </button>
+                    {indicator}
                   </div>
                 </div>
 
-                <div className="shrink-0">{indicator}</div>
+                {/* Hàng 2 (khi đã nộp bài): Toàn bộ thông tin giải nghĩa TRÊN CÙNG 1 HÀNG */}
+                {isSubmitted && (opt.englishWord || opt.phonetic || opt.badgeLabel) && (
+                  <div className="flex items-center gap-2 pl-9 text-xs flex-wrap pt-0.5">
+                    {opt.englishWord && opt.englishWord.toLowerCase() !== opt.text.toLowerCase() && (
+                      <span className="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono flex items-center gap-1 shrink-0">
+                        <span>🇬🇧</span>
+                        <span>{opt.englishWord}</span>
+                      </span>
+                    )}
+
+                    {opt.phonetic && (
+                      <span className="font-mono text-[11px] text-[var(--text-muted)] opacity-80 shrink-0">
+                        {opt.phonetic}
+                      </span>
+                    )}
+
+                    {opt.badgeLabel && (
+                      <span className="text-[10px] font-semibold text-[var(--text-muted)] px-2 py-0.5 rounded-full bg-[var(--bg-muted)] border shrink-0" style={{ borderColor: "var(--border)" }}>
+                        {opt.badgeLabel}
+                      </span>
+                    )}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -3656,9 +3894,7 @@ function MultiSelectQuizGame({
       {!isSubmitted ? (
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-xs text-[var(--text-muted)] font-medium">
-            {currentQ.correctAnswersCount === 1
-              ? "💡 Chọn 1 đáp án đúng nhất, sau đó bấm Xác nhận."
-              : "💡 Tích chọn tất cả các đáp án bạn nghĩ là đúng, sau đó bấm Xác nhận."}
+            💡 Chọn {currentQ.correctAnswersCount} đáp án đúng, sau đó bấm Xác nhận.
           </div>
           <button
             type="button"
@@ -3755,7 +3991,9 @@ function CustomFolderDropdown({
   className = "",
 }: CustomFolderDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const totalAllWords = useMemo(
     () => availableFolders.reduce((sum, f) => sum + f.count, 0),
@@ -3789,6 +4027,16 @@ function CustomFolderDropdown({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    } else {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
+
   const handleSelect = (val: string) => {
     onChange(val);
     setIsOpen(false);
@@ -3805,12 +4053,26 @@ function CustomFolderDropdown({
     ? "hover:bg-purple-500/8 hover:text-purple-600 dark:hover:text-purple-400"
     : "hover:bg-blue-500/8 hover:text-blue-600 dark:hover:text-blue-400";
 
+  // Filter folders by search query
+  const filteredCustomFolders = useMemo(() => {
+    if (!searchQuery.trim()) return customFolders;
+    const q = searchQuery.toLowerCase().trim();
+    return customFolders.filter((f) => f.name.toLowerCase().includes(q));
+  }, [customFolders, searchQuery]);
+
+  const filteredPresetFolders = useMemo(() => {
+    if (!searchQuery.trim()) return presetFolders;
+    const q = searchQuery.toLowerCase().trim();
+    return presetFolders.filter((f) => f.name.toLowerCase().includes(q));
+  }, [presetFolders, searchQuery]);
+
   return (
     <div ref={dropdownRef} className={`relative w-full ${className}`}>
       {/* Trigger: Nút bấm hiện đại, bo tròn tự nhiên */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
+        title={currentLabel}
         className={`w-full px-3.5 py-2.5 flex items-center justify-between text-xs sm:text-sm font-semibold bg-[var(--bg-card)] transition-all cursor-pointer select-none text-left rounded-xl border shadow-xs ${
           isOpen
             ? `${borderActive} ${ringActive}`
@@ -3823,80 +4085,117 @@ function CustomFolderDropdown({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className="truncate pr-2 font-bold">{currentLabel}</span>
+        <span className="truncate pr-2 font-bold" title={currentLabel}>{currentLabel}</span>
         <span className={`text-[11px] ${textAccent} transition-transform duration-200 shrink-0 font-bold ml-1.5`}>
           {isOpen ? "▲" : "▼"}
         </span>
       </button>
 
-      {/* Dropdown panel: Dạng floating cao cấp, bo góc mềm mại, bóng đổ đa lớp */}
+      {/* Dropdown panel: Rộng rãi, không cắt chữ, hỗ trợ tìm kiếm nhanh */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 top-full mt-1.5 z-50 bg-[var(--bg-card)] border rounded-2xl shadow-2xl overflow-hidden p-1.5 animate-in fade-in zoom-in-95 duration-150`}
+          className={`absolute left-0 sm:left-auto right-0 top-full mt-1.5 z-50 w-full sm:w-[460px] max-w-[95vw] bg-[var(--bg-card)] border rounded-2xl shadow-2xl overflow-hidden p-2 animate-in fade-in zoom-in-95 duration-150`}
           style={{
             background: "var(--bg-card)",
             borderColor: isPurple ? "rgba(168, 85, 247, 0.35)" : "rgba(59, 130, 246, 0.35)",
-            boxShadow: "0 12px 32px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08)",
+            boxShadow: "0 16px 36px -4px rgba(0, 0, 0, 0.22), 0 6px 16px -2px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <div className="max-h-64 overflow-y-auto space-y-0.5 scrollbar-thin">
-            {/* 1. NÚT CHỌN: TẤT CẢ (Tinh gọn, rõ ràng, không lặp lại) */}
-            <button
-              type="button"
-              onClick={() => handleSelect("all")}
-              className={`w-full px-3 py-2 flex items-center justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer ${
-                value === "all" ? bgSelected : `text-[var(--text-primary)] ${hoverItem}`
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                <span className="text-base shrink-0">
-                  {source === "preset" ? "📚" : source === "custom" ? "📁" : "⚡"}
+          {/* Ô tìm kiếm nhanh thư mục khi có nhiều thư mục */}
+          {(customFolders.length + presetFolders.length > 2) && (
+            <div className="p-1 mb-1.5 border-b border-[var(--border)]">
+              <div className="relative">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="🔍 Gõ tìm nhanh tên thư mục..."
+                  className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl border bg-[var(--bg-subtle)] focus:outline-none focus:ring-2 focus:ring-purple-500/30 text-[var(--text-primary)]"
+                  style={{ borderColor: "var(--border)" }}
+                />
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] opacity-50">
+                  🔍
                 </span>
-                <span className="font-bold truncate">
-                  {source === "custom"
-                    ? "Tất cả từ cá nhân"
-                    : source === "preset"
-                    ? "Tất cả chủ đề TOEIC"
-                    : "Toàn bộ từ vựng"}
-                </span>
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--bg-muted)] text-[var(--text-muted)]">
-                  {totalAllWords} từ
-                </span>
-                {value === "all" && <span className={`text-xs font-black ${textAccent}`}>✓</span>}
-              </div>
-            </button>
+            </div>
+          )}
 
-            {/* 2. NHÓM: THƯ MỤC CÁ NHÂN (Header thanh lịch, KHÔNG icon, KHÔNG vỡ chữ) */}
-            {customFolders.length > 0 && (
-              <div className="pt-2">
+          <div className="max-h-72 overflow-y-auto space-y-1 scrollbar-thin">
+            {/* 1. NÚT CHỌN: TẤT CẢ */}
+            {!searchQuery && (
+              <button
+                type="button"
+                onClick={() => handleSelect("all")}
+                title={source === "custom" ? "Tất cả từ cá nhân" : source === "preset" ? "Tất cả chủ đề TOEIC" : "Toàn bộ từ vựng"}
+                className={`w-full px-3 py-2 flex items-center justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer ${
+                  value === "all" ? bgSelected : `text-[var(--text-primary)] ${hoverItem}`
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                  <span className="text-base shrink-0">
+                    {source === "preset" ? "📚" : source === "custom" ? "📁" : "⚡"}
+                  </span>
+                  <span className="font-bold">
+                    {source === "custom"
+                      ? "Tất cả từ cá nhân"
+                      : source === "preset"
+                      ? "Tất cả chủ đề TOEIC"
+                      : "Toàn bộ từ vựng"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--bg-muted)] text-[var(--text-muted)]">
+                    {totalAllWords} từ
+                  </span>
+                  {value === "all" && <span className={`text-xs font-black ${textAccent}`}>✓</span>}
+                </div>
+              </button>
+            )}
+
+            {/* 2. NHÓM: THƯ MỤC CÁ NHÂN */}
+            {filteredCustomFolders.length > 0 && (
+              <div className="pt-1">
                 <div className="px-3 py-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">
-                  <span>Thư mục cá nhân ({customFolders.length})</span>
-                  <span>{customFolders.reduce((s, c) => s + c.count, 0)} từ</span>
+                  <span>Thư mục cá nhân ({filteredCustomFolders.length})</span>
+                  <span>{filteredCustomFolders.reduce((s, c) => s + c.count, 0)} từ</span>
                 </div>
 
                 <div className="space-y-0.5 mt-0.5">
-                  {customFolders.map((f) => {
+                  {filteredCustomFolders.map((f) => {
                     const isSelected = value === f.name;
                     return (
                       <button
                         key={f.name}
                         type="button"
                         onClick={() => handleSelect(f.name)}
-                        className={`w-full px-3 py-2 flex items-center justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer ${
+                        title={f.name}
+                        className={`w-full px-3 py-2 flex items-start justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer group ${
                           isSelected ? bgSelected : `text-[var(--text-primary)] ${hoverItem}`
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <span className="text-base shrink-0">📁</span>
-                          <span className={`truncate ${isSelected ? "font-bold" : "font-medium"}`}>
+                        <div className="flex items-start gap-2.5 min-w-0 pr-2 flex-1">
+                          <span className="text-base shrink-0 mt-0.5">📁</span>
+                          <span
+                            className={`break-words leading-snug ${
+                              isSelected ? "font-bold text-purple-700 dark:text-purple-300" : "font-medium"
+                            }`}
+                          >
                             {f.name}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] font-medium opacity-60">
-                            ({f.count})
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2 self-center">
+                          <span className="text-[11px] font-semibold opacity-75 whitespace-nowrap bg-[var(--bg-muted)] px-2 py-0.5 rounded-full">
+                            {f.count} từ
                           </span>
                           {isSelected && <span className={`text-xs font-black ${textAccent}`}>✓</span>}
                         </div>
@@ -3908,34 +4207,39 @@ function CustomFolderDropdown({
             )}
 
             {/* 3. NHÓM: CHỦ ĐỀ BÀI HỌC TOEIC */}
-            {presetFolders.length > 0 && (
+            {filteredPresetFolders.length > 0 && (
               <div className="pt-2 mt-1 border-t border-[var(--border)]">
                 <div className="px-3 py-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">
-                  <span>Chủ đề TOEIC ({presetFolders.length})</span>
-                  <span>{presetFolders.reduce((s, c) => s + c.count, 0)} từ</span>
+                  <span>Chủ đề TOEIC ({filteredPresetFolders.length})</span>
+                  <span>{filteredPresetFolders.reduce((s, c) => s + c.count, 0)} từ</span>
                 </div>
 
                 <div className="space-y-0.5 mt-0.5">
-                  {presetFolders.map((f) => {
+                  {filteredPresetFolders.map((f) => {
                     const isSelected = value === f.name;
                     return (
                       <button
                         key={f.name}
                         type="button"
                         onClick={() => handleSelect(f.name)}
-                        className={`w-full px-3 py-2 flex items-center justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer ${
+                        title={f.name}
+                        className={`w-full px-3 py-2 flex items-start justify-between text-xs sm:text-sm text-left rounded-xl transition-all cursor-pointer group ${
                           isSelected ? bgSelected : `text-[var(--text-primary)] ${hoverItem}`
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <span className="text-base shrink-0">📚</span>
-                          <span className={`truncate ${isSelected ? "font-bold" : "font-medium"}`}>
+                        <div className="flex items-start gap-2.5 min-w-0 pr-2 flex-1">
+                          <span className="text-base shrink-0 mt-0.5">📚</span>
+                          <span
+                            className={`break-words leading-snug ${
+                              isSelected ? "font-bold text-purple-700 dark:text-purple-300" : "font-medium"
+                            }`}
+                          >
                             {f.name}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] font-medium opacity-60">
-                            ({f.count})
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2 self-center">
+                          <span className="text-[11px] font-semibold opacity-75 whitespace-nowrap bg-[var(--bg-muted)] px-2 py-0.5 rounded-full">
+                            {f.count} từ
                           </span>
                           {isSelected && <span className={`text-xs font-black ${textAccent}`}>✓</span>}
                         </div>
@@ -3943,6 +4247,13 @@ function CustomFolderDropdown({
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Không tìm thấy kết quả */}
+            {searchQuery && filteredCustomFolders.length === 0 && filteredPresetFolders.length === 0 && (
+              <div className="py-6 text-center text-xs text-[var(--text-muted)]">
+                Không tìm thấy thư mục nào chứa &quot;<span className="font-bold">{searchQuery}</span>&quot;
               </div>
             )}
           </div>
@@ -4076,6 +4387,59 @@ function SpacedReviewContent() {
       });
     }
   };
+
+  // Callback for minigames to update spaced repetition (Leitner) progress for answered words
+  const recordGameWordResult = useCallback(
+    (item: SpacedWordItem, isCorrect: boolean) => {
+      if (!item) return;
+      const rawId = extractRawWordId(item.id);
+      const nextStep = isCorrect
+        ? getNextSpacedStep(item.intervalDays || 1)
+        : { nextDays: 1, nextStage: 1, label: "1 ngày" };
+
+      item.intervalDays = nextStep.nextDays;
+      item.stage = nextStep.nextStage;
+
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("spaced_vocab_stages") || "{}";
+          const parsed = JSON.parse(raw);
+          const nowStr = new Date().toISOString();
+          const nextReviewStr = new Date(Date.now() + nextStep.nextDays * 86400000).toISOString();
+          const stageData = {
+            intervalDays: nextStep.nextDays,
+            stage: nextStep.nextStage,
+            lastReviewedAt: nowStr,
+            nextReviewAt: nextReviewStr,
+          };
+          parsed[rawId] = stageData;
+          parsed[`word-${item.word.trim().toLowerCase()}`] = stageData;
+          localStorage.setItem("spaced_vocab_stages", JSON.stringify(parsed));
+
+          if (isCorrect) {
+            const currentCount = parseInt(localStorage.getItem("spaced_completed_count") || "0", 10);
+            localStorage.setItem("spaced_completed_count", String(currentCount + 1));
+          }
+        } catch {}
+      }
+
+      syncWordProgress(rawId, nextStep.nextStage, nextStep.nextDays, isCorrect, item);
+    },
+    []
+  );
+
+  // Callback when a minigame session is fully completed
+  const handleGameComplete = useCallback(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const todayKey = getTodayKey();
+        const todayDateStr = new Date().toISOString().split("T")[0];
+        localStorage.setItem(`spaced_finished_${todayKey}`, todayDateStr);
+        localStorage.setItem("spaced_finished_today", todayDateStr);
+        window.dispatchEvent(new CustomEvent("spaced-review-completed", { detail: { date: todayDateStr } }));
+      } catch {}
+    }
+  }, []);
 
   // Counts of words per Leitner cycle interval for the current category & folder
   const intervalCounts = useMemo(() => {
@@ -4747,25 +5111,89 @@ function SpacedReviewContent() {
                           </button>
                         ))}
                       </div>
+
+                      {/* Direct Minigame Launcher for Due Words */}
+                      <div className="mt-3 p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 dark:bg-emerald-500/15 space-y-2.5 animate-fade-up">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base sm:text-lg">🎮</span>
+                            <span className="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-200">
+                              Chơi Minigame ôn tập ({sessionTargetCount} từ {intervalFilter === "due" ? "đến hạn" : ""}):
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hidden sm:inline">
+                            Bấm để bắt đầu chơi ngay ➔
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {[
+                            { key: "match", icon: "🧩", name: "Ghép Cặp Thẻ" },
+                            { key: "quiz", icon: "⚡", name: "Trắc Nghiệm 10s" },
+                            { key: "multichoice", icon: "🎯", name: "Đa Đáp Án" },
+                            { key: "scramble", icon: "🔤", name: "Xếp Chữ Đoán Từ" },
+                            { key: "listen", icon: "🎧", name: "Luyện Nghe" },
+                            { key: "blockblast", icon: "💥", name: "Block Blast" },
+                          ].map((g) => (
+                            <button
+                              key={g.key}
+                              type="button"
+                              onClick={() => {
+                                setActiveGame(g.key as any);
+                                setReviewMode("game");
+                                const pool = buildDeck();
+                                if (pool.length >= 4) {
+                                  setIsGameStarted(true);
+                                  playEffectSound("click", soundEnabled);
+                                }
+                              }}
+                              disabled={sessionTargetCount < 4}
+                              className="p-2.5 rounded-xl border border-emerald-500/25 bg-[var(--bg-card)] hover:bg-emerald-600 hover:text-white hover:border-emerald-600 text-left transition-all cursor-pointer flex items-center gap-2 group shadow-2xs hover:scale-102 active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed"
+                              title={`Chơi trò ${g.name} với ${sessionTargetCount} từ này`}
+                            >
+                              <span className="text-base shrink-0 group-hover:scale-115 transition-transform">{g.icon}</span>
+                              <span className="text-xs font-black truncate">{g.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Nút Bắt đầu ôn tập */}
-                    <div className="pt-3 border-t" style={{ borderColor: "var(--border)" }}>
-                      <button
-                        type="button"
-                        onClick={handleStartLeitner}
-                        disabled={sessionTargetCount === 0}
-                        className={`w-full py-4 px-6 rounded-2xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] ${
-                          sessionTargetCount > 0
-                            ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white shadow-blue-500/25 ring-2 ring-blue-400/30"
-                            : "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
-                        }`}
-                        title={sessionTargetCount === 0 ? "Không có từ nào phù hợp với bộ lọc" : "Bắt đầu học phiên này"}
-                      >
-                        <span className="text-xl">🚀</span>
-                        <span>Bắt đầu ôn tập ({sessionTargetCount} từ)</span>
-                        <span>→</span>
-                      </button>
+                    <div className="pt-3 border-t space-y-2.5" style={{ borderColor: "var(--border)" }}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={handleStartLeitner}
+                          disabled={sessionTargetCount === 0}
+                          className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] ${
+                            sessionTargetCount > 0
+                              ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white shadow-blue-500/25 ring-2 ring-blue-400/30"
+                              : "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                          }`}
+                          title={sessionTargetCount === 0 ? "Không có từ nào phù hợp với bộ lọc" : "Bắt đầu học phiên này bằng Flashcard"}
+                        >
+                          <span className="text-lg">🚀</span>
+                          <span>Ôn Flashcard ({sessionTargetCount} từ)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReviewMode("game");
+                          }}
+                          disabled={sessionTargetCount < 4}
+                          className={`w-full py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-[0.99] ${
+                            sessionTargetCount >= 4
+                              ? "bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-purple-500/25 ring-2 ring-purple-400/30"
+                              : "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
+                          }`}
+                          title={sessionTargetCount < 4 ? "Cần ít nhất 4 từ để chơi game" : `Chuyển sang sảnh minigame với ${sessionTargetCount} từ này`}
+                        >
+                          <span className="text-lg">🎮</span>
+                          <span>Sảnh Minigame ({sessionTargetCount} từ)</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -4787,6 +5215,18 @@ function SpacedReviewContent() {
                               title="Tạm dừng phiên và đổi cấu hình bộ lọc"
                             >
                               ⚙️ Đổi bộ lọc
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsLeitnerStarted(false);
+                                setReviewMode("game");
+                              }}
+                              className="text-[11px] font-bold text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 transition-all cursor-pointer flex items-center gap-1"
+                              title="Chuyển sang chơi minigame với các từ trong phiên này"
+                            >
+                              <span>🎮</span>
+                              <span>Chơi Game</span>
                             </button>
                           </div>
                           <div className="flex items-center gap-3">
@@ -5443,7 +5883,7 @@ function SpacedReviewContent() {
                               <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1 shrink-0">
                                 <span>📁</span> Chọn Thư mục / Chủ đề:
                               </label>
-                              <div className="w-full sm:w-64">
+                              <div className="w-full sm:flex-1 sm:max-w-md sm:ml-2">
                                 <CustomFolderDropdown
                                   value={selectedFolder}
                                   onChange={setSelectedFolder}
@@ -5528,6 +5968,18 @@ function SpacedReviewContent() {
                               <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto no-scrollbar pb-0.5">
                                 <button
                                   type="button"
+                                  onClick={() => setIntervalFilter("due")}
+                                  className={`px-3 py-1 rounded-lg font-bold text-xs whitespace-nowrap shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                                    intervalFilter === "due"
+                                      ? "bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-400/30"
+                                      : "border hover:bg-[var(--bg-card)] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+                                  }`}
+                                >
+                                  <span>📅</span>
+                                  <span>Đến hạn ({intervalCounts.dueCount})</span>
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => setIntervalFilter("all")}
                                   className={`px-2.5 py-1 rounded-lg font-bold text-xs whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                                     intervalFilter === "all"
@@ -5536,7 +5988,7 @@ function SpacedReviewContent() {
                                   }`}
                                   style={{ borderColor: intervalFilter === "all" ? "transparent" : "var(--border)" }}
                                 >
-                                  Tất cả
+                                  Tất cả ({intervalCounts.total})
                                 </button>
                                 {[
                                   { days: 1, label: "1 ngày", icon: "🔥", color: "bg-amber-600" },
@@ -5556,7 +6008,7 @@ function SpacedReviewContent() {
                                     style={{ borderColor: intervalFilter === item.days ? "transparent" : "var(--border)" }}
                                   >
                                     <span>{item.icon}</span>
-                                    <span>{item.label}</span>
+                                    <span>{item.label} ({intervalCounts.counts[item.days] || 0})</span>
                                   </button>
                                 ))}
                               </div>
@@ -5576,9 +6028,17 @@ function SpacedReviewContent() {
                             <span className="px-2.5 py-1 rounded-full bg-[var(--bg-card)] border shadow-2xs text-[11px]">
                               🎮 {activeGame === "match" ? "Ghép Cặp Thẻ" : activeGame === "quiz" ? "Trắc Nghiệm 10s" : activeGame === "multichoice" ? "Trắc Nghiệm Đa Đáp Án" : activeGame === "scramble" ? "Xếp Chữ Đoán Từ" : activeGame === "listen" ? "Luyện Nghe Từ Vựng" : "Block Blast Đồng Nghĩa"}
                             </span>
-                            <span className="px-2.5 py-1 rounded-full bg-[var(--bg-card)] border shadow-2xs text-[11px]">
+                            <span
+                              className="px-2.5 py-1 rounded-full bg-[var(--bg-card)] border shadow-2xs text-[11px] max-w-[280px] sm:max-w-[420px] truncate"
+                              title={selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}
+                            >
                               📁 {selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}
                             </span>
+                            {intervalFilter === "due" && (
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] flex items-center gap-1">
+                                <span>📅</span> Đến hạn hôm nay ({intervalCounts.dueCount} từ)
+                              </span>
+                            )}
                             <span className="px-2.5 py-1 rounded-full bg-[var(--bg-card)] border shadow-2xs text-purple-600 dark:text-purple-400 font-black text-[11px]">
                               🔢 {deck.length > 0 ? deck.length : sessionTargetCount} từ vựng
                             </span>
@@ -5623,6 +6083,14 @@ function SpacedReviewContent() {
                           <span style={{ color: "var(--text-primary)" }}>
                             📁 {selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}
                           </span>
+                          {intervalFilter === "due" && (
+                            <>
+                              <span className="text-[var(--text-muted)]">•</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
+                                <span>📅</span> Đến hạn
+                              </span>
+                            </>
+                          )}
                           <span className="text-[var(--text-muted)]">•</span>
                           <span className="text-purple-600 dark:text-purple-400 font-black">
                             {deck.length} từ
@@ -5648,12 +6116,16 @@ function SpacedReviewContent() {
                         wordPool={deck}
                         soundEnabled={soundEnabled}
                         onSpeech={playPronunciation}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     ) : activeGame === "quiz" ? (
                       <SpeedQuizGame
                         wordPool={deck}
                         soundEnabled={soundEnabled}
                         onSpeech={playPronunciation}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     ) : activeGame === "scramble" ? (
                       <WordScrambleGame
@@ -5662,10 +6134,12 @@ function SpacedReviewContent() {
                         onSpeech={playPronunciation}
                         gameInfo={{
                           gameName: "🔤 Xếp Chữ",
-                          folderName: selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder,
+                          folderName: `${selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}${intervalFilter === "due" ? " • 📅 Đến hạn" : ""}`,
                           totalWords: deck.length,
                         }}
                         onBackToSetup={() => setIsGameStarted(false)}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     ) : activeGame === "listen" ? (
                       <ListeningVocabGame
@@ -5674,10 +6148,12 @@ function SpacedReviewContent() {
                         onSpeech={playPronunciation}
                         gameInfo={{
                           gameName: "🎧 Luyện Nghe",
-                          folderName: selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder,
+                          folderName: `${selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}${intervalFilter === "due" ? " • 📅 Đến hạn" : ""}`,
                           totalWords: deck.length,
                         }}
                         onBackToSetup={() => setIsGameStarted(false)}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     ) : activeGame === "multichoice" ? (
                       <MultiSelectQuizGame
@@ -5685,11 +6161,13 @@ function SpacedReviewContent() {
                         soundEnabled={soundEnabled}
                         onSpeech={playPronunciation}
                         gameInfo={{
-                          gameName: "🎯 Đa Đáp Án",
-                          folderName: selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder,
+                          gameName: "Đa Đáp Án",
+                          folderName: `${selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}${intervalFilter === "due" ? " • 📅 Đến hạn" : ""}`,
                           totalWords: deck.length,
                         }}
                         onBackToSetup={() => setIsGameStarted(false)}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     ) : (
                       <SynonymBlockBlastGame
@@ -5698,10 +6176,12 @@ function SpacedReviewContent() {
                         onSpeech={playPronunciation}
                         gameInfo={{
                           gameName: "💥 Block Blast Đồng Nghĩa",
-                          folderName: selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder,
+                          folderName: `${selectedFolder === "all" ? "Tất cả thư mục" : selectedFolder}${intervalFilter === "due" ? " • 📅 Đến hạn" : ""}`,
                           totalWords: deck.length,
                         }}
                         onBackToSetup={() => setIsGameStarted(false)}
+                        onWordAnswered={recordGameWordResult}
+                        onGameComplete={handleGameComplete}
                       />
                     )}
                   </div>
