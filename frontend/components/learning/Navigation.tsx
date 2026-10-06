@@ -17,7 +17,7 @@ interface NavigationProps {
 
 export const getTabGroup = (tab: ActiveTab | string) => {
   if (['paths', 'courses', 'dictation', 'speaking'].includes(tab)) return 'learning';
-  if (['vocabulary', 'srs', 'vocabulary_study'].includes(tab)) return 'vocabulary_hub';
+  if (['vocabulary', 'study_board', 'srs', 'vocabulary_study'].includes(tab)) return 'vocabulary_hub';
   if (['notes', 'todos', 'focus'].includes(tab)) return 'tools';
   return tab;
 };

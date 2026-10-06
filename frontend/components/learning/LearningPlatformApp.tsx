@@ -12,6 +12,7 @@ import { CoursesView } from './CoursesView';
 import { LessonModal } from './LessonModal';
 import { MyVocabularyView } from './my-vocabulary/MyVocabularyView';
 import { DiscoverVocabularyView } from './vocabulary/DiscoverVocabularyView';
+import { StudyBoardMain } from './study-board/StudyBoardMain';
 import { SpeakingView } from './SpeakingView';
 import { ProfileView } from './ProfileView';
 import { AdminView } from './admin/AdminView';
@@ -173,7 +174,7 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
       ],
       vocabulary_hub: [
         { id: 'vocabulary', label: 'Thư mục', href: '/vocabulary' },
-        { id: 'discover', label: 'Khám phá từ mới', href: '/vocabulary/discover' },
+        { id: 'study_board', label: 'Bảng học từ', href: '/study-board' },
         { id: 'vocabulary_study', label: 'Học từ vựng', href: '/vocabulary/study-config' },
         { id: 'srs', label: 'Ôn tập ngắt quãng', href: '/vocabulary/srs' },
       ],
@@ -238,7 +239,8 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
           />
         );
       case 'discover':
-        return <DiscoverVocabularyView />;
+      case 'study_board':
+        return <StudyBoardMain />;
       case 'speaking':
         return <SpeakingView />;
       case 'dictation':

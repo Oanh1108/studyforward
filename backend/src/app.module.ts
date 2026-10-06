@@ -33,6 +33,8 @@ import { TodosModule } from './todos/todos.module.js';
 import { TodoItem } from './todos/todo.entity.js';
 import { FocusModule } from './focus/focus.module.js';
 import { FocusSession } from './focus/focus.entity.js';
+import { StudyBoardsModule } from './study-boards/study-boards.module.js';
+import { StudyBoard } from './study-boards/study-board.entity.js';
 
 @Module({
   imports: [
@@ -79,6 +81,7 @@ import { FocusSession } from './focus/focus.entity.js';
             StudyNote,
             TodoItem,
             FocusSession,
+            StudyBoard,
           ],
           synchronize: true,
           logging: false,
@@ -97,6 +100,7 @@ import { FocusSession } from './focus/focus.entity.js';
     NotesModule,
     TodosModule,
     FocusModule,
+    StudyBoardsModule,
   ],
 })
 export class AppModule {}
