@@ -69,6 +69,10 @@ export function TopHeader({ stats, isMobileDeviceFrame, onToggleDeviceFrame, onA
                   src={stats.avatar}
                   alt={user.name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=4f46e5&color=fff`;
+                  }}
                 />
               ) : (
                 <span>{(user.name || 'U').charAt(0).toUpperCase()}</span>
@@ -129,6 +133,7 @@ export function TopHeader({ stats, isMobileDeviceFrame, onToggleDeviceFrame, onA
 
               <div className="pt-2 border-t border-[var(--border)]">
                 <LogoutButton
+                  showLabel={true}
                   className="w-full justify-start bg-rose-50 dark:bg-rose-950/30"
                 />
               </div>
