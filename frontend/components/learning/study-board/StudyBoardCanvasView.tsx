@@ -84,6 +84,7 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
             setEditor(editor);
             setIsGrid(editor.getInstanceState().isGridMode);
             if (Object.keys(boardData).length > 0) {
+              // @ts-ignore
               editor.store.loadSnapshot(boardData);
             }
             editor.store.listen(() => {
