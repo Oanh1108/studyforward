@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { StudyBoardManagerView } from './StudyBoardManagerView.js';
-import { StudyBoardCanvasView } from './StudyBoardCanvasView.js';
+import { StudyBoardManagerView } from './StudyBoardManagerView';
+import { StudyBoardCanvasView } from './StudyBoardCanvasView';
 
 export function StudyBoardMain() {
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
