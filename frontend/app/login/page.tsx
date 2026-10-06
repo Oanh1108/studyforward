@@ -329,6 +329,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[420px] text-center text-[11.5px] text-[var(--text-muted)] mt-8 mb-4 px-4 opacity-80">
         © 2026 StudyForward. Học ngoại ngữ thông minh.
       </div>
-      </div>
+    </div>
+    </div>
   );
 }
