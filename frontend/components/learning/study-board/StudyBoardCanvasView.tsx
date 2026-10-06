@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tldraw } from '@tldraw/tldraw';
 import '@tldraw/tldraw/tldraw.css';
-import api from '@/lib/api';
+import { studyBoardsApi } from '@/lib/studyBoardsApi';
 import { ArrowLeft, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onBack: () => void }) {
@@ -12,9 +12,9 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    api.get(`/study-boards/${boardId}`).then(res => {
-      setBoardData(res.data.data || {});
-      setBoardName(res.data.name);
+    studyBoardsApi.getBoard(boardId).then(res => {
+      setBoardData(res.data || {});
+      setBoardName(res.name);
       setLoading(false);
     });
   }, [boardId]);
@@ -28,7 +28,7 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
 
       saveTimeoutRef.current = setTimeout(async () => {
         try {
-          await api.put(`/study-boards/${boardId}/data`, { data, version: 0 });
+          await studyBoardsApi.updateBoardData(boardId, data, 0);
           setSavingStatus('saved');
           setTimeout(() => setSavingStatus('idle'), 2000);
         } catch (err) {

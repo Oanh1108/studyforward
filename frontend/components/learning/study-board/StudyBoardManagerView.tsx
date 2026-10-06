@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, LayoutTemplate, Trash2, ArrowRight, Loader2 } from 'lucide-react';
-import api from '@/lib/api';
+import { studyBoardsApi } from '@/lib/studyBoardsApi';
 
 export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: string) => void }) {
   const [boards, setBoards] = useState<any[]>([]);
@@ -12,8 +12,8 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
 
   const fetchBoards = async () => {
     try {
-      const res = await api.get('/study-boards');
-      setBoards(res.data);
+      const res = await studyBoardsApi.getBoards();
+      setBoards(res);
     } catch (err) {
       console.error(err);
     } finally {
@@ -25,9 +25,9 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
     const name = prompt('Nhập tên bảng học:');
     if (!name) return;
     try {
-      const res = await api.post('/study-boards', { name });
-      setBoards([res.data, ...boards]);
-      onOpenBoard(res.data.id);
+      const res = await studyBoardsApi.createBoard(name);
+      setBoards([res, ...boards]);
+      onOpenBoard(res.id);
     } catch (err) {
       console.error(err);
     }
@@ -37,7 +37,7 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
     e.stopPropagation();
     if (!confirm('Bạn có chắc chắn muốn xóa bảng này không?')) return;
     try {
-      await api.delete(`/study-boards/${id}`);
+      await studyBoardsApi.deleteBoard(id);
       setBoards(boards.filter(b => b.id !== id));
     } catch (err) {
       console.error(err);
