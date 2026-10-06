@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import * as express from 'express';
 import { AppModule } from './app.module.js';
 import { DataSource } from 'typeorm';
 import { seedDefaultAdmin, seedVocabulary } from './database/seed.js';
@@ -11,6 +12,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
   app.enableCors({
     origin: true,
     credentials: true,
