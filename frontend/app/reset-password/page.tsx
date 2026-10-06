@@ -6,7 +6,7 @@ import { useState, useEffect, type FormEvent, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StudyForwardLogo } from "@/components/StudyForwardLogo";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3002";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
 
 function ResetPasswordForm() {
   const router = useRouter();

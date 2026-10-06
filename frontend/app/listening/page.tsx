@@ -149,7 +149,7 @@ export default function ListeningPracticePage() {
             ? localStorage.getItem("accessToken") || localStorage.getItem("token")
             : null;
         if (!token) return;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
         const res = await fetch(`${apiUrl}/api/vocabulary/custom`, {
           headers: { Authorization: `Bearer ${token}` },
         });

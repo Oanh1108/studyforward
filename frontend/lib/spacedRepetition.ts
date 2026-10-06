@@ -888,7 +888,7 @@ export async function recordWordProgressToDb(payload: {
   const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
   if (!token) return true;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
   try {
     const res = await fetch(`${apiUrl}/api/vocabulary/record-learning`, {
       method: "POST",
@@ -920,7 +920,7 @@ export async function recordWordsBatchToDb(
   const token = localStorage.getItem("accessToken") || localStorage.getItem("token");
   if (!token) return false;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
   try {
     const res = await fetch(`${apiUrl}/api/vocabulary/record-learning/batch`, {
       method: "POST",
