@@ -20,7 +20,7 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
   }, [boardId]);
 
   const saveToBackend = useCallback(
-    (data: any) => {
+    (editor: any) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
@@ -28,6 +28,7 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
       saveTimeoutRef.current = setTimeout(async () => {
         setSavingStatus('saving');
         try {
+          const data = editor.store.getSnapshot();
           await studyBoardsApi.updateBoardData(boardId, data, 0);
           setSavingStatus('saved');
           setTimeout(() => setSavingStatus('idle'), 2000);
@@ -65,8 +66,7 @@ export function StudyBoardCanvasView({ boardId, onBack }: { boardId: string, onB
               editor.store.loadSnapshot(boardData);
             }
             editor.store.listen(() => {
-              const snapshot = editor.store.getSnapshot();
-              saveToBackend(snapshot);
+              saveToBackend(editor);
             });
           }}
         />
