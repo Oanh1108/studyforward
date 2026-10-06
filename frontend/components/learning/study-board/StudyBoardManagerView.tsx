@@ -92,7 +92,9 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
             </div>
             <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Chưa có bảng nào</h3>
             <p className="text-[var(--text-secondary)] mb-6">Tạo bảng đầu tiên để bắt đầu học nhé!</p>
-            <button onClick={() => setShowCreateModal(true)} className="px-6 py-2 bg-[var(--bg-subtle)] text-[var(--text-primary)] font-bold rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">Tạo ngay</button>
+            <button onClick={() => setShowCreateModal(true)} className="px-8 py-3 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 hover:-translate-y-1 transition-all shadow-lg hover:shadow-indigo-500/30 flex items-center gap-2 mx-auto">
+              <Plus className="w-5 h-5" /> Tạo bảng đầu tiên
+            </button>
           </div>
         )}
       </div>
