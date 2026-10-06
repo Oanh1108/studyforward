@@ -5,6 +5,9 @@ import { studyBoardsApi } from '@/lib/studyBoardsApi';
 export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: string) => void }) {
   const [boards, setBoards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newBoardName, setNewBoardName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     fetchBoards();
@@ -21,15 +24,20 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
     }
   };
 
-  const createBoard = async () => {
-    const name = prompt('Nhập tên bảng học:');
-    if (!name) return;
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBoardName.trim()) return;
+    setIsCreating(true);
     try {
-      const res = await studyBoardsApi.createBoard(name);
+      const res = await studyBoardsApi.createBoard(newBoardName.trim());
       setBoards([res, ...boards]);
+      setShowCreateModal(false);
+      setNewBoardName('');
       onOpenBoard(res.id);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -53,7 +61,7 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
           <h1 className="text-3xl font-black text-[var(--text-primary)]">Bảng học từ</h1>
           <p className="text-[var(--text-secondary)] mt-1">Không gian tự do để bạn vẽ, viết và ghi nhớ từ vựng.</p>
         </div>
-        <button onClick={createBoard} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
+        <button onClick={() => setShowCreateModal(true)} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-md">
           <Plus className="w-5 h-5" /> Bảng mới
         </button>
       </div>
@@ -84,10 +92,50 @@ export function StudyBoardManagerView({ onOpenBoard }: { onOpenBoard: (boardId: 
             </div>
             <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Chưa có bảng nào</h3>
             <p className="text-[var(--text-secondary)] mb-6">Tạo bảng đầu tiên để bắt đầu học nhé!</p>
-            <button onClick={createBoard} className="px-6 py-2 bg-[var(--bg-subtle)] text-[var(--text-primary)] font-bold rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">Tạo ngay</button>
+            <button onClick={() => setShowCreateModal(true)} className="px-6 py-2 bg-[var(--bg-subtle)] text-[var(--text-primary)] font-bold rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-all">Tạo ngay</button>
           </div>
         )}
       </div>
+
+      {/* Create Board Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-up">
+            <div className="p-6">
+              <h2 className="text-xl font-black text-[var(--text-primary)] mb-2">Tạo bảng học từ mới</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">Nhập tên gợi nhớ cho bảng để dễ dàng quản lý sau này.</p>
+              
+              <form onSubmit={handleCreateSubmit}>
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="Ví dụ: Luyện viết Part 2..."
+                  value={newBoardName}
+                  onChange={(e) => setNewBoardName(e.target.value)}
+                  className="w-full px-4 py-3 bg-[var(--bg-subtle)] border-2 border-transparent focus:border-indigo-500 rounded-xl text-[var(--text-primary)] font-medium outline-none transition-all placeholder:text-slate-400 mb-6"
+                />
+                
+                <div className="flex items-center justify-end gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-5 py-2.5 rounded-xl font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-all"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={!newBoardName.trim() || isCreating}
+                    className="px-5 py-2.5 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all shadow-md"
+                  >
+                    {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tạo bảng'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
