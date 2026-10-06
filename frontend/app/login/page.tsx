@@ -114,8 +114,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center py-8 px-4 sm:px-6 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
-      <div className="w-full max-w-[420px] my-auto flex flex-col">
+    <div className="min-h-screen flex flex-col items-center py-8 px-4 sm:px-6 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
+      <div className="w-full max-w-md my-auto flex flex-col">
         {/* Top Bar for Mobile / Header */}
         <div className="flex items-center justify-between mb-6 px-1">
           <div className="inline-flex items-center gap-2 transition-transform active:scale-95">
@@ -125,23 +125,23 @@ export default function LoginPage() {
         </div>
 
         {/* Main Login Card */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 shadow-xl">
           <div className="mb-6">
-            <h1 className="text-[26px] sm:text-[28px] font-black tracking-tight text-[var(--text-primary)] leading-tight">
+            <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)] leading-tight">
               Đăng nhập
             </h1>
-            <p className="text-[14px] sm:text-[15px] text-[var(--text-secondary)] mt-2 leading-snug">
+            <p className="text-sm text-[var(--text-secondary)] mt-2 leading-snug">
               Tiếp tục lộ trình học ngoại ngữ và giữ vững chuỗi ngày học của bạn.
             </p>
           </div>
 
           {/* Registered Success Banner */}
           {registeredSuccess && (
-            <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 text-[14px] flex items-start gap-2.5 animate-fade-up">
+            <div className="mb-5 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm flex items-start gap-2.5 animate-fade-up">
               <span className="text-base mt-0.5">🎉</span>
               <div>
                 <strong className="font-bold">Đăng ký thành công!</strong>
-                <div className="text-[13px] mt-0.5 opacity-90">Vui lòng nhập thông tin bên dưới để đăng nhập.</div>
+                <div className="text-xs mt-0.5 opacity-90">Vui lòng nhập thông tin bên dưới để đăng nhập.</div>
             </div>
           </div>
         )}
@@ -149,13 +149,13 @@ export default function LoginPage() {
           {/* General Error Banner */}
           {generalError && (
             <div
-              className="mb-5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-200 text-[14px] flex items-start gap-2.5 animate-fade-up"
+              className="mb-5 p-4 rounded-xl bg-rose-50 dark:bg-rose-900/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-sm flex items-start gap-2.5 animate-fade-up"
               role="alert"
             >
               <span className="text-base mt-0.5">⚠️</span>
               <div>
                 <strong className="font-bold">Đăng nhập thất bại</strong>
-                <div className="text-[13px] mt-0.5 leading-relaxed opacity-90">{generalError}</div>
+                <div className="text-xs mt-0.5 leading-relaxed opacity-90">{generalError}</div>
               </div>
             </div>
           )}
@@ -166,7 +166,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="login-email"
-              className="block text-[12px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5"
+              className="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5"
             >
               Địa chỉ Email
             </label>
@@ -182,7 +182,7 @@ export default function LoginPage() {
                 if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
               }}
               disabled={isSubmitting}
-              className={`input w-full h-[46px] text-[16px] sm:text-[15px] ${
+              className={`input w-full h-12 text-base ${
                 fieldErrors.email ? "border-rose-500 focus:border-rose-500 ring-rose-500/20" : ""
               }`}
             />
@@ -198,13 +198,13 @@ export default function LoginPage() {
             <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
               <label
                 htmlFor="login-password"
-                className="block text-[12px] font-bold uppercase tracking-wider text-[var(--text-secondary)]"
+                className="block text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]"
               >
                 Mật khẩu
               </label>
               <Link
                 href="/forgot-password"
-                className="text-[13px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
               >
                 Quên mật khẩu?
               </Link>
@@ -222,7 +222,7 @@ export default function LoginPage() {
                   if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 disabled={isSubmitting}
-                className={`input w-full h-[46px] text-[16px] sm:text-[15px] pr-12 ${
+                className={`input w-full h-12 text-base pr-12 ${
                   fieldErrors.password ? "border-rose-500 focus:border-rose-500 ring-rose-500/20" : ""
                 }`}
               />
@@ -253,15 +253,15 @@ export default function LoginPage() {
           </div>
 
           {/* Remember me checkbox */}
-          <div className="pt-0.5">
+          <div className="pt-1">
             <label className="inline-flex items-center gap-2.5 cursor-pointer select-none group" title="Duy trì phiên đăng nhập 30 ngày">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-[18px] h-[18px] rounded border-[var(--border)] text-indigo-600 focus:ring-indigo-600/30 cursor-pointer transition-colors"
+                className="w-5 h-5 rounded border-[var(--border)] text-indigo-600 focus:ring-indigo-600/30 cursor-pointer transition-colors"
               />
-              <span className="text-[13.5px] font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
+              <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                 Ghi nhớ đăng nhập
               </span>
             </label>
@@ -271,11 +271,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-[46px] rounded-[14px] bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-[15px] shadow-[0_4px_14px_0_rgb(79,70,229,0.39)] transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+            className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold text-base shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
           >
             {isSubmitting ? (
               <>
-                <div className="w-4 h-4 border-[2.5px] border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 <span>Đang xử lý...</span>
               </>
             ) : (
@@ -284,9 +284,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-5 mb-5 flex items-center gap-3">
+        <div className="mt-6 mb-6 flex items-center gap-4">
           <div className="h-px bg-[var(--border)] flex-1"></div>
-          <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Hoặc</span>
+          <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Hoặc</span>
           <div className="h-px bg-[var(--border)] flex-1"></div>
         </div>
 
@@ -298,12 +298,12 @@ export default function LoginPage() {
             window.location.href = `${baseUrl}/api/auth/google`;
           }}
           disabled={isGoogleSubmitting || isSubmitting}
-          className="w-full h-[46px] rounded-[14px] border border-[var(--border)] bg-white dark:bg-[#1A1A1A] hover:bg-slate-50 dark:hover:bg-[#252525] disabled:opacity-60 disabled:cursor-not-allowed text-[var(--text-primary)] font-semibold text-[14px] sm:text-[15px] shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+          className="w-full h-12 rounded-xl border border-[var(--border)] bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed text-slate-900 dark:text-white font-semibold text-base shadow-sm transition-all active:scale-95 flex items-center justify-center gap-3"
         >
           {isGoogleSubmitting ? (
-            <div className="w-5 h-5 border-[2.5px] border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div className="w-5 h-5 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
           ) : (
-            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -314,7 +314,7 @@ export default function LoginPage() {
         </button>
 
         {/* Link to Register */}
-        <div className="mt-6 pt-5 border-t border-[var(--border)] text-center text-[13.5px] text-[var(--text-secondary)]">
+        <div className="mt-6 pt-5 border-t border-[var(--border)] text-center text-sm text-[var(--text-secondary)]">
           <span className="block sm:inline">Chưa có tài khoản học viên?</span>{" "}
           <Link
             href="/register"
@@ -326,7 +326,7 @@ export default function LoginPage() {
       </div>
 
       {/* Footer Info */}
-      <div className="w-full max-w-[420px] text-center text-[11.5px] text-[var(--text-muted)] mt-8 mb-4 px-4 opacity-80">
+      <div className="w-full max-w-md text-center text-xs text-[var(--text-muted)] mt-8 mb-4 px-4 opacity-80">
         © 2026 StudyForward. Học ngoại ngữ thông minh.
       </div>
     </div>
