@@ -8,19 +8,19 @@ function getAuthHeader(): Record<string, string> {
 
 export const studyBoardsApi = {
   async getBoards() {
-    const res = await fetch(`${API_BASE}/study-boards`, { headers: getAuthHeader() });
+    const res = await fetch(`${API_BASE}/api/study-boards`, { headers: getAuthHeader() });
     if (!res.ok) throw new Error('Failed to fetch boards');
     return res.json();
   },
 
   async getBoard(id: string) {
-    const res = await fetch(`${API_BASE}/study-boards/${id}`, { headers: getAuthHeader() });
+    const res = await fetch(`${API_BASE}/api/study-boards/${id}`, { headers: getAuthHeader() });
     if (!res.ok) throw new Error('Failed to fetch board');
     return res.json();
   },
 
   async createBoard(name: string) {
-    const res = await fetch(`${API_BASE}/study-boards`, {
+    const res = await fetch(`${API_BASE}/api/study-boards`, {
       method: 'POST',
       headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
@@ -30,7 +30,7 @@ export const studyBoardsApi = {
   },
 
   async updateBoardData(id: string, data: any, version: number = 0) {
-    const res = await fetch(`${API_BASE}/study-boards/${id}/data`, {
+    const res = await fetch(`${API_BASE}/api/study-boards/${id}/data`, {
       method: 'PUT',
       headers: { ...getAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ data, version }),
@@ -40,7 +40,7 @@ export const studyBoardsApi = {
   },
 
   async deleteBoard(id: string) {
-    const res = await fetch(`${API_BASE}/study-boards/${id}`, {
+    const res = await fetch(`${API_BASE}/api/study-boards/${id}`, {
       method: 'DELETE',
       headers: getAuthHeader(),
     });
