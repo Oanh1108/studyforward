@@ -184,13 +184,14 @@ function SpeakingSetupView({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20">
       <div className="space-y-2">
         <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100">Luyện nói</h2>
         <p className="text-slate-500">Cấu hình buổi luyện và theo dõi tiến độ của bạn.</p>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 space-y-8 h-fit">
         <div className="space-y-4">
           <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">1. Chế độ luyện</label>
           <div className="flex p-1 bg-slate-100 dark:bg-slate-700/50 rounded-xl">
@@ -287,39 +288,42 @@ function SpeakingSetupView({
             </button>
           </div>
         </div>
-      </div>
-
-      {activeSessions.length > 0 && (
-        <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 md:p-8">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center justify-between">
-            Đang học dở
-            <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-xs">{activeSessions.length}</span>
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeSessions.map(session => (
-              <div key={session.id} className="p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors cursor-pointer group" onClick={() => handleResume(session.id)}>
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{session.topic}</h4>
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 shrink-0 ml-2">
-                    {session.level}
-                  </span>
-                </div>
-                <div className="text-sm text-slate-500 mb-4 flex items-center justify-between">
-                  <span>{session.mode === 'read' ? 'Đọc mẫu' : 'Dịch nói'}</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{session.currentIndex} / {session.totalSentences}</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-indigo-500 h-full transition-all rounded-full" 
-                    style={{ width: `${(session.currentIndex / session.totalSentences) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      )}
+
+        <div className="lg:col-span-4">
+          {activeSessions.length > 0 && (
+            <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-200 dark:border-slate-700 p-6">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center justify-between">
+                Đang học dở
+                <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-xs">{activeSessions.length}</span>
+              </h3>
+              
+              <div className="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2 hide-scrollbar">
+                {activeSessions.map(session => (
+                  <div key={session.id} className="p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors cursor-pointer group" onClick={() => handleResume(session.id)}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{session.topic}</h4>
+                      <span className="px-2 py-0.5 text-xs font-bold rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 shrink-0 ml-2">
+                        {session.level}
+                      </span>
+                    </div>
+                    <div className="text-sm text-slate-500 mb-4 flex items-center justify-between">
+                      <span>{session.mode === 'read' ? 'Đọc mẫu' : 'Dịch nói'}</span>
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{session.currentIndex} / {session.totalSentences}</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-indigo-500 h-full transition-all rounded-full" 
+                        style={{ width: `${(session.currentIndex / session.totalSentences) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
