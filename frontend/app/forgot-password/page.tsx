@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StudyForwardLogo } from "@/components/StudyForwardLogo";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002');
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002')).replace(/\/+$/, '');
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
