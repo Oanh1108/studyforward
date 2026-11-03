@@ -373,7 +373,7 @@ export function WordModal({
   };
 
   return (
-    <ModalDialog isOpen={isOpen} onClose={onClose} maxWidth="max-w-xl">
+    <ModalDialog isOpen={isOpen} onClose={onClose} maxWidth={bulkMode && !wordToEdit ? 'max-w-5xl' : 'max-w-xl'}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-5 border-b border-[var(--border)] shrink-0">
           <div className="flex items-center gap-2">

@@ -44,7 +44,7 @@ function splitLine(line: string): [string, string | undefined] {
 }
 
 const inputCls =
-  'w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-sans';
+  'w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-sans';
 
 export function BulkWordPanel({ folderId, language, languageName, onClose, onSuccess }: BulkWordPanelProps) {
   const [rows, setRows] = useState<Row[]>(() => Array.from({ length: START_ROWS }, () => newRow()));
@@ -219,7 +219,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-3 overflow-y-auto">
+    <form onSubmit={handleSubmit} className="p-5 md:p-8 space-y-4 overflow-y-auto">
       {error && (
         <div className="text-xs p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 font-medium">{error}</div>
       )}
@@ -234,19 +234,19 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
         </div>
       )}
 
-      <div className="hidden sm:grid grid-cols-[1.5rem_1fr_1fr_2rem] gap-2 px-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
+      <div className="hidden sm:grid grid-cols-[1.5rem_1fr_1fr_2.25rem] gap-2 px-0.5 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]">
         <span />
         <span>{languageName}</span>
         <span>Nghĩa tiếng Việt</span>
         <span />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows.map((row, i) => {
           const isLast = i === rows.length - 1;
           return (
-            <div key={row.id} className="grid grid-cols-[1.5rem_1fr_2rem] sm:grid-cols-[1.5rem_1fr_1fr_2rem] gap-2 items-start">
-              <span className="pt-2.5 text-[11px] font-bold text-[var(--text-muted)] text-center">{i + 1}</span>
+            <div key={row.id} className="grid grid-cols-[1.5rem_1fr_2.25rem] sm:grid-cols-[1.5rem_1fr_1fr_2.25rem] gap-3 items-start">
+              <span className="pt-3.5 text-xs font-bold text-[var(--text-muted)] text-center">{i + 1}</span>
               <input
                 ref={(el) => {
                   wordRefs.current[row.id] = el;
@@ -265,26 +265,29 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
                 className={`${inputCls} font-semibold`}
               />
               <div className="relative col-start-2 sm:col-start-auto row-start-2 sm:row-start-auto col-span-1">
-                <input
-                  type="text"
+                <textarea
+                  rows={1}
                   value={row.meaning}
                   disabled={isRunning}
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = 'auto';
+                      el.style.height = `${el.scrollHeight}px`;
+                    }
+                  }}
                   onChange={(e) => updateRow(row.id, { meaning: e.target.value, meaningEdited: true })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       if (isLast) addRow();
-                      else {
-                        const next = rows[i + 1];
-                        setFocusId(next.id);
-                      }
+                      else setFocusId(rows[i + 1].id);
                     }
                   }}
                   placeholder={row.loading ? 'AI đang tìm nghĩa...' : 'AI tự điền, hoặc bạn tự nhập'}
-                  className={inputCls}
+                  className={`${inputCls} resize-none overflow-hidden leading-snug`}
                 />
                 {row.loading && (
-                  <span className="absolute right-2.5 top-2.5 w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="absolute right-3 top-3.5 w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 )}
               </div>
               <button
@@ -292,7 +295,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
                 onClick={() => removeRow(row.id)}
                 disabled={isRunning}
                 aria-label={`Xóa dòng ${i + 1}`}
-                className="w-8 h-9 rounded-lg text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-all cursor-pointer"
+                className="w-9 h-11 rounded-lg text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-all cursor-pointer"
               >
                 ✕
               </button>
@@ -305,7 +308,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
         type="button"
         onClick={() => addRow()}
         disabled={isRunning || rows.length >= MAX_ROWS}
-        className="w-full py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-400 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5 transition-all"
+        className="w-full py-3.5 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-400 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5 transition-all"
       >
         + Thêm dòng
       </button>
