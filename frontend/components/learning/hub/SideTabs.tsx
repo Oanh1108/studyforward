@@ -128,7 +128,7 @@ export function SideTabs({ title, ariaLabel, tabs, activeTab, variant = 'side' }
           aria-modal="true"
           aria-label={ariaLabel}
           inert={!open}
-          className="sf-drawer fixed inset-y-0 left-0 z-50 flex w-[min(88vw,320px)] -translate-x-full flex-col overflow-hidden rounded-r-[28px] border-r border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-lg)] invisible data-[open=true]:visible data-[open=true]:translate-x-0"
+          className="sf-drawer fixed left-0 top-0 z-50 flex max-h-dvh w-[min(88vw,320px)] -translate-x-full flex-col overflow-hidden rounded-r-[28px] border border-l-0 border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-lg)] invisible data-[open=true]:visible data-[open=true]:translate-x-0"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
             <StudyForwardLogo size="sm" />
@@ -143,7 +143,7 @@ export function SideTabs({ title, ariaLabel, tabs, activeTab, variant = 'side' }
             </button>
           </div>
 
-          <nav aria-label={ariaLabel} className="flex-1 overflow-y-auto px-3 py-4">
+          <nav aria-label={ariaLabel} className="overflow-y-auto px-3 py-4">
             <p className="px-3 pb-2 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">{title}</p>
             <div className="flex flex-col gap-1">
               {tabs.map(({ id, label, href, icon: Icon }) => {

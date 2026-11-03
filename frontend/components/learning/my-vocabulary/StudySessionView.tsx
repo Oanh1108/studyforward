@@ -521,12 +521,11 @@ export function StudySessionView({
   const currentWord = deck[currentIndex];
 
   // Parse comma/semicolon/slash-separated synonym or antonym list into clean tokens
-  const parseWordList = (raw?: string | null): string[] => {
+  // Accepts a string ("a, b") or an array: AI enrichment returns synonyms/antonyms as arrays.
+  const parseWordList = (raw?: string | string[] | null): string[] => {
     if (!raw) return [];
-    return raw
-      .split(/[,;=/]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const parts = Array.isArray(raw) ? raw.map((x) => String(x ?? '')) : String(raw).split(/[,;=/]+/);
+    return parts.map((s) => s.trim()).filter(Boolean);
   };
 
   // Prepare Quiz choices for current card (Unified groups)
@@ -612,7 +611,7 @@ export function StudySessionView({
           .then(async (res) => {
             if (res && res[0] && (res[0].ipa || res[0].pinyin || res[0].romaji || res[0].thaiReading)) {
               const enriched = res[0];
-              setDeck(prev => prev.map(w => w.id === currentWord.id ? { ...w, ...enriched } as MyVocabularyWord : w));
+              setDeck(prev => prev.map(w => w.id === currentWord.id ? { ...w, ipa: enriched.ipa ?? w.ipa, pinyin: enriched.pinyin ?? w.pinyin, kana: enriched.kana ?? w.kana, romaji: enriched.romaji ?? w.romaji, romaja: enriched.romaja ?? w.romaja, thaiReading: enriched.thaiReading ?? w.thaiReading } as MyVocabularyWord : w));
               await myVocabApi.updateMyWord(currentWord.id, {
                 ipa: enriched.ipa, pinyin: enriched.pinyin, kana: enriched.kana, romaji: enriched.romaji, romaja: enriched.romaja, thaiReading: enriched.thaiReading
               }).catch(() => {}); // Ignore error on silent update
