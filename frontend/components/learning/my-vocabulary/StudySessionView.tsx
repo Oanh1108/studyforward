@@ -1766,12 +1766,7 @@ export function StudySessionView({
                   ) : (
                     <div className="p-3.5 mt-4 rounded-xl border bg-[var(--bg-card)] border-[var(--border)] space-y-3 animate-fade-in">
                       <div className="flex items-center gap-2 text-xs font-bold">
-                        {quizResult?.isPerfect ? (
-                          <span className="flex items-center gap-1.5 text-emerald-600">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
-                            <span>Hoàn toàn chính xác!</span>
-                          </span>
-                        ) : (
+                        {quizResult?.isPerfect ? null : (
                           <div className="flex flex-col gap-1.5">
                             <span className="flex items-center gap-1.5 text-rose-600">
                               <span className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px]">✗</span>
