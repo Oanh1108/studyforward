@@ -112,7 +112,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
       .filter(Boolean)
       .map(splitLine);
     const idx = rows.findIndex((r) => r.id === row.id);
-    const fresh = parsed.map(([w, m]) => newRow(w, m || ''));
+    const fresh = parsed.map(([w, m]: [string, string | undefined]) => newRow(w, m || ''));
     // Replace the box pasted into if it was empty, otherwise insert below it.
     const replaceCurrent = !row.word.trim() && !row.meaning.trim();
     const base = replaceCurrent ? rows.filter((r) => r.id !== row.id) : rows;
