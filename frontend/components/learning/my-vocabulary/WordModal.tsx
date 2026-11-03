@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/authContext';
 import { SupportedLanguage, getLanguageInfo } from '@/lib/languages';
 import { ModalDialog } from '@/components/ui/ModalDialog';
 import { Select } from '@/components/ui/Select';
+import { BulkWordPanel } from './BulkWordPanel';
 
 interface WordModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface WordModalProps {
   folders: VocabularyFolder[];
   activeFolderId?: number | null;
   onSuccess: (word: MyVocabularyWord, isNew: boolean) => void;
+  onBulkSuccess?: (result: { added: number; skipped: number; folderId: number | null }) => void;
 }
 
 const POS_OPTIONS = [
@@ -35,6 +37,7 @@ export function WordModal({
   folders,
   activeFolderId,
   onSuccess,
+  onBulkSuccess,
 }: WordModalProps) {
   const { currentLanguage } = useAuth();
 
@@ -57,6 +60,7 @@ export function WordModal({
   const [folderId, setFolderId] = useState<number | null>(null);
 
   // States
+  const [bulkMode, setBulkMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
@@ -80,6 +84,10 @@ export function WordModal({
     'en';
 
   const langInfo = getLanguageInfo(effectiveLanguage);
+
+  useEffect(() => {
+    if (!isOpen) setBulkMode(false);
+  }, [isOpen]);
 
   useEffect(() => {
     if (wordToEdit) {
@@ -387,7 +395,58 @@ export function WordModal({
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
+
+        {/* Mode tabs (add only) */}
+        {!wordToEdit && onBulkSuccess && (
+          <div className="flex gap-1 px-4 md:px-6 pt-3 shrink-0" role="tablist">
+            {[
+              { id: false, label: 'Từng từ' },
+              { id: true, label: 'Nhiều từ' },
+            ].map((t) => (
+              <button
+                key={String(t.id)}
+                type="button"
+                role="tab"
+                aria-selected={bulkMode === t.id}
+                onClick={() => setBulkMode(t.id)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  bulkMode === t.id
+                    ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {bulkMode && !wordToEdit && onBulkSuccess ? (
+          <>
+            <div className="px-4 md:px-6 pt-4">
+              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">Thư mục lưu trữ</label>
+              <Select
+                value={folderId ?? ''}
+                onChange={(val) => setFolderId(val ? Number(val) : null)}
+                options={[
+                  { value: '', label: '📁 Danh sách chung (Chưa phân loại)' },
+                  ...folders.map((f) => ({
+                    value: f.id,
+                    label: `📁 ${f.name} (${getLanguageInfo(f.language).name}) (${f.wordCount} từ)`,
+                  })),
+                ]}
+                className="w-full text-xs md:text-sm"
+              />
+            </div>
+            <BulkWordPanel
+              folderId={folderId}
+              language={effectiveLanguage}
+              languageName={langInfo.name}
+              onClose={onClose}
+              onSuccess={onBulkSuccess}
+            />
+          </>
+        ) : (
         <form onSubmit={(e) => handleSubmit(e)} className="p-4 md:p-6 space-y-4 overflow-y-auto">
           {error && (
             <div className="text-xs p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 font-medium">
@@ -798,6 +857,7 @@ export function WordModal({
             </button>
           </div>
         </form>
+        )}
     </ModalDialog>
   );
 }

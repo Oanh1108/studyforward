@@ -1171,6 +1171,12 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
             setSelectedFolderId('all');
           }
         }}
+        onBulkSuccess={({ added, skipped, folderId }) => {
+          toast.success(`Đã thêm ${added} từ vựng${skipped ? ` (bỏ qua ${skipped} từ trùng)` : ''}`);
+          fetchWords();
+          fetchFolders();
+          setSelectedFolderId(folderId ?? 'all');
+        }}
       />
 
       {/* 3. Move Word Modal */}
