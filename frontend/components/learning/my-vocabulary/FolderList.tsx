@@ -174,7 +174,7 @@ export function FolderList({
         </div>
 
         {!isLoaded ? (
-          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3" aria-busy="true" aria-label="Đang tải thư mục">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true" aria-label="Đang tải thư mục">
             {[1, 2, 3].map((n) => <Skeleton key={n} className="h-32 w-full rounded-[20px]" />)}
           </div>
         ) : folders.length === 0 ? (
@@ -200,7 +200,7 @@ export function FolderList({
             }
           />
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleFolders.map((folder) => {
               const menuOpen = menuFolderId === folder.id;
               return (
