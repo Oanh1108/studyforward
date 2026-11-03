@@ -209,6 +209,11 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
       // Keep only rows that were not saved so the user can fix and resubmit.
       const failed = new Set([...noMeaning.map((r) => r.word.trim()), ...res.errors.map((er) => er.word)].map((w) => w.toLowerCase()));
       const rest = current.filter((r) => failed.has(r.word.trim().toLowerCase()));
+      if (rest.length === 0 && res.added > 0) {
+        // Everything was saved: the parent already toasts the result, so just close.
+        onClose();
+        return;
+      }
       setRows(rest.length > 0 ? rest : Array.from({ length: START_ROWS }, () => newRow()));
     } catch (err: any) {
       setError(err.message || 'Không thể lưu danh sách từ vựng.');
