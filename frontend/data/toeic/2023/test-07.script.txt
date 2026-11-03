@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 7 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | The woman is tying her shoe. | The woman is putting on some sunglasses. | The woman is polishing her vehicle. | The woman is unloading some bags.
+2 |  | Some artwork is mounted on a wall. | A dresser drawer has been left open. | Some chairs are stacked in a corner. | Magazines are scattered on the floor.
+3 |  | She's getting on a bus. | She's grasping a door handle. | She's pulling some wheeled luggage. | She's walking through an outdoor park entrance.
+4 |  | One of the men is seated underneath a window. | One of the men is reading in front of a shelf. | Some women are writing on a whiteboard. | One of the women is using a laptop computer.
+5 |  | Some people are picking items up off the ground. | Some umbrellas have been opened. | There's some furniture in a hotel lobby. | There are some people hanging up lights.
+6 |  | Some safety cones are being removed from a work site. | Some helmets have been placed on the ground. | Some workers are directing traffic. | A road is being dug up by some workers.
+## PART 2 (question | A | B | C)
+7 | W-Am/M-Au | When will the office be open after the renovations? | Tuesday morning. | Some inventory control. | I'll wear a business suit.
+8 | W-Am/W-Br | Why didn't we order more watches for the store? | Because we haven't sold many lately. | I can watch that for you. | In alphabetical order, please.
+9 | W-Br/M-Au | Which workshop do you want to attend? | I'd prefer the one on leadership skills. | His office is upstairs. | Sure, that works for me.
+10 | M-Au/W-Am | Who else needs to approve the logo design? | Every page is numbered. | Yes. Let me get you a pen instead. | I'm waiting for a call from our marketing department.
+11 | W-Br/M-Cn | Can you please turn up the lights so I can take a photograph? | This isn't very heavy. | Sure, no problem. | The music is quite loud.
+12 | M-Au/W-Am | Where can I get my passport renewed? | Two hours long. | There's a list of locations online. | Yes, I travel frequently.
+13 |  | How are we going to increase our sales? | He works in the accounting office. | Yes, I am going there. | By advertising on social media.
+14 |  | Why did you replace the coffee machine in the break room? | She installed new software. | A company credit card. | There was a sale.
+15 |  | Where is Mr. Kim meeting with the new interns? | I've conducted several workshops. | We met when we were in college. | Didn't you get the memo?
+16 |  | When will the clients sign the contract? | No, my desk is made from solid wood. | We're scheduled to do that this afternoon. | Fourteen new employees is a record.
+17 |  | Can I order some dessert? | The kitchen closed an hour ago. | To start the meal. | She usually walks there.
+18 | M-Au/M-Cn | Isn't Mr. Romero managing the storeroom inventory? | No, he's working with a different team. | The warehouse on Mill Street. | OK, I'll be there soon.
+19 | W-Am/M-Cn | Will the new software be installed tonight or tomorrow? | Your computer is already fully updated. | The password is confidential. | About twenty minutes.
+20 |  | When do you need me to return the projector? | At the company headquarters. | Turn right at the light. | By the end of the week.
+21 | W-Am/W-Br | I don't think we'll need the large conference room. | Only ten people registered. | We'll take the large shirts, please. | I'm going to Milan this year.
+22 | W-Br/M-Au | There's going to be a coffee break, isn't there? | No, the plastic cups won't break. | I'll just look in the directory, thanks. | It is a six-hour conference.
+23 | W-Br/W-Am | Has next quarter's budget been approved? | I saw that film last week. | Three kilometers away. | It's still being reviewed.
+24 | W-Am/M-Au | Do you like the new carpet in the lobby? | The car is parked outside. | No, not at all. | Yes, I have several hobbies.
+25 | W-Br/M-Au | We should go and get some lunch now. | It's a new approach. | I bought these shoes on sale. | I have a dentist's appointment at noon.
+26 | W-Am/W-Br | Would you be interested in a magazine subscription? | Definitely. How much is it? | A full page ad. | No, it's my own recipe.
+27 | M-Cn | I don't think Mr. Beck will like the new production plan. | You don't think so? | To visit the plant tomorrow. | About an hour on Tuesday.
+28 | M-Cn/W-Am | Shouldn't we discuss the advertising campaign now? | On the radio. | A round-table discussion. | No, we have other priorities.
+29 | W-Br/M-Au | Where should I put this box of report binders? | The delivery truck is late. | Our team report contains a lot of interesting data. | The cabinet in my office is full.
+30 | W-Br/M-Cn | Have you seen our orientation video for new employees? | Seven new employees. | Yes, I watched it this morning. | We still haven't met.
+31 | M-Cn/W-Br | When are you planning to take a vacation? | She planned the event herself. | I'm working on three projects. | Could you take our picture, please?

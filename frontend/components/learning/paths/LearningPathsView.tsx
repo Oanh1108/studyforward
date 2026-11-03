@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { learningPathsApi, LearningPath, LearningPathSection, LearningPathItem } from '@/lib/learningPathsApi';
+import { EmptyState, Skeleton } from '../hub/primitives';
 import { IconPlus, IconClose, IconBook, IconCheck, IconPlay, IconLock } from '../icons';
 
 export function LearningPathsView() {
@@ -203,7 +204,7 @@ export function LearningPathsView() {
     const progressPct = progressTotal === 0 ? 0 : Math.round((progressCompleted / progressTotal) * 100);
 
     return (
-      <div className="max-w-4xl mx-auto space-y-6 animate-fade-up">
+      <div className="space-y-6 animate-fade-up">
         <div className="flex items-center gap-4">
           <button onClick={() => setMode('list')} className="p-2 hover:bg-[var(--bg-subtle)] rounded-full transition-colors bg-[var(--bg-card)] border border-[var(--border)] font-bold text-sm">
             ← Quay lại
@@ -307,7 +308,7 @@ export function LearningPathsView() {
 
   // LIST MODE
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-up">
+    <div className="space-y-6 animate-fade-up">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-[var(--text-primary)]">Lộ trình học của tôi</h2>
@@ -319,16 +320,18 @@ export function LearningPathsView() {
       </div>
 
       {loading && paths.length === 0 ? (
-        <div className="py-20 text-center text-[var(--text-muted)] font-bold animate-pulse">Đang tải...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" aria-busy="true"><Skeleton className="h-36" /><Skeleton className="h-36" /></div>
       ) : paths.length === 0 ? (
-        <div className="py-20 text-center border-2 border-dashed border-[var(--border)] rounded-3xl">
-          <div className="text-4xl mb-4">🗺️</div>
-          <h3 className="text-xl font-bold mb-2">Chưa có lộ trình nào</h3>
-          <p className="text-[var(--text-secondary)] mb-6 text-sm">Bạn chưa tạo hoặc tham gia lộ trình học nào.</p>
-          <button onClick={() => setMode('create')} className="px-6 py-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-xl font-bold transition-colors hover:bg-indigo-200 dark:hover:bg-indigo-900/60">
-            Tạo ngay
-          </button>
-        </div>
+        <EmptyState
+          icon={<IconBook className="w-6 h-6" />}
+          title="Bạn chưa có lộ trình học"
+          description="Tạo một lộ trình dựa trên mục tiêu và trình độ của bạn."
+          action={
+            <button onClick={() => setMode('create')} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-2">
+              <IconPlus className="w-4 h-4" /> Tạo lộ trình
+            </button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {paths.map(path => (

@@ -11,6 +11,8 @@ import {
 } from '@/lib/languages';
 import { isDueForReview } from '@/lib/spacedRepetition';
 import { WordDisplay } from '../WordDisplay';
+import { Select } from '@/components/ui/Select';
+import { AlertTriangle, ArrowLeftRight, Eye, Headphones, Info, Keyboard, Layers, ListChecks, Check, Play, RotateCcw, Search, Shuffle, Volume2, X } from 'lucide-react';
 
 const formatPos = (pos: string) => {
   const p = pos.trim().toLowerCase();
@@ -110,6 +112,7 @@ export function StudySessionView({
   const [includeUnassigned, setIncludeUnassigned] = useState(true);
   const [studyMode, setStudyMode] = useState<StudyMode>('flashcard');
   const [scope, setScope] = useState<StudyScope>('all');
+  const [folderQuery, setFolderQuery] = useState("");
   const [wordCountSetting, setWordCountSetting] = useState<WordCountOption>('20');
   const [isReversed, setIsReversed] = useState(false);
   const [isShuffled, setIsShuffled] = useState(true);
@@ -159,7 +162,7 @@ export function StudySessionView({
       onClose?.();
     } catch (err) {
       console.warn("Could not save session to backend:", err);
-      alert("L?i luu ti?n d?. Vui l�ng th? l?i!");
+      alert("Lỗi lưu tiến độ. Vui lòng thử lại!");
     } finally {
       setIsSavingExit(false);
     }
@@ -214,6 +217,10 @@ export function StudySessionView({
   const compatibleFolders = useMemo(() => {
     return folders.filter((f) => !f.language || f.language === currentLanguage);
   }, [folders, currentLanguage]);
+  const visibleFolders = useMemo(() => {
+    const q = folderQuery.trim().toLowerCase();
+    return q ? compatibleFolders.filter((f) => f.name.toLowerCase().includes(q)) : compatibleFolders;
+  }, [compatibleFolders, folderQuery]);
 
   // Load words and folders from backend on mount
   useEffect(() => {
@@ -585,7 +592,7 @@ export function StudySessionView({
 
   // Auto-play audio when card appears
   useEffect(() => {
-    if (phase === 'studying' && (studyMode === 'listening' || studyMode === 'flashcard' || (studyMode === 'quiz' && isAutoPlayEnabled)) && currentWord) {
+    if (phase === 'studying' && (studyMode === 'listening' || studyMode === 'typing' || studyMode === 'flashcard' || (studyMode === 'quiz' && isAutoPlayEnabled)) && currentWord) {
       if (lastPronouncedWordId.current === currentWord.id || isAudioBlocked) return;
       lastPronouncedWordId.current = currentWord.id;
       const timer = setTimeout(() => {
@@ -677,18 +684,30 @@ export function StudySessionView({
     setIsQuizSubmitted(true);
     setSaveStatus('saving');
 
+    // Grade locally (same rules as backend) so the verdict shows instantly and never flips
+    const checkGroup = (userAns: string[], trueAns: string[]) => {
+      const missing = trueAns.filter((a) => !userAns.includes(a));
+      const wrong = userAns.filter((a) => !trueAns.includes(a));
+      return { isCorrect: missing.length === 0 && wrong.length === 0, missing, wrong };
+    };
+    const meaningRes = checkGroup(quizSelections.meaning, [`m_${currentWord.id}`]);
+    const synonymRes = checkGroup(quizSelections.synonym, parseWordList(currentWord.synonyms).map((_, i) => `s_${currentWord.id}_${i}`));
+    const antonymRes = checkGroup(quizSelections.antonym, parseWordList(currentWord.antonyms).map((_, i) => `a_${currentWord.id}_${i}`));
+    const isPerfect = meaningRes.isCorrect && synonymRes.isCorrect && antonymRes.isCorrect;
+
+    setQuizEvalResult({ isPerfect, meaning: meaningRes, synonym: synonymRes, antonym: antonymRes });
+    setStudyHistory((prev) => [
+      ...prev,
+      { word: currentWord, rating: isPerfect ? 3 : 1, isCorrect: isPerfect, userAnswer: JSON.stringify(quizSelections) },
+    ]);
+
+    // Server call only records SRS progress
     try {
-      const res = await myVocabApi.evaluateQuiz({
+      await myVocabApi.evaluateQuiz({
         wordId: currentWord.id,
         selections: quizSelections,
         recordSrs: true,
       });
-      setQuizEvalResult(res);
-
-      setStudyHistory((prev) => [
-        ...prev,
-        { word: currentWord, rating: res.isPerfect ? 3 : 1, isCorrect: res.isPerfect, userAnswer: JSON.stringify(quizSelections) },
-      ]);
     } catch (err) {
       console.warn('Quiz evaluation failed', err);
     } finally {
@@ -716,28 +735,45 @@ export function StudySessionView({
     const normalizedUser = normalizeInputString(typingInput);
     if (!normalizedUser) return;
 
-    const targetCorrect = isReversed ? getWordMeaning(currentWord) : currentWord.word;
+    // Reversed (Việt → target language) shows the meaning and expects the word, so the answer is the word either way.
+    const targetCorrect = currentWord.word;
     const normalizedTarget = normalizeInputString(targetCorrect);
 
     // Accept configured alternative answers (synonyms, reading tokens)
     const acceptable = [normalizedTarget];
-    if (!isReversed) {
-      if (currentWord.synonyms) {
-        currentWord.synonyms
-          .split(/[,;=/]+/)
-          .map((s) => normalizeInputString(s))
-          .filter(Boolean)
-          .forEach((s) => acceptable.push(s));
-      }
-      if (currentWord.romaji) acceptable.push(normalizeInputString(currentWord.romaji));
-      if (currentWord.romaja) acceptable.push(normalizeInputString(currentWord.romaja));
-      if (currentWord.kana) acceptable.push(normalizeInputString(currentWord.kana));
-      if (currentWord.pinyin) acceptable.push(normalizeInputString(currentWord.pinyin));
+    if (currentWord.synonyms) {
+      currentWord.synonyms
+        .split(/[,;=/]+/)
+        .map((s) => normalizeInputString(s))
+        .filter(Boolean)
+        .forEach((s) => acceptable.push(s));
     }
+    if (currentWord.romaji) acceptable.push(normalizeInputString(currentWord.romaji));
+    if (currentWord.romaja) acceptable.push(normalizeInputString(currentWord.romaja));
+    if (currentWord.kana) acceptable.push(normalizeInputString(currentWord.kana));
+    if (currentWord.pinyin) acceptable.push(normalizeInputString(currentWord.pinyin));
 
     const isCorrect = acceptable.includes(normalizedUser);
     setIsTypingCorrect(isCorrect);
     setTypingSubmitted(true);
+
+    // Synonym test (Nghe & Viết): compare what was entered, including text not yet confirmed with Enter
+    if (studyMode === 'listening' && synonymTestMode !== 'none' && currentWord.synonyms) {
+      const required = parseWordList(currentWord.synonyms).map((s) => normalizeInputString(s));
+      const requiredLabels = parseWordList(currentWord.synonyms);
+      const pending = synonymInput.split(/[,;]+|\n/).map((s) => s.trim()).filter(Boolean);
+      const entered = [...new Set([...synonymChips, ...pending])];
+      const normalizedEntered = entered.map((s) => normalizeInputString(s));
+      const wrong = entered.filter((_, i) => !required.includes(normalizedEntered[i]));
+      const missing = requiredLabels.filter((_, i) => !normalizedEntered.includes(required[i]));
+      const hit = required.some((r) => normalizedEntered.includes(r));
+      setWrongSynonyms(wrong);
+      setMissingSynonyms(synonymTestMode === 'all' ? missing : hit ? [] : requiredLabels);
+      setIsSynonymCorrect(synonymTestMode === 'all' ? missing.length === 0 && wrong.length === 0 : hit);
+    }
+
+    // Read the correct word aloud once the answer is checked, right or wrong
+    handlePronounce(currentWord.word, currentWord.language);
 
     // Save to DB
     myVocabApi.recordWordStudy(currentWord.id, isCorrect ? 3 : 1).catch(() => {});
@@ -905,7 +941,7 @@ export function StudySessionView({
   const audioVoiceAvailable = isAudioSupported(currentLanguage);
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden min-h-[calc(100vh-2rem)] sm:min-h-[85vh] animate-fade-in select-none mt-2 sm:mt-6">
+    <div className={`w-full ${phase === 'setup' ? 'max-w-6xl' : 'max-w-5xl'} mx-auto flex flex-col bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden min-h-[calc(100vh-2rem)] sm:min-h-[85vh] animate-fade-in select-none mt-2 sm:mt-6`}>
         {/* ========================================================
             TOP HEADER BAR (Dedicated, distraction-free)
            ======================================================== */}
@@ -928,7 +964,7 @@ export function StudySessionView({
                         ? 'Luyện gõ từ vựng'
                         : 'Nghe và viết chính tả'
                     } (${langInfo.name})`
-                  : 'Tổng kết kết quả buổi học'}
+                  : 'Tổng kết buổi học'}
               </h2>
               {phase === 'studying' && (
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
@@ -948,10 +984,11 @@ export function StudySessionView({
               <button
                 type="button"
                 onClick={() => setExitConfirmOpen(true)}
-                className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:text-rose-600 hover:border-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-rose-500/10 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
                 title="Tạm dừng và lưu tiến độ"
+                aria-label="Thoát buổi học"
               >
-                ✕ Thoát
+                <X className="h-5 w-5" />
               </button>
             ) : (
               <button
@@ -990,18 +1027,13 @@ export function StudySessionView({
               PHASE 1: SETUP
              ======================================================== */}
           {phase === 'setup' && (
-            <div className="space-y-5 animate-fade-in">
+            <div className="mx-auto w-full max-w-5xl space-y-6 animate-fade-in">
               {/* Resume In-Progress Session Banner */}
               {savedSessionToResume && (
-                <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex flex-col justify-between gap-3 rounded-2xl bg-[var(--brand-light)] p-4 sm:flex-row sm:items-center">
                   <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">📌</span>
-                      <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
-                        Bạn có phiên học chưa hoàn thành
-                      </span>
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)]">
+                    <p className="text-sm font-bold text-[var(--brand-text)]">Bạn có phiên học chưa hoàn thành</p>
+                    <p className="text-sm text-[var(--text-secondary)]">
                       Đang học câu {savedSessionToResume.currentIndex + 1} / {savedSessionToResume.deck.length} (
                       {savedSessionToResume.mode === 'flashcard'
                         ? 'Flashcard'
@@ -1017,14 +1049,14 @@ export function StudySessionView({
                     <button
                       type="button"
                       onClick={() => resumeSavedSession(savedSessionToResume)}
-                      className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all"
+                      className="inline-flex min-h-10 items-center rounded-full bg-[var(--brand)] px-5 text-sm font-bold text-[var(--text-inverse)] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                     >
                       Tiếp tục học
                     </button>
                     <button
                       type="button"
                       onClick={discardSavedSession}
-                      className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text-secondary)] hover:text-rose-600 transition-colors"
+                      className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-card)] hover:text-rose-600"
                     >
                       Bỏ qua
                     </button>
@@ -1032,384 +1064,321 @@ export function StudySessionView({
                 </div>
               )}
 
-              {/* 1. Chọn Thư mục */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">
-                    1. Chọn thư mục ({langInfo.name})
-                  </label>
-                  <div className="flex items-center gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFolderIds(compatibleFolders.map((f) => f.id));
-                        setIncludeUnassigned(true);
-                      }}
-                      className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
-                    >
-                      Chọn tất cả
-                    </button>
-                    <span className="text-[var(--text-muted)]">•</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFolderIds([]);
-                        setIncludeUnassigned(false);
-                      }}
-                      className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
-                    >
-                      Bỏ chọn
-                    </button>
-                  </div>
-                </div>
-
-                {compatibleFolders.length === 0 && (
-                  <div className="p-3 text-center text-xs text-[var(--text-muted)] bg-[var(--bg-subtle)] rounded-xl border border-[var(--border)]">
-                    Chưa có thư mục nào cho ngôn ngữ {langInfo.name}.
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)]">
-                  {compatibleFolders.map((f) => {
-                    const isSelected = selectedFolderIds.includes(f.id);
-                    return (
-                      <label
-                        key={f.id}
-                        className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-indigo-500/10 border-indigo-500/40 text-[var(--text-primary)] font-bold'
-                            : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-secondary)] opacity-80'
-                        }`}
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,6fr)_minmax(0,7fr)]">
+                {/* ---------- Left: what to study ---------- */}
+                <section aria-labelledby="study-folders" className="min-w-0 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 id="study-folders" className="whitespace-nowrap text-base font-extrabold tracking-tight text-[var(--text-primary)]">
+                      Thư mục {langInfo.name} <span className="text-sm font-medium text-[var(--text-muted)]">({selectedFolderIds.length + (includeUnassigned ? 1 : 0)}/{compatibleFolders.length + 1})</span>
+                    </h3>
+                    <div className="flex items-center gap-1 text-sm">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFolderIds(folderQuery ? Array.from(new Set([...selectedFolderIds, ...visibleFolders.map((f) => f.id)])) : compatibleFolders.map((f) => f.id));
+                          setIncludeUnassigned(true);
+                        }}
+                        className="whitespace-nowrap rounded-full px-3 py-1 font-semibold text-[var(--brand-text)] hover:bg-[var(--brand-light)]"
                       >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => {
-                            if (isSelected) {
-                              setSelectedFolderIds(selectedFolderIds.filter((id) => id !== f.id));
-                            } else {
-                              setSelectedFolderIds([...selectedFolderIds, f.id]);
-                            }
-                          }}
-                          className="rounded text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: f.color }}
-                        />
-                        <span className="truncate flex-1">{f.name}</span>
-                        <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                          {f.wordCount} từ
-                        </span>
-                      </label>
-                    );
-                  })}
-
-                  {/* Unassigned folder */}
-                  <label
-                    className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
-                      includeUnassigned
-                        ? 'bg-indigo-500/10 border-indigo-500/40 text-[var(--text-primary)] font-bold'
-                        : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-secondary)] opacity-80'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={includeUnassigned}
-                      onChange={(e) => setIncludeUnassigned(e.target.checked)}
-                      className="rounded text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0" />
-                    <span className="truncate flex-1">Chưa phân loại</span>
-                    <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                      {currentPool.filter((w: MyVocabularyWord) => !w.folderId && (!w.language || w.language === currentLanguage)).length} từ
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* 2. Chế độ học (4 Chế độ) + Quiz subtype */}
-              <div>
-                <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">
-                  2. Chọn chế độ học
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {/* Flashcard */}
-                  <button
-                    type="button"
-                    onClick={() => setStudyMode('flashcard')}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      studyMode === 'flashcard'
-                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
-                        : 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">🗂️</div>
-                    <div className="font-bold text-xs text-[var(--text-primary)]">Flashcard</div>
-                    <div className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-0.5">
-                      Lật thẻ xem nghĩa, đánh giá 4 mức nhớ
+                        Chọn tất cả
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFolderIds([]);
+                          setIncludeUnassigned(false);
+                        }}
+                        className="whitespace-nowrap rounded-full px-3 py-1 font-semibold text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-secondary)]"
+                      >
+                        Bỏ chọn
+                      </button>
                     </div>
-                  </button>
+                  </div>
 
-                  {/* Trắc nghiệm */}
-                  <button
-                    type="button"
-                    onClick={() => setStudyMode('quiz')}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      studyMode === 'quiz'
-                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
-                        : 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">✨</div>
-                    <div className="font-bold text-xs text-[var(--text-primary)]">Trắc nghiệm</div>
-                    <div className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-0.5">
-                      Chọn 1 trong 4 đáp án đúng cùng ngôn ngữ
-                    </div>
-                  </button>
+                  {compatibleFolders.length === 0 && (
+                    <p className="rounded-2xl bg-[var(--bg-subtle)] px-4 py-3 text-sm text-[var(--text-muted)]">
+                      Chưa có thư mục nào cho ngôn ngữ {langInfo.name}.
+                    </p>
+                  )}
 
-                  {/* Luyện gõ */}
-                  <button
-                    type="button"
-                    onClick={() => setStudyMode('typing')}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      studyMode === 'typing'
-                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
-                        : 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">⌨️</div>
-                    <div className="font-bold text-xs text-[var(--text-primary)]">Luyện gõ</div>
-                    <div className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-0.5">
-                      Gõ từ theo nghĩa, hỗ trợ bộ gõ IME
+                  {compatibleFolders.length > 3 && (
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+                      <input
+                        type="text"
+                        value={folderQuery}
+                        onChange={(e) => setFolderQuery(e.target.value)}
+                        placeholder="Tìm thư mục..."
+                        aria-label="Tìm thư mục"
+                        className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] pl-10 pr-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15"
+                      />
                     </div>
-                  </button>
+                  )}
 
-                  {/* Nghe và viết */}
-                  <button
-                    type="button"
-                    onClick={() => setStudyMode('listening')}
-                    disabled={!audioVoiceAvailable}
-                    className={`p-3 rounded-xl border text-left transition-all relative ${
-                      studyMode === 'listening'
-                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
-                        : !audioVoiceAvailable
-                        ? 'bg-[var(--bg-subtle)] border-[var(--border)] opacity-40 cursor-not-allowed'
-                        : 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">🎧</div>
-                    <div className="font-bold text-xs text-[var(--text-primary)]">Nghe & Viết</div>
-                    <div className="text-[10px] text-[var(--text-muted)] line-clamp-2 mt-0.5">
-                      Nghe phát âm và gõ lại đúng chính tả
-                    </div>
-                    {!audioVoiceAvailable && (
-                      <span className="absolute top-1 right-1 text-[9px] px-1 bg-amber-500/20 text-amber-600 rounded">
-                        Chưa hỗ trợ TTS
+                  {folderQuery && visibleFolders.length === 0 && (
+                    <p role="status" className="rounded-2xl bg-[var(--bg-subtle)] px-4 py-3 text-sm text-[var(--text-muted)]">
+                      Không có thư mục nào khớp &quot;{folderQuery}&quot;.
+                    </p>
+                  )}
+
+                  <div className="max-h-80 space-y-1 overflow-y-auto rounded-2xl border border-[var(--border)] p-1.5">
+                    {visibleFolders.map((f) => {
+                      const isSelected = selectedFolderIds.includes(f.id);
+                      return (
+                        <label
+                          key={f.id}
+                          className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                            isSelected ? 'bg-[var(--brand-light)] font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              if (isSelected) {
+                                setSelectedFolderIds(selectedFolderIds.filter((id) => id !== f.id));
+                              } else {
+                                setSelectedFolderIds([...selectedFolderIds, f.id]);
+                              }
+                            }}
+                            className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[var(--brand)]"
+                          />
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: f.color }} />
+                          <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                          <span className="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">{f.wordCount} từ</span>
+                        </label>
+                      );
+                    })}
+
+                    {/* Unassigned folder */}
+                    <label
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                        includeUnassigned ? 'bg-[var(--brand-light)] font-semibold text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={includeUnassigned}
+                        onChange={(e) => setIncludeUnassigned(e.target.checked)}
+                        className="h-4 w-4 shrink-0 cursor-pointer rounded accent-[var(--brand)]"
+                      />
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-slate-400" />
+                      <span className="min-w-0 flex-1 truncate">Chưa phân loại</span>
+                      <span className="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">
+                        {currentPool.filter((w: MyVocabularyWord) => !w.folderId && (!w.language || w.language === currentLanguage)).length} từ
                       </span>
-                    )}
-                  </button>
-                </div>
-
-                {/* Synonym Test Mode for Listening */}
-                {studyMode === 'listening' && (
-                  <div className="mt-3 p-3 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)]">
-                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2">
-                      Kiểm tra từ đồng nghĩa
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {([
-                        { key: 'none' as SynonymTestMode, label: 'Không kiểm tra' },
-                        { key: 'one' as SynonymTestMode, label: 'Nhập một từ' },
-                        { key: 'all' as SynonymTestMode, label: 'Nhập tất cả từ' },
-                      ]).map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          onClick={() => setSynonymTestMode(item.key)}
-                          className={`p-2 rounded-lg border text-center transition-all ${
-                            synonymTestMode === item.key
-                              ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                              : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                          }`}
-                        >
-                          <div className="font-bold text-[11px]">{item.label}</div>
-                        </button>
-                      ))}
-                    </div>
                   </div>
-                )}
+                </section>
 
-                {/* Quiz subtype picker — only shown when quiz mode is active */}
-                {studyMode === 'quiz' && (
-                  <div className="mt-3 p-3 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)]">
-                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2">
-                      Loại câu hỏi trắc nghiệm
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {/* ---------- Right: how to study ---------- */}
+                <div className="min-w-0 space-y-6">
+                  <section aria-labelledby="study-mode" className="space-y-3">
+                    <h3 id="study-mode" className="text-base font-extrabold tracking-tight text-[var(--text-primary)]">
+                      Chế độ học
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2.5">
                       {([
-                        { key: 'meaning' as QuizType, icon: '📖', label: 'Chọn nghĩa', desc: 'Nghĩa tiếng Việt' },
-                        { key: 'synonym' as QuizType, icon: '🔗', label: 'Đồng nghĩa', desc: 'Chọn từ đồng nghĩa' },
-                        { key: 'antonym' as QuizType, icon: '↔️', label: 'Trái nghĩa', desc: 'Chọn từ trái nghĩa' },
-                        { key: 'mixed' as QuizType, icon: '🎲', label: 'Trộn cả 3', desc: 'Kết hợp ngẫu nhiên' },
-                      ]).map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          onClick={() => setQuizType(item.key)}
-                          className={`p-2.5 rounded-lg border text-left transition-all ${
-                            quizType === item.key
-                              ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20'
-                              : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-secondary)] hover:border-indigo-300'
-                          }`}
-                        >
-                          <div className="text-base mb-0.5">{item.icon}</div>
-                          <div className="font-bold text-[11px] text-[var(--text-primary)] leading-tight">{item.label}</div>
-                          <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-tight hidden sm:block">{item.desc}</div>
-                        </button>
-                      ))}
+                        { key: 'flashcard' as const, Icon: Layers, title: 'Flashcard', desc: 'Lật thẻ xem nghĩa, đánh giá 4 mức nhớ' },
+                        { key: 'quiz' as const, Icon: ListChecks, title: 'Trắc nghiệm', desc: 'Chọn 1 trong 4 đáp án đúng' },
+                        { key: 'typing' as const, Icon: Keyboard, title: 'Luyện gõ', desc: 'Gõ từ theo nghĩa, hỗ trợ bộ gõ IME' },
+                        { key: 'listening' as const, Icon: Headphones, title: 'Nghe & Viết', desc: 'Nghe phát âm và gõ lại đúng chính tả' },
+                      ]).map(({ key, Icon, title, desc }) => {
+                        const disabled = key === 'listening' && !audioVoiceAvailable;
+                        const active = studyMode === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setStudyMode(key)}
+                            disabled={disabled}
+                            aria-pressed={active}
+                            className={`flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
+                              active
+                                ? 'border-[var(--brand)] bg-[var(--brand-light)]'
+                                : 'border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--brand)]/50'
+                            } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
+                          >
+                            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${active ? 'bg-[var(--brand)] text-[var(--text-inverse)]' : 'bg-[var(--bg-muted)] text-[var(--text-secondary)]'}`}>
+                              <Icon className="h-[18px] w-[18px]" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-sm font-bold text-[var(--text-primary)]">{title}</span>
+                              <span className="mt-0.5 block text-xs leading-snug text-[var(--text-muted)]">{disabled ? 'Ngôn ngữ này chưa hỗ trợ phát âm' : desc}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
-                    {(quizType === 'synonym' || quizType === 'antonym') && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
-                        <span>⚠️</span>
-                        <span>
-                          {quizType === 'synonym'
-                            ? 'Từ không có đồng nghĩa sẽ tự động chuyển sang câu hỏi chọn nghĩa.'
-                            : 'Từ không có trái nghĩa sẽ tự động chuyển sang câu hỏi chọn nghĩa.'}
+
+                    {/* Synonym Test Mode for Listening */}
+                    {studyMode === 'listening' && (
+                      <div className="space-y-2 rounded-2xl bg-[var(--bg-subtle)] p-3.5">
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">Kiểm tra từ đồng nghĩa</p>
+                        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Kiểm tra từ đồng nghĩa">
+                          {([
+                            { key: 'none' as SynonymTestMode, label: 'Không kiểm tra' },
+                            { key: 'one' as SynonymTestMode, label: 'Nhập một từ' },
+                            { key: 'all' as SynonymTestMode, label: 'Nhập tất cả từ' },
+                          ]).map((item) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => setSynonymTestMode(item.key)}
+                              aria-pressed={synonymTestMode === item.key}
+                              className={`min-h-9 rounded-full px-4 text-sm font-semibold transition-colors ${
+                                synonymTestMode === item.key
+                                  ? 'bg-[var(--brand)] text-[var(--text-inverse)]'
+                                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quiz subtype picker — only shown when quiz mode is active */}
+                    {studyMode === 'quiz' && (
+                      <div className="space-y-2 rounded-2xl bg-[var(--bg-subtle)] p-3.5">
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">Loại câu hỏi</p>
+                        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Loại câu hỏi trắc nghiệm">
+                          {([
+                            { key: 'meaning' as QuizType, label: 'Chọn nghĩa' },
+                            { key: 'synonym' as QuizType, label: 'Đồng nghĩa' },
+                            { key: 'antonym' as QuizType, label: 'Trái nghĩa' },
+                            { key: 'mixed' as QuizType, label: 'Trộn cả 3' },
+                          ]).map((item) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => setQuizType(item.key)}
+                              aria-pressed={quizType === item.key}
+                              className={`min-h-9 rounded-full px-4 text-sm font-semibold transition-colors ${
+                                quizType === item.key
+                                  ? 'bg-[var(--brand)] text-[var(--text-inverse)]'
+                                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                        {(quizType === 'synonym' || quizType === 'antonym') && (
+                          <p className="text-xs text-amber-700 dark:text-amber-400">
+                            {quizType === 'synonym'
+                              ? 'Từ không có đồng nghĩa sẽ tự động chuyển sang câu hỏi chọn nghĩa.'
+                              : 'Từ không có trái nghĩa sẽ tự động chuyển sang câu hỏi chọn nghĩa.'}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Scope and count */}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <section aria-labelledby="study-scope" className="space-y-2">
+                      <h3 id="study-scope" className="text-base font-extrabold tracking-tight text-[var(--text-primary)]">Phạm vi từ</h3>
+                      <Select
+                        value={scope}
+                        onChange={(val) => setScope(val)}
+                        options={[
+                          { value: 'all', label: 'Tất cả' },
+                          { value: 'new', label: 'Từ mới' },
+                          { value: 'learning', label: 'Chưa nhớ' },
+                          { value: 'due', label: 'Đến hạn ôn' },
+                        ]}
+                        ariaLabel="Phạm vi từ"
+                        variant="filter"
+                      />
+                    </section>
+                    <section aria-labelledby="study-count" className="space-y-2">
+                      <h3 id="study-count" className="text-base font-extrabold tracking-tight text-[var(--text-primary)]">Số từ trong buổi</h3>
+                      <Select
+                        value={wordCountSetting}
+                        onChange={(val) => setWordCountSetting(val)}
+                        options={[
+                          { value: '10', label: '10 từ' },
+                          { value: '20', label: '20 từ' },
+                          { value: '30', label: '30 từ' },
+                          { value: 'all', label: 'Tất cả' },
+                        ]}
+                        ariaLabel="Số từ trong buổi"
+                        variant="filter"
+                      />
+                    </section>
+                  </div>
+
+                  {/* Extra options */}
+                  <section aria-label="Tùy chọn thêm" className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                    {([
+                      { title: 'Đảo chiều', desc: `Việt → ${langInfo.name}`, Icon: ArrowLeftRight, checked: isReversed, set: setIsReversed },
+                      { title: 'Cách đọc', desc: 'Hiện phiên âm / Furigana', Icon: Eye, checked: showPhonetics, set: setShowPhonetics },
+                      { title: 'Xáo trộn', desc: 'Đổi thứ tự ngẫu nhiên', Icon: Shuffle, checked: isShuffled, set: setIsShuffled },
+                    ]).map(({ title, desc, Icon, checked, set }) => (
+                      <button
+                        key={title}
+                        type="button"
+                        onClick={() => set(!checked)}
+                        aria-pressed={checked}
+                        className={`flex items-start gap-3 rounded-2xl border p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
+                          checked
+                            ? 'border-[var(--brand)] bg-[var(--brand-light)]'
+                            : 'border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--brand)]/50'
+                        }`}
+                      >
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${checked ? 'bg-[var(--brand)] text-[var(--text-inverse)]' : 'bg-[var(--bg-muted)] text-[var(--text-secondary)]'}`}>
+                          <Icon className="h-[18px] w-[18px]" />
                         </span>
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Phạm vi học & Số lượng từ */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Phạm vi */}
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">
-                    3. Phạm vi từ
-                  </label>
-                  <div className="grid grid-cols-4 gap-1 p-1 bg-[var(--bg-subtle)] rounded-xl border border-[var(--border)] text-xs">
-                    {(
-                      [
-                        { key: 'all', label: 'Tất cả' },
-                        { key: 'new', label: 'Từ mới' },
-                        { key: 'learning', label: 'Chưa nhớ' },
-                        { key: 'due', label: 'Đến hạn' },
-                      ] as const
-                    ).map((item) => (
-                      <button
-                        key={item.key}
-                        type="button"
-                        onClick={() => setScope(item.key)}
-                        className={`py-1.5 rounded-lg font-semibold transition-all ${
-                          scope === item.key
-                            ? 'bg-[var(--bg-card)] text-indigo-600 dark:text-indigo-400 shadow-xs'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        {item.label}
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-[var(--text-primary)]">{title}</span>
+                          <span className="mt-0.5 block text-xs leading-snug text-[var(--text-muted)]">{desc}</span>
+                        </span>
                       </button>
                     ))}
-                  </div>
+                  </section>
                 </div>
-
-                {/* Số lượng câu */}
-                <div>
-                  <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5 uppercase tracking-wider">
-                    4. Số từ trong buổi
-                  </label>
-                  <div className="grid grid-cols-4 gap-1 p-1 bg-[var(--bg-subtle)] rounded-xl border border-[var(--border)] text-xs">
-                    {(['10', '20', '30', 'all'] as const).map((cnt) => (
-                      <button
-                        key={cnt}
-                        type="button"
-                        onClick={() => setWordCountSetting(cnt)}
-                        className={`py-1.5 rounded-lg font-semibold transition-all ${
-                          wordCountSetting === cnt
-                            ? 'bg-[var(--bg-card)] text-indigo-600 dark:text-indigo-400 shadow-xs'
-                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                        }`}
-                      >
-                        {cnt === 'all' ? 'Tất cả' : `${cnt} từ`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Tùy chọn học bổ sung */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border)] text-xs">
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[var(--text-primary)]">
-                  <input
-                    type="checkbox"
-                    checked={isReversed}
-                    onChange={(e) => setIsReversed(e.target.checked)}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span>🔄 Đảo chiều (Việt → {langInfo.name})</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[var(--text-primary)]">
-                  <input
-                    type="checkbox"
-                    checked={showPhonetics}
-                    onChange={(e) => setShowPhonetics(e.target.checked)}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span>👁️ Hiện cách đọc / Furigana</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer font-semibold text-[var(--text-primary)]">
-                  <input
-                    type="checkbox"
-                    checked={isShuffled}
-                    onChange={(e) => setIsShuffled(e.target.checked)}
-                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span>🔀 Xáo trộn thứ tự</span>
-                </label>
               </div>
 
               {/* Warning banner: Words lacking meaning */}
               {invalidWordsWithoutMeaning.length > 0 && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400 space-y-1">
-                  <div className="font-bold flex items-center gap-1.5">
-                    <span>⚠️</span>
-                    <span>
-                      Có {invalidWordsWithoutMeaning.length} từ chưa có nghĩa tiếng Việt:
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">
-                    Các từ này đã tự động được loại bỏ để đảm bảo chất lượng bài học cần nghĩa. Bạn có thể bổ sung nghĩa trong danh sách từ vựng.
+                <div className="flex items-start gap-2.5 rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    <strong>{invalidWordsWithoutMeaning.length} từ chưa có nghĩa tiếng Việt</strong> đã được loại khỏi buổi học. Bạn có thể bổ sung nghĩa trong danh sách từ vựng.
                   </p>
                 </div>
               )}
 
               {/* Warning banner: Quiz with too few words */}
               {studyMode === 'quiz' && validWords.length < 4 && validWords.length > 0 && (
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
-                  ℹ️ Thư mục hiện có {validWords.length} từ. Chế độ Trắc nghiệm hoạt động tốt nhất khi có ít nhất 4 từ trở lên để tạo đáp án nhiễu. Bạn cũng có thể chọn thêm thư mục khác hoặc chọn Thẻ ghi nhớ / Luyện gõ.
+                <div className="flex items-start gap-2.5 rounded-2xl bg-[var(--brand-light)] px-4 py-3 text-sm text-[var(--brand-text)]">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>Hiện có {validWords.length} từ. Trắc nghiệm cần ít nhất 4 từ để tạo đáp án nhiễu. Hãy chọn thêm thư mục hoặc dùng Flashcard / Luyện gõ.</p>
                 </div>
               )}
 
-              {/* Start Button */}
-              <div className="pt-1 text-center space-y-2">
+              {/* Start */}
+              <div className="flex flex-col items-stretch gap-3 border-t border-[var(--border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[var(--text-secondary)]" aria-live="polite">
+                  {validWords.length > 0 ? (
+                    <>
+                      Sẵn sàng với <strong className="text-[var(--text-primary)]">{validWords.length} từ</strong>
+                    </>
+                  ) : (
+                    <span className="font-medium text-rose-600 dark:text-rose-400">Chưa có từ nào phù hợp. Hãy chọn thêm thư mục hoặc đổi phạm vi.</span>
+                  )}
+                </p>
                 <button
                   type="button"
                   onClick={() => startSession()}
                   disabled={validWords.length === 0}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-8 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                 >
-                  <span>🚀 Bắt đầu buổi học ({validWords.length} từ hợp lệ)</span>
+                  <Play className="h-4 w-4 fill-current" />
+                  Bắt đầu buổi học
                 </button>
-
-                {validWords.length === 0 && (
-                  <p className="text-xs text-rose-500 font-medium">
-                    Không có từ vựng nào phù hợp với phạm vi và thư mục đã chọn. Hãy chọn thêm thư mục hoặc thêm từ mới.
-                  </p>
-                )}
               </div>
             </div>
           )}
@@ -1578,7 +1547,7 @@ export function StudySessionView({
                   <div className="min-h-[120px] p-4 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex flex-col items-center justify-center text-center relative">
                     <WordDisplay
                       word={currentWord}
-                      isReversed={false}
+                      isReversed={isReversed}
                       showPhonetics={showPhonetics}
                       onPronounce={handlePronounce}
                       size="large"
@@ -1597,7 +1566,7 @@ export function StudySessionView({
                     {quizGroupChoices.meaning.length > 0 && (
                       <div className="space-y-2">
                         <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1.5">
-                          📖 Nghĩa tiếng Việt
+                          {isReversed ? `📖 Từ ${langInfo.name} tương ứng` : "📖 Nghĩa tiếng Việt"}
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {quizGroupChoices.meaning.map((choice, idx) => {
@@ -1802,7 +1771,7 @@ export function StudySessionView({
                         className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md active:scale-98 cursor-pointer"
                         autoFocus
                       >
-                        Câu tiếp theo → [Enter]
+                        Câu tiếp theo
                       </button>
                     </div>
                   )}
@@ -1813,9 +1782,9 @@ export function StudySessionView({
                   MODE 3 & 4: LUYỆN GÕ & NGHE VÀ VIẾT
                  ========================================== */}
               {(studyMode === 'typing' || studyMode === 'listening') && (
-                <div className="space-y-4">
+                <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
                   {/* Stable Prompt Container */}
-                  <div className="min-h-[140px] p-5 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex flex-col items-center justify-center text-center">
+                  <div className="min-h-[140px] lg:min-h-[340px] p-5 lg:p-8 rounded-2xl bg-[var(--bg-subtle)] border border-[var(--border)] flex flex-col items-center justify-center text-center">
                     {studyMode === 'listening' ? (
                       <div className="space-y-4 flex flex-col items-center">
                         <div className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
@@ -1839,7 +1808,7 @@ export function StudySessionView({
                     ) : (
                       <div className="space-y-4 flex flex-col items-center w-full">
                         <div className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
-                          {isReversed ? `Dịch sang tiếng Việt` : `Gõ từ ${langInfo.name}`}
+                          {isReversed ? `Dịch sang ${langInfo.name}` : `Gõ từ ${langInfo.name}`}
                         </div>
                         <WordDisplay
                           word={currentWord}
@@ -1853,7 +1822,7 @@ export function StudySessionView({
                   </div>
 
                   {/* Input Form with IME Protection */}
-                  <form onSubmit={handleTypingSubmit} className="space-y-3">
+                  <form onSubmit={handleTypingSubmit} className="space-y-3 lg:flex lg:flex-col lg:justify-center lg:space-y-4">
                     <div>
                         <input
                           ref={typingInputRef}
@@ -1868,6 +1837,11 @@ export function StudySessionView({
                           }}
                           disabled={typingSubmitted}
                           onKeyDown={(e) => {
+                            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                              e.preventDefault();
+                              handleTypingSubmit();
+                              return;
+                            }
                             if (e.key === "Enter" && !e.ctrlKey && studyMode === "listening" && synonymTestMode !== "none" && currentWord.synonyms) {
                               if (isComposingRef.current) return;
                               e.preventDefault();
@@ -1876,21 +1850,21 @@ export function StudySessionView({
                           }}
                           placeholder={
                             studyMode === "listening"
-                              ? `Nh?p t? ${langInfo.name} b?n v?a nghe...`
+                              ? `Nhập từ ${langInfo.name} bạn vừa nghe...`
                               : isReversed
-                              ? "Nh?p nghia ti?ng Vi?t..."
-                              : `Nh?p t? ${langInfo.name} d�ng ch�nh t?...`
+                              ? `Nhập từ ${langInfo.name} tương ứng...`
+                              : `Nhập từ ${langInfo.name} đúng chính tả...`
                           }
                           autoFocus
-                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm sm:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center"
+                          className={`w-full px-4 py-3 rounded-xl border-2 text-[var(--text-primary)] text-sm sm:text-base font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center ${typingSubmitted ? (isTypingCorrect ? "border-emerald-500 bg-emerald-500/10" : "border-rose-500 bg-rose-500/10") : "border-[var(--border)] bg-[var(--bg-card)]"}`}
                         />
                       </div>
 
                       {studyMode === "listening" && synonymTestMode !== "none" && currentWord.synonyms && (
                         <div className="mt-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] space-y-3">
                           <div className="flex justify-between items-center text-xs font-bold text-[var(--text-secondary)]">
-                            <span>Nh?p t? d?ng nghia</span>
-                            <span>{synonymTestMode === "one" ? "(C?n 1 t?)" : `(C?n ${currentWord.synonyms.split(/[,;=\/]+/).length} t?)`}</span>
+                            <span>Nhập từ đồng nghĩa</span>
+                            <span>{synonymTestMode === "one" ? "(Cần 1 từ)" : `(Cần ${currentWord.synonyms.split(/[,;=\/]+/).length} từ)`}</span>
                           </div>
                           
                           {synonymChips.length > 0 && (
@@ -1899,7 +1873,7 @@ export function StudySessionView({
                                 <div key={idx} className="flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-full text-xs font-semibold">
                                   {chip}
                                   {!typingSubmitted && (
-                                     <button type="button" onClick={() => setSynonymChips(chips => chips.filter((_, i) => i !== idx))} className="hover:text-indigo-900 ml-1">?</button>
+                                     <button type="button" onClick={() => setSynonymChips(chips => chips.filter((_, i) => i !== idx))} className="hover:text-indigo-900 ml-1">✕</button>
                                   )}
                                 </div>
                               ))}
@@ -1916,7 +1890,11 @@ export function StudySessionView({
                               onCompositionEnd={() => { isComposingRef.current = false; }}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  if (e.ctrlKey) return; // let form submit
+                                  if (e.ctrlKey || e.metaKey) {
+                                e.preventDefault();
+                                handleTypingSubmit();
+                                return;
+                              }
                                   e.preventDefault();
                                   if (isComposingRef.current) return;
                                   if (synonymInput.trim()) {
@@ -1926,7 +1904,7 @@ export function StudySessionView({
                                   }
                                 }
                               }}
-                              placeholder="Nh?p d?ng nghia r?i nh?n Enter... (Ctrl+Enter d? n?p b�i)"
+                              placeholder="Nhập đồng nghĩa rồi nhấn Enter... (Ctrl+Enter để nộp bài)"
                               className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                           )}
@@ -1939,21 +1917,41 @@ export function StudySessionView({
                         disabled={!typingInput.trim()}
                         className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all disabled:opacity-40"
                       >
-                        Kiểm tra đáp án [Enter]
+                        Kiểm tra đáp án
                       </button>
                     ) : (
-                      <div className="p-3.5 rounded-xl border bg-[var(--bg-card)] border-[var(--border)] space-y-3 animate-fade-in">
-                        <div className="flex items-center justify-between text-xs font-bold">
-                          <span className={isTypingCorrect ? 'text-emerald-600' : 'text-rose-600'}>
-                            {isTypingCorrect ? '🎉 Bạn đã gõ chính xác!' : '❌ Chưa chính xác!'}
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className={`animate-fade-in space-y-3 rounded-2xl border-2 p-4 ${
+                          isTypingCorrect ? 'border-emerald-500 bg-emerald-500/10' : 'border-rose-500 bg-rose-500/10'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white ${
+                              isTypingCorrect ? 'bg-emerald-500' : 'bg-rose-500'
+                            }`}
+                          >
+                            {isTypingCorrect ? <Check className="h-6 w-6" /> : <X className="h-6 w-6" />}
                           </span>
+                          <div className="min-w-0">
+                            <p className={`text-lg font-extrabold ${isTypingCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                              {isTypingCorrect ? 'Chính xác!' : 'Chưa chính xác'}
+                            </p>
+                            {!isTypingCorrect && typingInput.trim() && (
+                              <p className="truncate text-sm text-[var(--text-secondary)]">
+                                Bạn gõ: <span className="line-through">{typingInput.trim()}</span>
+                              </p>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="text-xs space-y-1 p-2.5 rounded-lg bg-[var(--bg-subtle)] text-left">
+                        <div className="space-y-1.5 rounded-xl bg-[var(--bg-card)] p-3 text-left text-sm">
                           <div>
                             <span className="text-[var(--text-muted)]">Đáp án đúng: </span>
-                            <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                              {isReversed ? getWordMeaning(currentWord) : currentWord.word}
+                            <span className="text-base font-extrabold text-[var(--text-primary)]">
+                              {currentWord.word}
                             </span>
                           </div>
                           <div>
@@ -1964,7 +1962,7 @@ export function StudySessionView({
                           </div>
                           {showPhonetics && getPrimaryReading(currentWord as any) && (
                               <div>
-                                <span className="text-[var(--text-muted)]">C�ch d?c: </span>
+                                <span className="text-[var(--text-muted)]">Cách đọc: </span>
                                 <span className="font-mono text-[var(--text-secondary)]">
                                   {getPrimaryReading(currentWord as any)}
                                 </span>
@@ -1974,11 +1972,11 @@ export function StudySessionView({
                             {studyMode === "listening" && synonymTestMode !== "none" && currentWord.synonyms && (
                               <div className="mt-3 pt-3 border-t border-[var(--border)]">
                                 <div className="font-bold mb-1">
-                                  ���?ng nghia: <span className={isSynonymCorrect ? "text-emerald-600" : "text-rose-600"}>{isSynonymCorrect ? "? �?t" : "? Chua d?t"}</span>
+                                  Đồng nghĩa: <span className={isSynonymCorrect ? "text-emerald-600" : "text-rose-600"}>{isSynonymCorrect ? "✓ Đạt" : "✗ Chưa đạt"}</span>
                                 </div>
                                 {missingSynonyms.length > 0 && (
                                   <div>
-                                    <span className="text-[var(--text-muted)]">Thi?u: </span>
+                                    <span className="text-[var(--text-muted)]">Thiếu: </span>
                                     <span className="font-semibold text-rose-600">{missingSynonyms.join(", ")}</span>
                                   </div>
                                 )}
@@ -1989,7 +1987,7 @@ export function StudySessionView({
                                   </div>
                                 )}
                                 <div>
-                                   <span className="text-[var(--text-muted)]">T?t c? d�p �n: </span>
+                                    <span className="text-[var(--text-muted)]">Tất cả đáp án: </span>
                                    <span className="font-semibold text-[var(--text-primary)]">{currentWord.synonyms}</span>
                                 </div>
                               </div>
@@ -2001,7 +1999,7 @@ export function StudySessionView({
                             className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md active:scale-98 cursor-pointer"
                             autoFocus
                           >
-                            C�u ti?p theo ? [Enter]
+                            Câu tiếp theo
                           </button>
                         </div>
                       )}
@@ -2015,31 +2013,111 @@ export function StudySessionView({
                 PHASE 3: SUMMARY
                ========================================== */}
             {phase === "summary" && (
-              <div className="space-y-6 animate-fade-in text-center p-6">
-                <div className="text-4xl mb-4">??</div>
-                <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                  Tuy?t v?i, b?n d� ho�n th�nh!
-                </h3>
-                <p className="text-sm text-[var(--text-secondary)]">
-                  K?t qu?: <span className="font-bold text-indigo-600 dark:text-indigo-400">{studyHistory.filter(h => h.isCorrect).length}</span> / {deck.length} c�u d�ng.
-                </p>
+              <div className="mx-auto w-full max-w-4xl space-y-8 py-4 animate-fade-in">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                {/* Score */}
+                <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+                  <div className="relative h-32 w-32 shrink-0" role="img" aria-label={`Độ chính xác ${accuracyPercent}%`}>
+                    <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
+                      <circle cx="60" cy="60" r="52" fill="none" strokeWidth="10" className="stroke-[var(--bg-muted)]" />
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="52"
+                        fill="none"
+                        strokeWidth="10"
+                        strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 52}
+                        strokeDashoffset={2 * Math.PI * 52 * (1 - accuracyPercent / 100)}
+                        className={accuracyPercent >= 70 ? 'stroke-emerald-500' : accuracyPercent >= 40 ? 'stroke-amber-400' : 'stroke-rose-500'}
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-3xl font-extrabold tabular-nums text-[var(--text-primary)]">
+                      {accuracyPercent}%
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)]">
+                      {accuracyPercent >= 90 ? 'Xuất sắc!' : accuracyPercent >= 70 ? 'Làm tốt lắm!' : accuracyPercent >= 40 ? 'Cần ôn thêm một chút' : 'Hãy thử lại nhé'}
+                    </h3>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      Bạn nhớ đúng {correctCount} trên {deck.length} từ trong {formatTime(activeSeconds)}.
+                    </p>
+                  </div>
+                </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setPhase("setup")}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] hover:bg-[var(--bg-card)] font-bold text-xs transition-colors cursor-pointer"
-                  >
-                    ?? H?c ti?p bu?i m?i
-                  </button>
+                {/* Stats */}
+                <dl className="grid grid-cols-3 gap-3 text-center lg:w-[22rem] lg:shrink-0">
+                  <div className="rounded-2xl bg-emerald-500/10 px-3 py-4">
+                    <dd className="text-2xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">{correctCount}</dd>
+                    <dt className="mt-0.5 text-sm text-[var(--text-secondary)]">Đúng</dt>
+                  </div>
+                  <div className="rounded-2xl bg-rose-500/10 px-3 py-4">
+                    <dd className="text-2xl font-extrabold tabular-nums text-rose-700 dark:text-rose-300">{unrememberedWords.length}</dd>
+                    <dt className="mt-0.5 text-sm text-[var(--text-secondary)]">Cần ôn</dt>
+                  </div>
+                  <div className="rounded-2xl bg-[var(--bg-subtle)] px-3 py-4">
+                    <dd className="text-2xl font-extrabold tabular-nums text-[var(--text-primary)]">{deck.length}</dd>
+                    <dt className="mt-0.5 text-sm text-[var(--text-secondary)]">Tổng số từ</dt>
+                  </div>
+                </dl>
+                </div>
 
+                {/* Words to review */}
+                {unrememberedWords.length > 0 && (
+                  <section aria-labelledby="review-words" className="space-y-3">
+                    <h4 id="review-words" className="text-base font-extrabold tracking-tight text-[var(--text-primary)]">
+                      Từ cần ôn lại ({unrememberedWords.length})
+                    </h4>
+                    <ul className="max-h-72 space-y-1.5 overflow-y-auto rounded-2xl border border-[var(--border)] p-1.5">
+                      {unrememberedWords.map((w) => (
+                        <li key={w.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[var(--bg-subtle)]">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
+                            <X className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-bold text-[var(--text-primary)]">{w.word}</span>
+                            <span className="block truncate text-sm text-[var(--text-secondary)]">{getWordMeaning(w)}</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => handlePronounce(w.word, w.language, e)}
+                            aria-label={`Nghe ${w.word}`}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--brand-text)] hover:bg-[var(--brand-light)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
+                          >
+                            <Volume2 className="h-4 w-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
                   <button
                     type="button"
                     onClick={() => onClose?.()}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full px-6 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
                   >
-                    V? thu m?c / ��ng
+                    Về thư mục
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setPhase('setup')}
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--border)] px-6 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
+                  >
+                    <RotateCcw className="h-4 w-4" /> Học buổi mới
+                  </button>
+                  {unrememberedWords.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => startSession(unrememberedWords)}
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-7 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+                    >
+                      Ôn lại {unrememberedWords.length} từ
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -2048,10 +2126,10 @@ export function StudySessionView({
       {exitConfirmOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 max-w-sm w-full space-y-3 shadow-2xl text-center">
-            <div className="text-2xl">??</div>
-            <h4 className="text-base font-bold text-[var(--text-primary)]">T?m d?ng bu?i h?c?</h4>
+            <div className="text-2xl">⏸️</div>
+            <h4 className="text-base font-bold text-[var(--text-primary)]">Tạm dừng buổi học?</h4>
             <p className="text-xs text-[var(--text-secondary)]">
-              Ti?n d? c�u {currentIndex + 1}/{deck.length} dang du?c luu. B?n c� th? quay l?i ti?p t?c b?t c? l�c n�o t? trang ch? ho?c thu m?c.
+              Tiến độ câu {currentIndex + 1}/{deck.length} đang được lưu. Bạn có thể quay lại tiếp tục bất cứ lúc nào từ trang chủ hoặc thư mục.
             </p>
             <div className="flex items-center justify-center gap-2 pt-2">
               <button
@@ -2059,7 +2137,7 @@ export function StudySessionView({
                 onClick={() => setExitConfirmOpen(false)}
                 className="px-4 py-2 rounded-xl border border-[var(--border)] text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
               >
-                H?c ti?p
+                Học tiếp
               </button>
               <button
                 type="button"
@@ -2067,7 +2145,7 @@ export function StudySessionView({
                 disabled={isSavingExit}
                 className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs"
               >
-                {isSavingExit ? "�ang luu..." : "Luu v� tho�t"}
+                {isSavingExit ? "Đang lưu..." : "Lưu và thoát"}
               </button>
             </div>
           </div>

@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 3 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | A man is standing in a road. | A man is wearing a coat. | A man with tools is bending over. | A man is putting on a hat.
+2 |  | There's long grass behind a fence. | There's a door open beneath a light. | There's a pot with flowers by the door. | There's a window overlooking a garden.
+3 |  | A man is looking in a mirror. | A man is using an exercise machine. | A stairway is being cleaned. | A basket is hanging from the ceiling.
+4 |  | A woman is clearing the floor. | Bottles are being placed on shelves. | A woman is holding a bowl. | A customer is reading a menu.
+5 |  | A tablecloth is folded on a chair. | A dining area is prepared for a meal. | Some chairs are being moved to a different room. | Cups and plates are being filled.
+6 |  | Some people have gathered in an outdoor seating area. | Umbrellas are covering a buffet counter. | Some chairs are stacked on the lawn. | Some people are laughing at a performance.
+## PART 2 (question | A | B | C)
+7 | W-Br/M-Au | How was the security audit today? | I can secure them. | Very productive. | If you like.
+8 | M-Cn/W-Am | What dinner specials do you have today? | We have baked salmon. | For the first time. | No, I haven't.
+9 | M-Au/W-Br | When will the order be delivered? | Not until Wednesday afternoon. | It's time to put them away. | The light is on in the mail room.
+10 | W-Am/M-Au | What's the monthly membership fee for that service? | Twenty euros. | Next month. | Don't let me forget.
+11 | W-Br/W-Am | Did you receive the e-mail I sent? | I need a receipt for that. | Call a delivery service. | I haven't looked at my computer today.
+12 | M-Au/M-Cn | Why don't you have the meeting this afternoon? | Just past the library and across the street. | Otherwise, I think it's fine. | Because we have a lot to do today.
+13 | W-Br/M-Cn | Where did you post the schedule? | I hung a copy on the conference room door. | In a few hours. | Are you sure you submitted it?
+14 | M-Au/W-Am | Who is leading the safety seminar? | That's what he said. | Elizabeth will do it. | Whenever management prefers.
+15 | M-Cn/W-Br | Could you please fill out your time sheet by 3 p.m. today? | How much time do you have? | OK, I'll make a note to do that. | I will place the order as soon as possible.
+16 | W-Am/M-Cn | When is the electrician supposed to get here? | The package got here last night. | I didn't drive to work today. | She just let me know she's running late.
+17 | W-Am/M-Au | I'd like to schedule your performance review meeting. | That is a high-performing team. | The food here is very good. | OK, let me look at my calendar.
+18 | M-Cn/W-Br | Haven't you been trained to use this machine? | I can get them to take a look. | We need to finish before noon. | I use it all the time.
+19 | W-Am/M-Au | Did you bring your computer home or leave it at work? | Yes, last week. | I left it at the office. | In ten minutes.
+20 | M-Cn/W-Br | Why don't we create a video tour of the convention space? | I lost it yesterday. | That film has been very popular. | I thought you already did that.
+21 | M-Cn/M-Au | Isn't the food usually served at this time? | There's been a schedule change. | The reviews of that product have been negative. | I'll go tomorrow instead.
+22 | W-Br | Do you take the bus or train to work? | I love to travel. | I prefer to drive. | I only work on Tuesdays.
+23 | W-Am | Would you like me to make the reservation for you? | The hotel has a fitness club. | No, I haven't heard of it. | Sure, let me find the form.
+24 | W-Am/W-Br | Why are you cleaning the laboratory? | Just stack the books against the wall. | I will attend if I have to. | Haven't you seen the inspection report?
+25 | M-Au/W-Am | What do you think of the highlighted paragraphs in this document? | I think they need further revisions. | There's some storage space upstairs. | This room has very good lighting.
+26 | M-Cn/W-Am | Who's going to receive the final delivery? | When everyone leaves the office. | I can wait for it. | Yes, but only on Fridays.
+27 | W-Br/M-Au | I could book our flights now, right? | It's a long flight. | The trade show hasn't been confirmed. | It's in the other room.
+28 | W-Am/M-Cn | Why do we have to reschedule this event? | This weekend or maybe early next week. | I will do it as soon as possible. | My doctor's appointment couldn't be moved.
+29 | M-Au/W-Br | We should really consider expanding our storefront. | Didn't you see the contract for the work? | I don't know how far it is. | We could borrow one for you.
+30 | M-Cn | Do you know whose jacket that is in the conference room? | Sure, if they're already planning to go. | A few people have blue ones like that. | Yes, Janelle usually orders them for us.
+31 |  | When do you usually exercise? | Fitness is important for everyone. | An affordable machine. | My doctor has suggested that I stop for a while.

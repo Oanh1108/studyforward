@@ -770,7 +770,7 @@ export function StudySessionModal({
                         ? 'Luyện gõ từ vựng'
                         : 'Nghe và viết chính tả'
                     } (${langInfo.name})`
-                  : 'Tổng kết kết quả buổi học'}
+                  : 'Tổng kết buổi học'}
               </h2>
               {phase === 'studying' && (
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">

@@ -144,6 +144,24 @@ export const speakingApi = {
     return res.json();
   },
 
+  async transcribeAudio(audioBase64: string, mimeType: string, language: string): Promise<string> {
+    const res = await fetch(`${API_BASE}/api/speaking/transcribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      credentials: 'include',
+      body: JSON.stringify({ audioBase64, mimeType, language }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.message || 'Không thể nhận diện giọng nói lúc này.');
+    }
+    const data = await res.json();
+    return data.transcript ?? '';
+  },
+
   async evaluateTranscript(data: {
     transcript: string;
     targetSentence: string;

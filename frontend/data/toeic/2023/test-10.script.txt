@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 10 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | The man is climbing a ladder. | The man is wearing a backpack. | The man is lounging in a shaded area. | The man is picking up a rock.
+2 |  | The man is cutting down a tree. | The man is fixing a machine. | The man is measuring a board. | The man is raking some leaves.
+3 |  | One of the women is writing on some paper. | One of the women is closing a binder. | They're looking at some photographs. | They're seated across from one another.
+4 |  | Workers are exiting from the back of a van. | Some trees have fallen across a road. | A man is watering some potted plants. | Some people are seated outdoors.
+5 |  | The woman is adjusting her watch strap. | The woman is setting up a display of paintings. | A brick wall is being measured. | Some chairs are facing a television screen.
+6 |  | Some vehicles are lined up at an intersection. | Some vehicles are parked in front of a fence. | Some large stones are blocking access to a park. | Some branches are piled beside a truck.
+## PART 2 (question | A | B | C)
+7 | M-Au/W-Am | Which theater did you go to? | No it wasn't. | The one on Oak Ridge Road. | At six o'clock.
+8 | W-Am/W-Br | What's the last day to complete the survey? | The customer service number. | We have a new supplier. | Wednesday.
+9 | M-Cn/W-Br | When are you planning to move out of your apartment? | Move it to the right, please. | At the end of next month. | Here's the floor plan.
+10 | M-Au/W-Am | When does the show begin? | Yes, I showed her already. | In the third row. | It starts in an hour.
+11 | M-Cn/W-Br | Who will be leading the new team? | Thomas has been selected. | The news release. | A brand new screen.
+12 | W-Br/M-Au | Why was your flight delayed? | Because there was bad weather. | We can reschedule the electrician's visit. | At the municipal airport.
+13 | M-Au/M-Cn | Where are you planning to open your next store? | Next January. | Yes, in the floor plans. | Near the city center.
+14 | M-Cn/W-Br | Who designed the uniforms? | You can sign in here. | Yes, we wear them for work. | A company in Chicago.
+15 | W-Br/M-Au | I recommend the vegetarian dinner special. | OK, I'll have that. | Two bags of limes. | Right by the elevator.
+16 | M-Au/W-Am | How will we get this order filled in time? | Would you like soup or salad? | Maria goes there too. | We'll have to work extra hours.
+17 | W-Am/M-Cn | Do you have the gate code or should I look it up? | It was recently painted. | I have the number. | A two-year lease.
+18 | W-Br/M-Au | Should we visit the warehouse this week or next week? | I'll be at corporate headquarters next week. | Wow, that's a lot of space! | A visitor's pass.
+19 | W-Am/M-Cn | Don't you want to come to the employee luncheon? | Yes, I'm looking forward to it. | The largest conference room. | A variety of sandwiches.
+20 | M-Cn/W-Am | Could you recommend a local hair salon? | I'll need your receipt to process the refund. | Yes, the weather's supposed to be nice all week. | There's a good stylist on Fourteenth Street.
+21 | W-Am/M-Au | I have some documents here for you to sign. | It's at four tomorrow. | I like the design too. | All right, let me take a look.
+22 | M-Au | Are you planning to dine in, or would you like to take your food with you? | Yes, it was delicious. | Just a little late. | I should probably get back to the office.
+23 | W-Br/M-Au | Is this carpet the right size for the room? | I'll turn it off when I'm finished. | I measured it three times. | The warehouse is on River Street.
+24 | W-Am/M-Au | You're aware that it's been six months since we've done inventory, aren't you? | Can you introduce me to Victoria? | That bottle goes on the top shelf. | Yes, we're doing it once a year now.
+25 | M-Cn/W-Br | I need to know who's attending the exposition. | Try turning the valve to the left. | Registrations aren't due until Friday. | There are samples at booth 215.
+26 | M-Au/W-Br | This computer is becoming quite slow. | Please slow down. | A computer company. | Here, you can use mine.
+27 |  | Do you know if these towels are 100 percent cotton? | These t-shirts should be folded for display. | Production increased by 80 percent. | There should be a label stitched on the edge.
+28 | M-Cn/W-Am | Shouldn't you send these manuscripts to your editor? | Four hundred pages. | I already e-mailed them to her. | I should have brought my umbrella.
+29 | M-Cn/W-Br | I don't think Mr. Chen is back from his business trip yet. | Yes. The waiting room is upstairs. | I thought check-out time was at noon. | I saw him just yesterday at the supermarket.
+30 | W-Am/M-Au | Where is Barbara's office? | Some office supplies, please. | Oh, the sales team moved downstairs. | A recent city election.
+31 | W-Am/M-Cn | The stage entrance to the theater was moved to Fourteenth Street, wasn't it? | Oh, I really like that director's work. | Sure, I can hand out the programs. | I know they did some renovations recently.

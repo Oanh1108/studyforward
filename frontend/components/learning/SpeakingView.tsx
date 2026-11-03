@@ -184,7 +184,7 @@ function SpeakingSetupView({
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
+    <div className="space-y-8 pb-20">
       <div className="space-y-2">
         <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100">Luyện nói</h2>
         <p className="text-slate-500">Cấu hình buổi luyện và theo dõi tiến độ của bạn.</p>

@@ -29,3 +29,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Large recordings and user uploads are not committed
+frontend/public/audio/toeic/
+backend/uploads/
+frontend/tmp/

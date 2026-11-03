@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserVideoLesson } from './media.entity.js';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 @Injectable()
 export class MediaService {
@@ -44,5 +45,45 @@ export class MediaService {
   async deleteVideoLesson(userId: number, id: number) {
     await this.mediaRepo.delete({ id, userId });
     return { success: true };
+  }
+
+  async fetchTranscript(videoId: string) {
+    try {
+      const transcriptList = await YoutubeTranscript.fetchTranscript(videoId);
+      
+      // Grouping logic: roughly group into sentences or short phrases.
+      const segments = [];
+      let currentSegment = { startTime: 0, endTime: 0, text: '' };
+      
+      for (const item of transcriptList) {
+        if (!currentSegment.text) {
+          currentSegment.startTime = item.offset / 1000;
+          currentSegment.text = item.text;
+          currentSegment.endTime = (item.offset + item.duration) / 1000;
+        } else {
+          // If the current text is too short or doesn't end with punctuation, append.
+          // Very basic heuristic for grouping:
+          currentSegment.text += ' ' + item.text;
+          currentSegment.endTime = (item.offset + item.duration) / 1000;
+        }
+        
+        // If segment is > 5 seconds long or ends with sentence ending punctuation, push it.
+        const duration = currentSegment.endTime - currentSegment.startTime;
+        const endsWithPunctuation = /[.!?]$/.test(currentSegment.text);
+        if (duration > 5 || endsWithPunctuation) {
+          segments.push({ ...currentSegment });
+          currentSegment = { startTime: 0, endTime: 0, text: '' };
+        }
+      }
+      
+      // Push any remaining segment
+      if (currentSegment.text) {
+        segments.push(currentSegment);
+      }
+      
+      return { success: true, segments };
+    } catch (error) {
+      throw new BadRequestException('Không thể lấy transcript tự động cho video này. Video có thể không có phụ đề hoặc bị chặn lấy phụ đề.');
+    }
   }
 }

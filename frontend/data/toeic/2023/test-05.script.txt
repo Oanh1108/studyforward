@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 5 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | He's working on a puzzle. | He's lying on a sofa. | He's reaching for a book. | He's putting on a sweater.
+2 |  | She's organizing some books. | She's buying a toothbrush. | She's holding some products. | She's talking to a store employee.
+3 |  | He's wearing safety glasses. | He's cleaning some equipment. | He's picking up a hammer. | He's laying stones on a driveway.
+4 |  | Some flowerpots have been placed along a walkway. | The gate of a fence was left open. | Some stairway railings are being installed. | The building entrance has columns.
+5 |  | Two people are standing around a buffet counter. | Two people are having a meal together. | A server is bringing dishes to a customer. | A server is pouring water into glasses.
+6 |  | Electrical cables have been stacked on the floor. | Stools have been placed around the room. | Cabinets are being emptied. | The floor of the workshop is being swept.
+## PART 2 (question | A | B | C)
+7 | M-Cn/W-Br | Where can I buy tickets for the orchestra's fundraiser? | Over the next week. | On the fifth floor. | I suppose if you want to.
+8 |  | How long does your commute take? | The gym opens early. | I've been working here since March. | About an hour lately.
+9 |  | What's good to order at this cafe? | I recommend the coffee and baked goods. | Your food is on the way. | It was sent this morning.
+10 |  | When's the new office furniture going to be delivered? | At the end of the report. | I already finished the revision. | It'll be here next week.
+11 |  | Who's holding the training session on Thursday? | Marcella's leading it. | I exercise regularly. | He was late today.
+12 |  | When should we hire extra help for the holidays? | A helpful assistant. | A fun party. | As soon as possible.
+13 | M-Cn/W-Br | Why did you pick the color green for the product packaging? | Because it matches our uniforms. | I will pick it up tomorrow. | Not until we know the menu options.
+14 |  | When's the budget report due? | Sounds too expensive. | By end of day on Friday. | I can pay you back tomorrow.
+15 | M-Cn/W-Am | Which shopping bag should I bring? | Just outside the store. | The large one. | No, it isn't.
+16 | M-Cn/M-Au | Don't forget to add another table to the conference room. | Probably the yoga class. | No, they didn't. | OK, I'll do that now.
+17 | M-Au/W-Br | Who from our office is going to the conference? | I am enjoying our new assignment. | At the hotel downtown. | Leslie and her support staff.
+18 | W-Am/M-Au | Where are the signs for the sale? | We are advertising a fifteen percent discount. | On the porch. | I didn't know we had sold those items.
+19 | W-Br/M-Au | Do you think we should place an advertisement in the newspaper? | That's not what happened. | No, I already have a subscription. | Our budget is quite limited this month.
+20 |  | I don't remember where I put my copy of the contract. | My calendar is up to date. | I can look around for it. | I don't think that's the best idea.
+21 | M-Cn/M-Au | What should we order for dinner? | Yes, I ate some of that yesterday. | I'd like something we haven't tried before. | That makes sense to me.
+22 | M-Au/W-Am | I thought the new safety training was supposed to start tomorrow. | Yes, you're right. | An old computer. | The ones on the counter.
+23 | M-Au/W-Br | Should we buy desktop computers or laptops for the office? | The Web site is working now. | You can buy them at any store. | Most of our staff travel a lot.
+24 | M-Au/W-Am | Will you be attending the reception tomorrow? | Just another day or so. | Can you remind me what the topic is? | I heard that they ran out of them.
+25 | M-Au/W-Br | Did you buy your ticket to the baseball game? | Sure, after the game is over. | I thought admission was free. | A sports tournament.
+26 | M-Cn/M-Au | How can I get more information about the employee party? | A phone number is included in the invitation. | The chef is from Italy. | Where is the employment office?
+27 | W-Br/M-Cn | Could you show me how to transfer funds? | No, it's the other one. | Let me just finish this first. | Sure, that seems like a reasonable price.
+28 | W-Br/M-Au | Will our gym memberships renew automatically? | They just saw that. | About our manager. | That's what I was told.
+29 |  | Isn't Shinji scheduled to work at the cash register? | Yes, he just arrived. | The price hasn't changed? | How much does it cost?
+30 |  | Do you have all the ingredients for the recipe? | We will plant a garden soon. | Yes, my oven is working again. | I need to buy some onions.
+31 |  | You're in charge of the supplier discount program, right? | The coupons are on the kitchen counter. | We have all the supplies we need. | Horatio is the one you want to talk to.

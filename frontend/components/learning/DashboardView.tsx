@@ -127,7 +127,7 @@ export function DashboardView({
   const hasVocab = allWordsCount > 0;
 
   return (
-    <div className="space-y-6 pb-20 md:pb-8 animate-fade-up max-w-[1200px] mx-auto w-full">
+    <div className="space-y-6 pb-20 md:pb-8 animate-fade-up w-full">
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

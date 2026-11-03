@@ -4,8 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ActiveTab, Lesson, UserStats } from './types';
 import { userStatsApi } from '@/lib/userStatsApi';
 import { coursesApi } from '@/lib/coursesApi';
-import { Navigation, getTabGroup } from './Navigation';
+import { getTabGroup } from './Navigation';
 import { TopHeader } from './TopHeader';
+import { AppHeader } from '@/components/navigation/AppHeader';
+import { MobileBottomBar } from '@/components/navigation/MobileBottomBar';
 import Link from 'next/link';
 import { DashboardView } from './DashboardView';
 import { CoursesView } from './CoursesView';
@@ -22,6 +24,10 @@ import { ProgressTrackerView } from './analytics/ProgressTrackerView';
 import { NotesView } from './notes/NotesView';
 import { TodoListView } from './todos/TodoListView';
 import { FocusTimerView } from './focus/FocusTimerView';
+import { LearningTabs, SECTION_NAV } from './hub/LearningTabs';
+import { SideTabs } from './hub/SideTabs';
+import { LearningOverview } from './hub/LearningOverview';
+import { CommunicationView } from './communication/CommunicationView';
 import { IconPhone } from './icons';
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
@@ -165,17 +171,11 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
 
   const renderGroupTabs = () => {
     const currentGroup = getTabGroup(activeTab);
+    if (currentGroup === 'learning') return <LearningTabs activeTab={activeTab} />;
     const groupTabsConfig: Record<string, { id: ActiveTab; label: string; href: string }[]> = {
-      learning: [
-        { id: 'paths', label: 'Lộ trình', href: '/paths' },
-        { id: 'courses', label: 'Khóa học', href: '/courses' },
-        { id: 'dictation', label: 'Nghe chép', href: '/dictation' },
-        { id: 'speaking', label: 'Luyện nói', href: '/speaking' },
-      ],
       vocabulary_hub: [
         { id: 'vocabulary', label: 'Thư mục', href: '/vocabulary' },
         { id: 'study_board', label: 'Bảng học từ', href: '/study-board' },
-        { id: 'vocabulary_study', label: 'Học từ vựng', href: '/vocabulary/study-config' },
         { id: 'srs', label: 'Ôn tập ngắt quãng', href: '/vocabulary/srs' },
       ],
       tools: [
@@ -230,6 +230,10 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
             onOpenVocabStudy={handleOpenVocabStudy}
           />
         );
+      case 'overview':
+        return <LearningOverview stats={stats} lessons={lessons} isLoadingData={isLoadingData} onStartLesson={handleStartLesson} />;
+      case 'communication':
+        return <CommunicationView />;
       case 'courses':
         return <CoursesView onStartLesson={handleStartLesson} />;
       case 'vocabulary':
@@ -358,11 +362,9 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
           </div>
 
           {/* Mobile Bottom Navigation inside device */}
-          <Navigation
+          <MobileBottomBar
             activeTab={activeTab}
             onSelectTab={(tab: any) => setActiveTab(tab)}
-            stats={stats}
-            onQuickStart={() => handleStartLesson(nextLesson)}
           />
 
           {/* Home indicator bar at bottom */}
@@ -377,8 +379,6 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
             onCompleteLesson={handleCompleteLesson}
           />
         )}
-
-
       </div>
     );
   }
@@ -386,31 +386,38 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
   // ==========================================
   // FULL WEB / MOBILE RESPONSIVE LAYOUT
   // ==========================================
+  const sectionNav = SECTION_NAV[getTabGroup(activeTab)];
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row transition-colors">
-      {/* Navigation: Sidebar on Desktop, Bottom bar on Mobile */}
-      <Navigation
+    <div className="min-h-screen bg-[var(--bg-base)] flex flex-col transition-colors">
+      {/* Desktop / Mobile Top Navigation Header */}
+      <AppHeader
         activeTab={activeTab}
         onSelectTab={(tab: any) => setActiveTab(tab)}
         stats={stats}
         onQuickStart={() => handleStartLesson(nextLesson)}
+        onAvatarClick={() => setActiveTab('profile')}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <TopHeader
-          stats={stats}
-          isMobileDeviceFrame={isMobileDeviceFrame}
-          onToggleDeviceFrame={() => setIsMobileDeviceFrame(!isMobileDeviceFrame)}
-          onAvatarClick={() => setActiveTab('profile')}
-          onNavigateTab={(tab: any) => setActiveTab(tab)}
-        />
+      {/* Main Content Area - Expands to full screen width */}
+      <main className="flex-1 w-full p-4 md:p-6 lg:p-8 flex flex-col pb-24 md:pb-10">
+        {sectionNav ? (
+          <div className="flex min-w-0 flex-1 flex-col">
+            <SideTabs title={sectionNav.title} ariaLabel={sectionNav.ariaLabel} tabs={sectionNav.tabs} activeTab={activeTab} variant="side" />
+            {renderTabContent()}
+          </div>
+        ) : (
+          <>
+            {renderGroupTabs()}
+            {renderTabContent()}
+          </>
+        )}
+      </main>
 
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 flex flex-col">
-          {renderGroupTabs()}
-          {renderTabContent()}
-        </main>
-      </div>
+      {/* Mobile Bottom Bar (visible on screen < md) */}
+      <MobileBottomBar
+        activeTab={activeTab}
+        onSelectTab={(tab: any) => setActiveTab(tab)}
+      />
 
       {/* Interactive Lesson Modal Runner */}
       {activeLesson && (
@@ -420,8 +427,6 @@ export function LearningPlatformApp({ initialTab = 'dashboard' }: LearningPlatfo
           onCompleteLesson={handleCompleteLesson}
         />
       )}
-
-
     </div>
   );
 }

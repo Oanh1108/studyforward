@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 6 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | A man is carrying a backpack. | A man is tying his shoelace. | A woman is purchasing a snack. | A woman is picking up a ticket from the ground.
+2 |  | She's wiping off a counter. | She's putting dishes in a sink. | She's using a microwave oven. | She's rinsing a cloth under a faucet.
+3 |  | A man is walking behind some parked cars. | A woman is cleaning snow off a walkway. | A man is maintaining a fence. | A woman is taking off a snow jacket.
+4 |  | He's placing a pan in an oven. | He's hanging up an apron. | Some pots are stacked on the floor. | Some jars are arranged on shelves.
+5 |  | A building is under construction. | A metal bench is unoccupied. | A bicycle is propped against a tree. | A tree has fallen down.
+6 |  | A customer is standing near a shopping cart. | Some bags have been left on the floor. | A shopping cart has been left in a parking area. | A customer is leaning into a freezer.
+## PART 2 (question | A | B | C)
+7 | W-Am/M-Cn | Have you made an appointment with your dentist yet? | I'll put it upstairs for now. | Yes, last week. | A new supply order.
+8 |  | Do you want to buy the blue sofa or the yellow one? | A three-bedroom apartment. | I like the yellow one. | I've already been there.
+9 | W-Am/M-Au | When is your restaurant going to open for business? | These are new clothes. | By the end of the month. | Yes, it's a large rest area.
+10 | W-Am/M-Cn | Why won't my computer turn on? | No, it's a small font. | Turn right at the corner. | Because the battery is old.
+11 | M-Au/M-Cn | Do you like the renovations we did to the office? | The construction company down the street. | He's in the cafeteria. | Yes, it's very spacious now.
+12 | M-Au/W-Am | Which conference room is the accountant using? | The one on the first floor. | It went well, thanks. | That was a lot of money.
+13 | M-Cn/W-Am | The Internet isn't working. | There's the cleaning crew's checklist. | We should call the IT department. | Several copies please.
+14 | M-Cn/W-Br | Would you like to present first or should I? | About twenty dollars each. | No, it's the second train. | I'm ready to start.
+15 | M-Au/W-Am | The concert tickets are on sale now, aren't they? | The new director of marketing. | Yes, and they're selling fast. | One of my favorite bands.
+16 | M-Au/W-Br | Do you have any feedback about Yumiko's performance? | Yes, her work is excellent. | Near the back of the room. | It's nice to meet you.
+17 | W-Am | Why don't we reassign Silvia to the evening shift in the stockroom? | Sure, I expect she'll be okay with that. | I sent my assignment to the instructor. | The new office furniture is comfortable.
+18 | M-Au/W-Am | How can we find extra seasonal help? | Spring is my favorite season. | Let's post some job listings on our Web site. | Because he left early today.
+19 | W-Am/M-Cn | Do you know if there's a bus from here to New York City? | That's a great idea. | No, he studied in London. | Yes, there is one every day around nine o'clock.
+20 |  | Who's driving you to the airport? | The hotel has a free shuttle. | She just received her pilot's license. | About twenty minutes late.
+21 | W-Am | How often should I replace the water filter? | A new coffeemaker. | Can I have more ice, please? | There's a manual in the cabinet.
+22 | W-Br/M-Au | Aren't you still on the event-planning committee? | There's an orange sign at the entrance. | Check the bookshelf by the window. | Members are replaced every year.
+23 | M-Cn/W-Br | Would you like to join us for tea now in the cafeteria? | I have a client meeting in ten minutes. | Actually, I joined a different gym. | Some tables and chairs.
+24 | M-Cn/W-Br | How do you think the new robotics technician is doing? | I've been working off-site for a few weeks. | The tools are on my desk. | Because the team won first place.
+25 | W-Am/M-Cn | I hope the building inspector will arrive soon. | No, not as much as we expected. | Traffic is heavy on Highway 90. | A multilevel apartment complex.
+26 | W-Am | We should order a cake for the company picnic. | Some of the staff don't eat sweets. | The bank is on Twelfth Street. | About five kilometers.
+27 | W-Am | Does the rental vehicle have automatic or manual transmission? | It's on the shelf in the office. | Bradley will be driving the vehicle. | The lights turn on automatically.
+28 | W-Br | I'd like to have some jackets altered. | I prefer a hundred percent cotton. | When would you like to pick them up? | Yes, it's a much shorter trip.
+29 | M-Cn/W-Br | Where should we unload the kitchen tiles? | The client isn't at home right now? | Not long ago. | Sorry, I spilled the water.
+30 | M-Au | Are you using the older version of the software or the one that was just released? | I'm using brass hardware in the kitchen. | Were we supposed to update the program? | Yes, he has a used computer.
+31 | M-Cn/W-Br | Could you help me access my e-mail account before you leave? | On the top shelf. | Did you check the storage closet? | Several technicians are working late tonight.

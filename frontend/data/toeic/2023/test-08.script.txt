@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 8 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's writing on a document. | She's looking at some framed artwork. | She's opening a folder. | She's organizing a desk drawer.
+2 |  | He's driving a van. | He's cutting some shrubs. | He's moving some garden stones. | He's operating a machine.
+3 |  | They're swimming in the water. | They're catching fish from a lake. | They're waiting at a boat dock. | They're paddling a canoe.
+4 |  | A walkway is being swept clean. | Some people are walking through an intersection. | One of the people is leaning against a wall. | One of the people is fixing a bicycle tire.
+5 |  | A customer is loading items into a shopping bag. | Some products have been set out under tents. | A bowl has been filled with water. | Some baskets are hanging from a post.
+6 |  | There's a campfire underneath some shade trees. | Some trees are providing shade for a picnic area. | A flower bed has been planted near a park bench. | Fallen branches are stacked next to a brick pathway.
+## PART 2 (question | A | B | C)
+7 | M-Cn/M-Au | When does your bus leave? | The station is on Liberty Avenue. | A seat in the back. | At eight o'clock.
+8 | M-Cn/W-Br | Who made the cake for the party? | Just a cup of apple juice. | I already ate. | The baker on Second Street.
+9 | W-Am/M-Cn | Why are you taking French classes? | Do you have a reservation? | Because I'm transferring to the Paris office. | Two days a week.
+10 | W-Br/M-Cn | What material is this shirt made of? | It's a light cotton fabric. | No, I don't need any more supplies. | In small, medium and large sizes.
+11 | W-Am/W-Br | How much will the jazz concert cost? | Leaving from platform six. | The ticket's fifty dollars. | A seat on the aisle, please.
+12 | W-Br/M-Au | Where's the robotics conference going to be held? | I'll print your first chapter. | At the end of June. | It's in Boston.
+13 | W-Am/M-Cn | Would you like me to turn on the air conditioner? | I bought shampoo and conditioner. | He did an excellent job. | No, let's open the windows.
+14 | W-Br/M-Au | When do you need a copy of the contract? | As soon as possible. | A savings account at the bank. | Sure, here's my contact information.
+15 | M-Cn/W-Am | I definitely think we should reschedule the picnic. | Is it supposed to rain? | A company celebration. | Some salad with a light dressing.
+16 | W-Am/W-Br | How often is this filing cabinet organized? | About once every quarter. | Yes, this is the right size. | A fifteen-minute meeting.
+17 | M-Au/W-Am | Is Ms. Lee planning to run for mayor in the election? | I go there often actually. | An electronic reading device. | Yes. She made the official announcement.
+18 | W-Br/M-Au | Are you looking for a one-bedroom or a two-bedroom apartment? | No, I've had enough coffee today. | A two-bedroom apartment with a balcony. | At the home improvement store.
+19 | M-Cn/M-Au | You should include an image on each page of the book. | The bookstore is closed. | Yes, that's a good idea. | A job as a graphic designer.
+20 |  | How do I make changes to this section of the Web site? | Only five more times. | Let me show you. | Can I pre-order my meal?
+21 | M-Au/W-Am | Will you be working a half day or a full day? | My project deadline is tomorrow. | Here's an empty glass. | About 73 euros.
+22 | W-Br/M-Au | There's an opening in my department for an accountant. | I have some experience with that. | They agreed to participate. | No, the store is closed.
+23 | M-Au/W-Am | Isn't the shuttle between terminals fully automated? | The windows in this room don't open. | No. Just a one-way ticket, please. | I've actually never been to that airport.
+24 | M-Cn/M-Au | What's the product code for that item? | I saw the advertisement on television. | Batteries are included in the box. | All the information is on the invoice.
+25 | W-Am/M-Cn | Why don't we rent a bigger booth at this year's conference? | The conference call went really well. | Our budget is very tight. | I think the vent on the dryer is clogged.
+26 | M-Cn | Carmen's computer needs to be repaired, doesn't it? | She bought a new one. | I'll bring a pair of gloves on the hike. | A degree in computer science.
+27 | W-Br/M-Au | Who are the candidates for new branch manager? | Yes, I do like my new office. | No, I'm not available at that time. | We're still accepting applications.
+28 | M-Au/W-Am | Did the focus group like the advertisement we designed? | Some well-known magazines. | We'll need to make some changes. | Turn left at the stop sign.
+29 | W-Am/M-Cn | Please let me know when you arrive in Osaka. | The clients are great to work with. | How many did you buy? | I always carry my smartphone with me.
+30 | M-Cn/W-Br | Where exactly is the employee cafeteria located? | There's a new research report available. | I'm headed over to lunch right now. | Here's your ID badge.
+31 | W-Am/M-Cn | You're meeting with the clients on Thursday, aren't you? | Our software is updated every Wednesday. | It's an all-vegetarian menu without any meat. | That contract is already signed.

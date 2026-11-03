@@ -91,15 +91,15 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
-      <div className="w-full max-w-md mx-auto flex items-center justify-between mb-6">
+    <div className="min-h-screen flex flex-col py-6 px-4 sm:px-8 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
+      <div className="flex items-center justify-between w-full mb-4">
         <div className="inline-flex items-center gap-2 transition-transform active:scale-95">
           <StudyForwardLogo size="md" />
         </div>
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-md mx-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div className="w-full max-w-md mx-auto my-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-xl">
         <div className="mb-6">
           <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4">
             <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">

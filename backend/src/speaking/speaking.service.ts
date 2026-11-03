@@ -7,6 +7,10 @@ import { SpeakingSession } from './speaking-session.entity.js';
 import { User } from '../users/user.entity.js';
 import { UserActivityLog } from '../users/user-activity-log.entity.js';
 
+// Text generation model for the Gemini REST calls below; override with GEMINI_MODEL when Google retires it.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+const TRANSCRIPTION_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-flash-lite-latest'];
+
 const INITIAL_SPEAKING_PROMPTS: Partial<SpeakingPrompt>[] = [
   {
     id: 'sp-1',
@@ -310,7 +314,7 @@ Trả về JSON Array đúng định dạng sau, không kèm markdown code block
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey.trim()}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey.trim()}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -505,6 +509,48 @@ Trả về JSON Array đúng định dạng sau, không kèm markdown code block
     return entry;
   }
 
+  /** Speech-to-text for a short recording, used when the browser's own recognizer returns nothing. */
+  async transcribeAudio(audioBase64: string, mimeType: string, language: string) {
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey) throw new BadRequestException('Dịch vụ AI chưa được cấu hình.');
+    if (!audioBase64 || !mimeType?.startsWith('audio/')) {
+      throw new BadRequestException('Dữ liệu ghi âm không hợp lệ.');
+    }
+    // ~10MB of base64 is far more than a 30s clip needs.
+    if (audioBase64.length > 14_000_000) throw new BadRequestException('Bản ghi âm quá dài.');
+
+    const languageNames: Record<string, string> = {
+      en: 'English', ko: 'Korean', ja: 'Japanese', zh: 'Chinese', th: 'Thai',
+    };
+    const prompt = `Transcribe the speech in this audio exactly as spoken, in ${languageNames[language] || 'English'}. ` +
+      'Return only the transcript text. If there is no intelligible speech, return an empty string.';
+
+    const body = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mimeType.split(';')[0], data: audioBase64 } }] }],
+      generationConfig: { temperature: 0 },
+    });
+
+    // Models can be overloaded or time out; fall through to the next one instead of failing.
+    for (const model of TRANSCRIPTION_MODELS) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey.trim()}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(8000) },
+        );
+        if (!response.ok) {
+          console.error(`Transcription with ${model} failed:`, response.status);
+          continue;
+        }
+        const data = await response.json();
+        const text: string = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text ?? '').join('') ?? '';
+        return { transcript: text.trim() };
+      } catch (err: any) {
+        console.error(`Transcription with ${model} errored:`, err?.message);
+      }
+    }
+    throw new BadRequestException('Dịch vụ nhận diện giọng nói đang quá tải, vui lòng thử lại sau ít phút.');
+  }
+
   async evaluateTranscript(
     transcript: string,
     targetSentence: string,
@@ -549,7 +595,7 @@ Trả về JSON đúng định dạng:
 }`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

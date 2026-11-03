@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 2 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | A woman is holding a power tool. | A woman is opening a drawer. | A printer is being unplugged. | Office supplies are being put into a box.
+2 |  | Plants are on top of a cart. | A watering can is next to some trees. | A man is digging in a garden. | A man is near a display of potted plants.
+3 |  | The man is fixing a machine. | The man is buying some equipment. | The man is lifting a weight. | The man is looking up at the ceiling.
+4 |  | A wall is decorated with various items. | Two chairs are blocking a doorway. | A door has been propped open with a statue. | A painting is hanging next to a window.
+5 |  | Some people are browsing in a shop. | Some people are exchanging gifts. | A customer is paying for some goods. | Some salespeople are preparing a display.
+6 |  | Cones are blocking access to a road. | Some soil is in a pile on the ground. | Some bushes have been planted in front of a building. | A tree is lying in the roadway.
+## PART 2 (question | A | B | C)
+7 |  | Who's responsible for hiring at our fitness center? | Mr. Gonzalez is going to get a membership. | I forgot to sign in at reception. | Mr. Lin and Ms. Weiss are.
+8 | M-Cn/W-Am | Where do you usually purchase office supplies? | We put them in the hallway cabinets. | At the store on Maple Avenue. | A manager's approval.
+9 | W-Br/M-Cn | What time does Mr. Park usually leave? | Around six o'clock in the evening. | He left everything we need. | We've had many interns over the years.
+10 | M-Au/W-Br | Do you want to present your research to the marketing team? | That's what I've heard as well. | If we can find the time for it? | Yes, I received the gift.
+11 |  | Our company picnic is on Friday, isn't it? | Those times are both booked. | Only if you can find them easily. | Right, in two days.
+12 | M-Au/W-Am | Isn't the bus supposed to stop here? | Yes, according to the schedule. | I'm on my way now. | It listed several potential clients.
+13 | M-Cn/W-Br | We should fill this order quickly, shouldn't we? | No, I haven't yet. | Yes, it's for an important client. | Try using this key.
+14 | W-Am/M-Au | How do you like your new job? | I can work from home quite often. | A career in electrical engineering. | My sister helped me apply.
+15 | M-Cn/W-Br | Let's go to the cafeteria for lunch today. | There should be one in the filing cabinet. | Which local restaurant do you prefer? | I don't think I can take a break.
+16 | W-Am/M-Cn | When will we hire the new interns? | Mr. Wyeth is handling that. | With more time to spare than usual. | The highest available salary.
+17 | M-Au/M-Cn | How often should I mail these statements? | Yes, you can buy one online. | The post office on Grant Street. | We send them out once a month.
+18 | W-Br/M-Au | Why did you put that food in the freezer? | It's not working well currently. | I meant to put it in the refrigerator. | Let's start making dinner soon.
+19 | M-Cn/W-Am | Could you print the agenda for the meeting? | It's already on your desk. | No, the other printer. | Was that a client?
+20 | W-Br/M-Au | How far are you from the clinic? | I'm close enough to walk. | I need to see the doctor. | It's a well-known clinic.
+21 | W-Br/M-Cn | Didn't you get a printout of the company newsletter from Emiko? | She started working here three years ago. | I was out of town last week. | Yes, I do like to write.
+22 | M-Au/W-Br | When do you need to renew your passport? | Be careful not to lose your tickets. | A brand new type of microchip. | Soon because it's about to expire.
+23 | W-Am/M-Cn | Who can help me find replacement parts for my computer? | Here are all the latest statements. | I can help you look through the inventory. | Put these on that shelf.
+24 | M-Au/W-Am | I can't make it to the company dinner tonight. | Managers expect everyone to be there. | A buffet-style restaurant. | A meeting once a week.
+25 | M-Cn/W-Br | Do you work in this neighborhood? | Yes, I'd like to. | No, my office isn't nearby. | There aren't any of those here.
+26 | W-Am/M-Au | It's time for our quarterly earnings report, isn't it? | Was there an e-mail reminder about it? | To pay for a new advertising campaign. | No, a different pair of earrings.
+27 | M-Cn/W-Am | What did you do with the guest list that I sent you? | After everyone received it. | I passed it along to everyone who needed it. | We're supposed to leave soon.
+28 |  | Did you see the announcement about Emily's promotion? | All the technology's been upgraded. | Perhaps a good career counselor. | I've been busy all morning.
+29 | W-Am/M-Au | Let's try our best to finish the project on time. | All except the first one. | We may need a few more days. | I think over time it will.
+30 | W-Br | Where's the store manager? | A recent hiring decision. | I enjoy shopping at that store. | She went out for lunch.
+31 | M-Au/W-Br | The software you're using isn't very reliable. | These chairs aren't very comfortable. | I've been using it for years with no problems. | I saw that computer at the store.

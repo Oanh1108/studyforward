@@ -1,5 +1,5 @@
 "use client";
-import { Search } from "lucide-react";
+import { ArrowLeft, Check, ChevronDown, ClipboardList, Trash2, Volume2, Download, Eye, FileSpreadsheet, FolderOpen, Library, MoreVertical, Pencil, Plus, RefreshCw, Search, Target, X } from "lucide-react";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { VocabularyFolder, MyVocabularyWord, myVocabApi } from '@/lib/myVocabApi';
@@ -17,6 +17,7 @@ import { toast } from '@/lib/toastStore';
 import { SupportedLanguage, getLanguageInfo, getPrimaryReading } from '@/lib/languages';
 import { userStatsApi } from '@/lib/userStatsApi';
 import { Select } from '@/components/ui/Select';
+import { FolderList } from './FolderList';
 
 interface VocabVisibilityConfig {
   showWord: boolean;
@@ -75,7 +76,6 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
   const [folderModalInitialMode, setFolderModalInitialMode] = useState<'edit' | 'delete'>('edit');
   const [folderSearchQuery, setFolderSearchQuery] = useState<string>('');
   const [folderSortBy, setFolderSortBy] = useState<'recent' | 'az' | 'count'>('recent');
-  const [openFolderMenuId, setOpenFolderMenuId] = useState<number | null>(null);
 
   const [isWordModalOpen, setIsWordModalOpen] = useState(false);
   const [wordToEdit, setWordToEdit] = useState<MyVocabularyWord | null>(null);
@@ -382,14 +382,6 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
     setVisibleCount(30);
   }, [selectedFolderId, searchKeyword, statusFilter]);
 
-  // Close folder menu on click outside
-  useEffect(() => {
-    if (openFolderMenuId === null) return;
-    const handleClickOutside = () => setOpenFolderMenuId(null);
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, [openFolderMenuId]);
-
   // Client-side search and sorting for folder list (does NOT mutate original folders data)
   const filteredFolders = useMemo(() => {
     let result = [...folders];
@@ -432,340 +424,31 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
           - selectedFolderId !== null: Màn hình chi tiết từ vựng của thư mục (State 2)
          ======================================================== */}
       {selectedFolderId === null ? (
-        /* ========================================================
-           STATE 1: DANH SÁCH THƯ MỤC "TỪ VỰNG CỦA TÔI"
-           - Tiêu đề gọn gàng: "Từ vựng của tôi", cờ ngôn ngữ, tổng số từ
-           - Nút "+ Tạo thư mục" là thao tác chính, "Phân tích lại dữ liệu" là thao tác phụ
-           - Mục tổng hợp "Tất cả từ vựng" dạng hàng truy cập gọn phía trên, viền đặc
-           - Ô tìm kiếm theo tên thư mục và menu sắp xếp (Cập nhật gần nhất, Tên A-Z, Số từ)
-           - Lưới thẻ thư mục gọn gàng, bo tròn tối đa 8px (rounded-lg), menu ba chấm
-           ======================================================== */
-        <div className="w-full max-w-6xl mx-auto space-y-4 animate-fade-up">
-          {/* 1. Header chính rút gọn: 1 tiêu đề duy nhất, không mô tả dài dòng */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-2xl shrink-0">📁</span>
-              <h1 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
-                Từ vựng của tôi
-              </h1>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1 shrink-0">
-                <span>{currentLangInfo.flag}</span>
-                <span>{currentLangInfo.name}</span>
-              </span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20 shrink-0">
-                {totalWordsInAllFolders} từ
-              </span>
-            </div>
-
-            {/* Actions: "Phân tích lại dữ liệu" (thao tác phụ) & "Tạo thư mục" (thao tác chính) */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsReanalyzeModalOpen(true)}
-                className="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all flex items-center gap-1.5 shadow-xs active:scale-95 cursor-pointer"
-                title="Phân tích lại dữ liệu từ vựng đã nhập (có xem trước và xác nhận trước khi lưu)"
-                aria-label="Phân tích lại dữ liệu"
-              >
-                <span>🔄</span>
-                <span className="hidden sm:inline">Phân tích lại dữ liệu</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setFolderToEdit(null);
-                  setFolderModalInitialMode('edit');
-                  setIsFolderModalOpen(true);
-                }}
-                className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer"
-                aria-label="Tạo thư mục mới"
-              >
-                <span className="text-sm font-bold">+</span>
-                <span>Tạo thư mục</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Mục tổng hợp: "Tất cả từ vựng" - Hàng truy cập gọn phía trên lưới, viền đặc (không tính vào số thư mục) */}
-          <div
-            onClick={() => handleSelectFolder('all')}
-            className="p-3.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] hover:border-blue-500/60 hover:bg-[var(--bg-subtle)]/40 transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99] select-none shadow-xs"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSelectFolder('all');
-              }
-            }}
-            title={`Tất cả từ vựng (${totalWordsInAllFolders} từ)`}
-            aria-label={`Tất cả từ vựng (${totalWordsInAllFolders} từ)`}
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center text-base shrink-0">
-                📚
-              </div>
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                <h3 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-blue-600 transition-colors">
-                  Tất cả từ vựng
-                </h3>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                  Tổng hợp
-                </span>
-                <span className="hidden sm:inline text-xs text-[var(--text-muted)]">
-                  • Toàn bộ từ vựng {currentLangInfo.name}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20 whitespace-nowrap">
-                {totalWordsInAllFolders} từ
-              </span>
-              <span className="text-sm font-bold text-[var(--text-muted)] group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5">
-                →
-              </span>
-            </div>
-          </div>
-
-          {/* 3. Thanh tìm kiếm, đếm số thư mục & sắp xếp */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
-            {/* Đếm số thư mục cạnh khu vực danh sách */}
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-[var(--text-primary)]">
-                Thư mục
-              </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border)]">
-                {folderSearchQuery.trim() ? `${filteredFolders.length}/${folders.length}` : `${folders.length}`} thư mục
-              </span>
-            </div>
-
-            {/* Ô tìm kiếm & Menu sắp xếp */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <span className="absolute left-2.5 top-2.5 text-[var(--text-muted)]">
-                    <Search size={16} />
-                  </span>
-                <input
-                  type="text"
-                  value={folderSearchQuery}
-                  onChange={(e) => setFolderSearchQuery(e.target.value)}
-                  placeholder="Tìm theo tên thư mục..."
-                  className="w-full pl-9 pr-7 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-xs text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
-                  aria-label="Tìm theo tên thư mục"
-                />
-                {folderSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setFolderSearchQuery('')}
-                    className="absolute right-2 top-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-                    aria-label="Xóa tìm kiếm"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-
-              <div className="relative shrink-0 w-44">
-                <Select
-                  value={folderSortBy}
-                  onChange={(val) => setFolderSortBy(val as any)}
-                  options={[
-                    { value: 'recent', label: 'Cập nhật gần nhất' },
-                    { value: 'az', label: 'Tên A–Z' },
-                    { value: 'count', label: 'Số từ (nhiều nhất)' },
-                  ]}
-                  ariaLabel="Sắp xếp thư mục"
-                  className="w-full text-xs"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 4. Lưới thẻ thư mục: Gọn, không đường phân cách thừa, bo góc 8px (rounded-lg) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-            {filteredFolders.map((folder) => (
-              <div
-                key={folder.id}
-                onClick={() => handleSelectFolder(folder.id)}
-                className="relative p-3.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] hover:border-blue-500/60 hover:shadow-sm focus-within:ring-2 focus-within:ring-blue-500/40 transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99] select-none min-h-[64px]"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSelectFolder(folder.id);
-                  }
-                }}
-                title={folder.name}
-                aria-label={`Thư mục ${folder.name} (${folder.wordCount} từ)`}
-              >
-                {/* Phần trái: Icon màu + Tên tối đa 2 dòng */}
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0 shadow-xs ring-2 ring-white/10"
-                    style={{ backgroundColor: folder.color || '#3b82f6' }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h3
-                      className="text-sm font-bold text-[var(--text-primary)] group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug break-words"
-                      title={folder.name}
-                    >
-                      {folder.name}
-                    </h3>
-                    {folder.description && (
-                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-1 truncate mt-0.5">
-                        {folder.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Phần phải: Số từ và Nút menu ba chấm */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-[var(--bg-subtle)] text-[var(--text-primary)] border border-[var(--border)] whitespace-nowrap">
-                    {folder.wordCount} từ
-                  </span>
-
-                  {/* Menu ba chấm thao tác */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenFolderMenuId(openFolderMenuId === folder.id ? null : folder.id);
-                      }}
-                      className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
-                      title="Tùy chọn thư mục"
-                      aria-label={`Tùy chọn thư mục ${folder.name}`}
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="1" />
-                        <circle cx="12" cy="5" r="1" />
-                        <circle cx="12" cy="19" r="1" />
-                      </svg>
-                    </button>
-
-                    {/* Menu Dropdown: Đổi tên & Xóa */}
-                    {openFolderMenuId === folder.id && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-8 z-30 w-36 py-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-xl text-xs space-y-0.5 animate-scale-in"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenFolderMenuId(null);
-                            setFolderToEdit(folder);
-                            setFolderModalInitialMode('edit');
-                            setIsFolderModalOpen(true);
-                          }}
-                          className="w-full px-3 py-1.5 text-left font-medium text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] flex items-center gap-2 cursor-pointer transition-colors"
-                        >
-                          <span>✏️</span>
-                          <span>Đổi tên</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenFolderMenuId(null);
-                            setFolderToEdit(folder);
-                            setFolderModalInitialMode('delete');
-                            setIsFolderModalOpen(true);
-                          }}
-                          className="w-full px-3 py-1.5 text-left font-medium text-rose-600 hover:bg-rose-500/10 flex items-center gap-2 cursor-pointer transition-colors"
-                        >
-                          <span>🗑️</span>
-                          <span>Xóa thư mục</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Mục Chưa phân loại (nếu có từ chưa gán thư mục) */}
-            {unassignedCount > 0 && !folderSearchQuery.trim() && (
-              <div
-                onClick={() => handleSelectFolder('unassigned')}
-                className="p-3.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] hover:border-amber-500/60 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99] select-none min-h-[64px]"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSelectFolder('unassigned');
-                  }
-                }}
-                title={`Chưa phân loại (${unassignedCount} từ)`}
-                aria-label={`Chưa phân loại (${unassignedCount} từ)`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <span className="text-base p-1 rounded-md bg-amber-500/10 text-amber-600 shrink-0">
-                    📁
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-amber-600 transition-colors">
-                      Chưa phân loại
-                    </h3>
-                    <p className="text-[11px] text-[var(--text-muted)] line-clamp-1 truncate mt-0.5">
-                      Từ vựng chưa xếp vào thư mục
-                    </p>
-                  </div>
-                </div>
-
-                <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 shrink-0 whitespace-nowrap">
-                  {unassignedCount} từ
-                </span>
-              </div>
-            )}
-
-            {/* Trạng thái không tìm thấy khi lọc tìm kiếm */}
-            {filteredFolders.length === 0 && folderSearchQuery.trim() && (
-              <div className="col-span-full p-8 text-center bg-[var(--bg-card)] border border-[var(--border)] rounded-lg space-y-3">
-                <div className="text-2xl">🔍</div>
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">
-                  Không tìm thấy thư mục nào
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Không có thư mục nào khớp với từ khóa "{folderSearchQuery}".
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setFolderSearchQuery('')}
-                  className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
-                >
-                  Xóa bộ lọc tìm kiếm
-                </button>
-              </div>
-            )}
-
-            {/* Trạng thái trống khi tài khoản chưa có thư mục nào */}
-            {folders.length === 0 && unassignedCount === 0 && (
-              <div className="col-span-full p-8 text-center bg-[var(--bg-card)] border border-dashed border-[var(--border)] rounded-lg space-y-3">
-                <div className="text-3xl">📂</div>
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">
-                  Chưa có thư mục từ vựng nào
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto">
-                  Hãy tạo thư mục đầu tiên để quản lý từ vựng {currentLangInfo.name} hoặc nhập nhanh danh sách từ file Excel.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFolderToEdit(null);
-                    setFolderModalInitialMode('edit');
-                    setIsFolderModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                  + Tạo thư mục ngay
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <FolderList
+          languageName={currentLangInfo.name}
+          languageFlag={currentLangInfo.flag}
+          isLoaded={hasLoadedFolders}
+          folders={folders}
+          visibleFolders={filteredFolders}
+          totalWords={totalWordsInAllFolders}
+          unassignedCount={unassignedCount}
+          query={folderSearchQuery}
+          onQueryChange={setFolderSearchQuery}
+          sortBy={folderSortBy}
+          onSortChange={setFolderSortBy}
+          onSelect={handleSelectFolder}
+          onCreate={() => {
+            setFolderToEdit(null);
+            setFolderModalInitialMode('edit');
+            setIsFolderModalOpen(true);
+          }}
+          onEdit={(folder, mode) => {
+            setFolderToEdit(folder);
+            setFolderModalInitialMode(mode);
+            setIsFolderModalOpen(true);
+          }}
+          onReanalyze={() => setIsReanalyzeModalOpen(true)}
+        />
       ) : (
         /* ========================================================
            STATE 2: MÀN HÌNH TỪ VỰNG TRONG THƯ MỤC (RIÊNG BIỆT)
@@ -801,21 +484,53 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
           ) : (
             <div className="space-y-4">
               {/* ========================================================
-                  UNFRAMED COMPACT HEADER & ACTION TOOLBAR
+                  FOLDER HEADER, ACTIONS AND FILTER TOOLBAR
                  ======================================================== */}
-              <div className="space-y-3 pb-1">
-                {/* Hàng 1: Nút quay lại thư mục + Nhóm thao tác chính (responsive) */}
-                <div className="flex flex-wrap items-center justify-between gap-2.5">
-                  <button
-                    type="button"
-                    onClick={handleBackToFolders}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:border-blue-400 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-xs active:scale-95 cursor-pointer group"
-                    title="Quay lại danh sách thư mục"
-                    aria-label="Quay lại danh sách thư mục"
-                  >
-                    <span className="text-sm transform group-hover:-translate-x-1 transition-transform">←</span>
-                    <span>Quay lại thư mục</span>
-                  </button>
+              <div className="space-y-5">
+                <button
+                  type="button"
+                  onClick={handleBackToFolders}
+                  className="group -ml-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+                  title="Quay lại danh sách thư mục"
+                  aria-label="Quay lại danh sách thư mục"
+                >
+                  <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+                  <span>Quay lại thư mục</span>
+                </button>
+
+                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-light)] text-[var(--brand-text)]">
+                        {selectedFolderId === 'all' ? <Library className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
+                      </span>
+                      <h1 className="break-words text-2xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] sm:text-3xl">
+                        {selectedFolderTitle}
+                      </h1>
+                      {activeFolder && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFolderToEdit(activeFolder);
+                            setIsFolderModalOpen(true);
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--brand-text)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
+                          title="Đổi tên thư mục"
+                          aria-label="Đổi tên thư mục"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm font-medium text-[var(--text-secondary)]">
+                      {selectedFolderId === 'all'
+                        ? `${totalWordsInAllFolders} từ`
+                        : selectedFolderId === 'unassigned'
+                        ? `${unassignedCount} từ`
+                        : `${activeFolder?.wordCount ?? words.length} từ`}
+                      {activeFolder?.description && <span className="text-[var(--text-muted)]"> · {activeFolder.description}</span>}
+                    </p>
+                  </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     <button
@@ -824,37 +539,39 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                         setWordToEdit(null);
                         setIsWordModalOpen(true);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/20 active:scale-95 cursor-pointer"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                       title="Thêm từ mới vào thư mục này"
                       aria-label="Thêm từ mới vào thư mục này"
                     >
-                      <span>+</span>
+                      <Plus className="h-4 w-4" />
                       <span>Thêm từ mới</span>
                     </button>
 
-                    <div className="relative group">
+                    <div className="group relative">
                       <button
                         type="button"
-                        className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] text-xs font-bold text-[var(--text-primary)] transition-all flex items-center gap-1.5 shadow-xs"
+                        aria-haspopup="true"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                       >
-                        <span>📥</span>
-                        <span>Nhập từ ▼</span>
+                        <Download className="h-4 w-4" />
+                        <span>Nhập từ</span>
+                        <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
                       </button>
-                      <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
-                        <div className="w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                      <div className="absolute right-0 top-full z-50 hidden pt-1 group-focus-within:block group-hover:block">
+                        <div className="w-52 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-1.5 shadow-[var(--shadow-md)]">
                           <button
                             type="button"
                             onClick={() => setIsPasteModalOpen(true)}
-                            className="w-full px-4 py-2.5 text-left text-xs font-bold text-[var(--text-primary)] hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700/50 transition-colors"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)]"
                           >
-                            <span>📋</span> Dán danh sách
+                            <ClipboardList className="h-4 w-4 text-[var(--text-muted)]" /> Dán danh sách
                           </button>
                           <button
                             type="button"
                             onClick={() => setIsExcelModalOpen(true)}
-                            className="w-full px-4 py-2.5 text-left text-xs font-bold text-[var(--text-primary)] hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center gap-2 transition-colors"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)]"
                           >
-                            <span>📊</span> Nhập Excel
+                            <FileSpreadsheet className="h-4 w-4 text-[var(--text-muted)]" /> Nhập Excel
                           </button>
                         </div>
                       </div>
@@ -871,32 +588,30 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                         }
                       }}
                       disabled={words.length === 0}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
-                        words.length > 0
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 text-white shadow-blue-500/20 cursor-pointer'
-                          : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] opacity-40 cursor-not-allowed'
-                      }`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--brand)] px-5 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                       title="Học flashcard, trắc nghiệm, luyện gõ và nghe viết"
                     >
-                      <span>🎯</span>
+                      <Target className="h-4 w-4" />
                       <span>Học từ vựng</span>
                     </button>
 
-                    <div className="relative group">
+                    <div className="group relative">
                       <button
                         type="button"
-                        className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] hover:bg-[var(--bg-subtle)] text-xs font-bold text-[var(--text-primary)] transition-all flex items-center justify-center shadow-xs w-8"
+                        aria-haspopup="true"
+                        aria-label="Thêm tùy chọn"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                       >
-                        ⋮
+                        <MoreVertical className="h-4 w-4" />
                       </button>
-                      <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
-                        <div className="w-40 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                      <div className="absolute right-0 top-full z-50 hidden pt-1 group-focus-within:block group-hover:block">
+                        <div className="w-44 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-1.5 shadow-[var(--shadow-md)]">
                           <button
                             type="button"
                             onClick={() => setIsReanalyzeModalOpen(true)}
-                            className="w-full px-4 py-2.5 text-left text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 flex items-center gap-2 transition-colors"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)]"
                           >
-                            <span>🔄</span> Phân tích lại
+                            <RefreshCw className="h-4 w-4 text-[var(--text-muted)]" /> Phân tích lại
                           </button>
                         </div>
                       </div>
@@ -904,187 +619,91 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                   </div>
                 </div>
 
-                {/* Hàng 2: Tên thư mục đầy đủ & số lượng từ (Unframed, không ép thành dấu "...") */}
-                <div className="pt-0.5">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="text-2xl shrink-0">
-                      {selectedFolderId === 'all'
-                        ? '📚'
-                        : selectedFolderId === 'unassigned'
-                        ? '📁'
-                        : '📂'}
-                    </span>
-                    <h1 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-snug break-words">
-                      {selectedFolderTitle}
-                    </h1>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20 shrink-0">
-                      {selectedFolderId === 'all'
-                        ? `${totalWordsInAllFolders} từ`
-                        : selectedFolderId === 'unassigned'
-                        ? `${unassignedCount} từ`
-                        : `${activeFolder?.wordCount ?? words.length} từ`}
-                    </span>
-                    {activeFolder && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFolderToEdit(activeFolder);
-                          setIsFolderModalOpen(true);
-                        }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-blue-600 hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
-                        title="Đổi tên thư mục"
-                        aria-label="Đổi tên thư mục"
-                      >
-                        ✏️
-                      </button>
-                    )}
-                  </div>
-                  {activeFolder?.description && (
-                    <p className="text-xs text-[var(--text-secondary)] mt-1 break-words">
-                      {activeFolder.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Hàng 3 & 4: Chỉ hiện khi có từ vựng hoặc đang lọc */}
+                {/* Search, status filter and display options: only when there is something to filter */}
                 {(words.length > 0 || searchKeyword !== '' || statusFilter !== 'all') && (
-                  <>
-                    {/* Hàng 3: Tìm kiếm & Bộ lọc trạng thái (Unframed) */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 pt-1">
-                      {/* Search Box */}
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-2.5 text-[var(--text-muted)]">
-                            <Search size={16} />
-                          </span>
-                        <input
-                          type="text"
-                          value={searchKeyword}
-                          onChange={(e) => setSearchKeyword(e.target.value)}
-                          placeholder="Tìm kiếm trong thư mục này..."
-                          className="w-full pl-10 pr-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
-                          aria-label="Tìm kiếm từ vựng trong thư mục"
-                        />
-                        {searchKeyword && (
-                          <button
-                            onClick={() => setSearchKeyword('')}
-                            className="absolute right-2.5 top-2.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-                            aria-label="Xóa tìm kiếm"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Learning Status Filter */}
-                      <div className="flex items-center gap-1 bg-[var(--bg-subtle)] p-1 rounded-xl border border-[var(--border)] self-start sm:self-auto overflow-x-auto">
-                        {[
-                          { id: 'all', label: 'Tất cả' },
-                          { id: 'new', label: 'Mới' },
-                          { id: 'learning', label: 'Đang học' },
-                          { id: 'mastered', label: 'Đã thuộc' },
-                        ].map((tab) => (
-                          <button
-                            key={tab.id}
-                            onClick={() => setStatusFilter(tab.id as any)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                              statusFilter === tab.id
-                                ? 'bg-[var(--bg-card)] text-blue-600 shadow-sm'
-                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                            }`}
-                            aria-label={`Lọc trạng thái ${tab.label}`}
-                          >
-                            {tab.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Hàng 4: Điều khiển ẩn / hiện ôn tập */}
-                    <div className="flex flex-wrap items-center justify-between gap-2.5 py-2 px-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border)]">
-                      <div className="relative group">
+                  <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
+                    <div className="relative flex-1">
+                      <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                      <input
+                        type="text"
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        placeholder="Tìm kiếm trong thư mục này..."
+                        className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] pl-11 pr-10 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--brand)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15"
+                        aria-label="Tìm kiếm từ vựng trong thư mục"
+                      />
+                      {searchKeyword && (
                         <button
                           type="button"
-                          className="px-3 py-1.5 rounded-lg bg-[var(--bg-subtle)] hover:bg-[var(--bg-card)] border border-transparent hover:border-[var(--border)] text-xs font-bold text-[var(--text-primary)] transition-all flex items-center gap-1.5 shadow-xs"
+                          onClick={() => setSearchKeyword('')}
+                          className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]"
+                          aria-label="Xóa tìm kiếm"
                         >
-                          <span>👁️</span>
-                          <span>Tùy chọn hiển thị ▼</span>
+                          <X className="h-4 w-4" />
                         </button>
-                        <div className="absolute left-0 top-full pt-1 hidden group-hover:block z-50">
-                          <div className="w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col p-3 gap-3">
-                            {/* 1. Target Language Word toggle */}
-                            <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
-                              <span className={`font-semibold text-xs transition-colors ${visibility.showWord ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'}`}>
-                                {targetWordLabel}
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={visibility.showWord}
-                                onChange={(e) => updateVisibility({ showWord: e.target.checked })}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
-                              />
-                            </label>
+                      )}
+                    </div>
 
-                            {/* 2. Meaning toggle */}
-                            <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
-                              <span className={`font-semibold text-xs transition-colors ${visibility.showMeaning ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'}`}>
-                                Hiện nghĩa tiếng Việt
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={visibility.showMeaning}
-                                onChange={(e) => updateVisibility({ showMeaning: e.target.checked })}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
-                              />
-                            </label>
+                    <Select
+                      value={statusFilter}
+                      onChange={(val) => setStatusFilter(val)}
+                      options={[
+                        { value: 'all', label: 'Tất cả trạng thái' },
+                        { value: 'new', label: 'Mới' },
+                        { value: 'learning', label: 'Đang học' },
+                        { value: 'mastered', label: 'Đã thuộc' },
+                      ]}
+                      ariaLabel="Lọc theo trạng thái"
+                      variant="filter"
+                      className="w-full lg:w-52"
+                    />
 
-                            {/* 3. Synonyms toggle */}
-                            <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
-                              <span className={`font-semibold text-xs transition-colors ${visibility.showSynonyms ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'}`}>
-                                Hiện đồng nghĩa
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={visibility.showSynonyms}
-                                onChange={(e) => updateVisibility({ showSynonyms: e.target.checked })}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
-                              />
-                            </label>
-
-                            {/* 4. Antonyms toggle */}
-                            <label className="flex items-center justify-between gap-2 cursor-pointer select-none">
-                              <span className={`font-semibold text-xs transition-colors ${visibility.showAntonyms ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 line-through'}`}>
-                                Hiện trái nghĩa
-                              </span>
-                              <input
-                                type="checkbox"
-                                checked={visibility.showAntonyms}
-                                onChange={(e) => updateVisibility({ showAntonyms: e.target.checked })}
-                                className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 accent-blue-600 cursor-pointer"
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
+                    <div className="group relative self-start lg:self-auto">
                       <button
                         type="button"
-                        onClick={handleShowAll}
-                        disabled={!isAnyHidden}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-                          isAnyHidden
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs active:scale-95 cursor-pointer'
-                            : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] opacity-50 cursor-default'
-                        }`}
-                        title="Hiện lại toàn bộ từ, nghĩa, đồng nghĩa và trái nghĩa"
-                        aria-label="Hiện tất cả nội dung bị ẩn"
+                        aria-haspopup="true"
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
                       >
-                        <span>✓</span>
-                        <span>Hiện tất cả</span>
+                        <Eye className="h-4 w-4" />
+                        <span>Hiển thị</span>
+                        {isAnyHidden && <span className="h-2 w-2 rounded-full bg-[var(--brand)]" aria-label="Đang ẩn một số nội dung" />}
+                        <ChevronDown className="h-4 w-4 text-[var(--text-muted)]" />
                       </button>
+                      <div className="absolute right-0 top-full z-50 hidden pt-1 group-focus-within:block group-hover:block">
+                        <div className="flex w-64 flex-col gap-1 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-2 shadow-[var(--shadow-md)]">
+                          {[
+                            { key: 'showWord', label: targetWordLabel },
+                            { key: 'showMeaning', label: 'Nghĩa tiếng Việt' },
+                            { key: 'showSynonyms', label: 'Đồng nghĩa' },
+                            { key: 'showAntonyms', label: 'Trái nghĩa' },
+                          ].map(({ key, label }) => (
+                            <label key={key} className="flex cursor-pointer select-none items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]">
+                              <span>{label}</span>
+                              <input
+                                type="checkbox"
+                                checked={visibility[key as 'showWord' | 'showMeaning' | 'showSynonyms' | 'showAntonyms']}
+                                onChange={(e) => updateVisibility({ [key]: e.target.checked })}
+                                className="h-4 w-4 cursor-pointer rounded accent-[var(--brand)]"
+                              />
+                            </label>
+                          ))}
+                          {isAnyHidden && (
+                            <button
+                              type="button"
+                              onClick={handleShowAll}
+                              className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-light)] px-3 py-2.5 text-sm font-bold text-[var(--brand-text)] hover:brightness-95"
+                              title="Hiện lại toàn bộ từ, nghĩa, đồng nghĩa và trái nghĩa"
+                              aria-label="Hiện tất cả nội dung bị ẩn"
+                            >
+                              <Check className="h-4 w-4" /> Hiện tất cả
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-              </>
-            )}
-          </div>
+                  </div>
+                )}
+              </div>
 
           {/* ========================================================
               WORD LIST / CARDS
@@ -1168,7 +787,7 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 items-stretch">
+                <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                   {displayedWords.map((item) => {
                     const isWordRevealed = !!revealedMap[`${item.id}_word`];
                     const isMeaningRevealed = !!revealedMap[`${item.id}_meaning`];
@@ -1188,10 +807,10 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                     return (
                       <div
                         key={item.id}
-                        className="p-3.5 md:p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-blue-400/40 shadow-xs transition-all space-y-2 group"
+                        className={`group space-y-2 rounded-xl border border-l-[3px] border-[var(--border)] bg-[var(--bg-card)] p-3.5 transition-shadow hover:shadow-[var(--shadow-md)] ${item.status === 'mastered' ? 'border-l-emerald-500' : item.status === 'learning' ? 'border-l-amber-400' : 'border-l-[var(--brand)]'}`}
                       >
                         {/* Hàng 1: Từ, Phát âm, Từ loại, Trạng thái học và Icon thao tác */}
-                        <div className="flex items-center justify-between gap-2 flex-wrap min-h-[30px]">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
                             {/* Nút loa phát âm (luôn nghe được ngay cả khi từ bị che) */}
                             <button
@@ -1202,17 +821,17 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                                   toast.error(res.message);
                                 }
                               }}
-                              className="w-6 h-6 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 text-xs flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95"
+                              className="h-7 w-7 rounded-full bg-[var(--brand-light)] text-[var(--brand-text)] flex items-center justify-center transition-all shrink-0 cursor-pointer hover:brightness-95 active:scale-95 focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
                               title="Nghe phát âm"
                               aria-label="Nghe phát âm"
                             >
-                              🔊
+                              <Volume2 className="h-4 w-4" />
                             </button>
 
                             {/* Từ vựng hoặc Nút xem từ khi bị che */}
                             {showTargetWord ? (
                               <div className="inline-flex items-center gap-2 flex-wrap min-w-0">
-                                <span className="text-base md:text-lg font-black text-[var(--text-primary)] font-sans break-words">
+                                <span className="text-base font-extrabold tracking-tight text-[var(--text-primary)] break-words">
                                   {item.word}
                                 </span>
 
@@ -1231,14 +850,14 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
 
                                 {/* Cách đọc / Phiên âm chính (IPA / Pinyin / Kana / Romaji / Thai) */}
                                 {getPrimaryReading(item) && (
-                                  <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/50 dark:border-indigo-800/30">
+                                  <span className="text-sm font-medium text-[var(--text-muted)]">
                                     {getPrimaryReading(item)}
                                   </span>
                                 )}
 
                                 {/* Loại từ (POS) */}
                                 {item.partOfSpeech && (
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 uppercase tracking-wide">
+                                  <span className="rounded-full bg-[var(--bg-muted)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-secondary)]">
                                     {item.partOfSpeech}
                                   </span>
                                 )}
@@ -1255,38 +874,21 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                                 <span>Xem {currentLangInfo.name.toLowerCase()}</span>
                               </button>
                             )}
-
-                            {/* Badge trạng thái học */}
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                                item.status === 'mastered'
-                                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                                  : item.status === 'learning'
-                                  ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-                                  : 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
-                              }`}
-                            >
-                              {item.status === 'mastered'
-                                ? 'Đã thuộc'
-                                : item.status === 'learning'
-                                ? 'Đang học'
-                                : 'Mới'}
-                            </span>
                           </div>
 
                           {/* Nhóm nút thao tác: Sửa, Chuyển thư mục, Xóa dạng icon kèm tooltip */}
-                          <div className="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity shrink-0">
                             <button
                               type="button"
                               onClick={() => {
                                 setWordToEdit(item);
                                 setIsWordModalOpen(true);
                               }}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-amber-600 hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
                               title="Chỉnh sửa từ vựng"
                               aria-label="Chỉnh sửa từ vựng"
                             >
-                              ✏️
+                              <Pencil className="h-4 w-4" />
                             </button>
 
                             <button
@@ -1295,27 +897,27 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                                 setWordToMove(item);
                                 setIsMoveModalOpen(true);
                               }}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-blue-600 hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-[var(--brand-text)] hover:bg-[var(--bg-subtle)] transition-all cursor-pointer"
                               title="Chuyển sang thư mục khác"
                               aria-label="Chuyển thư mục"
                             >
-                              📂
+                              <FolderOpen className="h-4 w-4" />
                             </button>
 
                             <button
                               type="button"
                               onClick={() => handleDeleteWord(item)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-all cursor-pointer"
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-xs text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-all cursor-pointer"
                               title="Xóa từ vựng"
                               aria-label="Xóa từ vựng"
                             >
-                              🗑️
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
 
                         {/* Hàng 2: Nghĩa tiếng Việt (Dễ đọc, giữ kích thước ổn định, hiển thị đúng trạng thái) */}
-                        <div className="min-h-[28px] flex items-center">
+                        <div className="flex items-center">
                           {!hasMeaning ? (
                             /* Chỉ hiện "Chưa có nghĩa" khi thực sự thiếu sau khi kiểm tra các trường tương thích */
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1350,7 +952,7 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                           ) : showMeaning ? (
                             /* Có nghĩa và đang bật "Hiện nghĩa tiếng Việt" -> hiển thị ngay dưới từ */
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm md:text-base font-semibold text-indigo-600 dark:text-indigo-400 leading-relaxed break-words">
+                              <p className="text-sm font-semibold text-[var(--brand-text)] leading-snug break-words">
                                 {meaningText}
                               </p>
                               {!visibility.showMeaning && (
@@ -1383,7 +985,7 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
 
                         {/* Hàng 3: Đồng nghĩa & Trái nghĩa (CHỈ HIỂN THỊ KHI CÓ DỮ LIỆU) */}
                         {(hasSynonyms || hasAntonyms) && (
-                          <div className="flex flex-col gap-2 text-xs pt-1 mt-1 border-t border-[var(--border-subtle)]">
+                          <div className="flex flex-col gap-1.5 text-xs">
                             {/* Đồng nghĩa */}
                             {hasSynonyms && (
                               <div className="flex items-start gap-1.5 flex-wrap">
@@ -1460,9 +1062,9 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
 
                         {/* Hàng 4: Ví dụ câu (CHỈ HIỂN THỊ KHI CÓ DỮ LIỆU) */}
                         {item.example && (
-                          <div className="text-xs text-[var(--text-secondary)] bg-[var(--bg-subtle)] p-2.5 rounded-xl border border-[var(--border)] space-y-0.5">
+                          <div className="text-xs text-[var(--text-secondary)] bg-[var(--bg-subtle)] px-3 py-2 rounded-lg space-y-0.5">
                             <p className="italic font-sans">
-                              <span className="font-bold not-italic text-indigo-600 dark:text-indigo-400 mr-1.5">Ví dụ:</span>
+                              <span className="font-semibold not-italic text-[var(--brand-text)] mr-1.5">Ví dụ:</span>
                               "{item.example}"
                             </p>
                             {item.exampleTranslation && (
@@ -1474,11 +1076,11 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                         )}
 
                         {/* Hàng 5: Footer (Ngày học gần nhất lấy từ lịch sử thật; chưa học thì ghi "Chưa học") */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[11px] pt-1.5 border-t border-[var(--border-subtle)] text-[var(--text-muted)]">
+                        <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--text-muted)]">
                           <div className="flex items-center gap-2 flex-wrap">
                             {selectedFolderId === 'all' && (
-                              <span className="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-md border border-indigo-200/50 dark:border-indigo-800/30">
-                                <span>📁</span>
+                              <span className="inline-flex items-center gap-1 font-semibold text-[var(--brand-text)] bg-[var(--brand-light)] px-2.5 py-0.5 rounded-full">
+                                <FolderOpen className="h-3.5 w-3.5" />
                                 <span>{item.folderId ? item.listName : 'Chưa phân loại'}</span>
                               </span>
                             )}
@@ -1488,7 +1090,7 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px]">
+                          <span className="text-xs">
                             Lần học cuối: {item.lastReviewedAt ? new Date(item.lastReviewedAt).toLocaleDateString('vi-VN') : 'Chưa học'}
                           </span>
                         </div>
@@ -1563,6 +1165,11 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
           toast.success(isNew ? `Đã thêm từ "${savedWord.word}"` : `Đã cập nhật từ "${savedWord.word}"`);
           fetchWords();
           fetchFolders();
+          if (savedWord.folderId) {
+            setSelectedFolderId(savedWord.folderId);
+          } else {
+            setSelectedFolderId('all');
+          }
         }}
       />
 

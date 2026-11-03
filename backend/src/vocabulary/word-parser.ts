@@ -236,8 +236,8 @@ export function parseWordCellContent(rawInput: string): ParsedWordToken {
 
 /**
  * Smart parser for meaning strings that might contain mixed synonyms and POS tags.
- * e.g. "a high-rise building (n) = a skyscraper (n) t�a nh� cao t?ng"
- * or "= a skyscraper (n) t�a nh� cao t?ng"
+ * e.g. "a high-rise building (n) = a skyscraper (n) tòa nhà cao tầng
+ * or "= a skyscraper (n) tòa nhà cao tầng
  */
 export function parseMeaningCellContent(meaningInput: string) {
   if (!meaningInput) return { cleanMeaning: '', pos: undefined, synonyms: [] };
@@ -257,7 +257,7 @@ export function parseMeaningCellContent(meaningInput: string) {
   text = baseExtract.cleanFragment;
 
   // Extract POS tags anywhere in the string
-  const posRegex = /(?:\s+|^)(?:\(|\b\[)(n|v|adj|a|adv|pron|prep|conj|interj|phr|noun|verb|adjective|adverb|pronoun|preposition|conjunction|interjection|danh t?|d?ng t?|t�nh t?|tr?ng t?|gi?i t?|d?i t?|li�n t?|th�n t?|dt|dt|tt|gtu|gt|lt|tht|ving|ved|v-ing|v-ed)(?:\)|\b\])\.?\s+/i;
+  const posRegex = /(?:\s+|^)(?:\(|\b\[)(n|v|adj|a|adv|pron|prep|conj|interj|phr|noun|verb|adjective|adverb|pronoun|preposition|conjunction|interjection|danh từ|động từ|tính từ|trạng từ|giới từ|đại từ|liên từ|thán từ|dt|dt|tt|gtu|gt|lt|tht|ving|ved|v-ing|v-ed)(?:\)|\b\])\.?\s+/i;
   
   let match;
   while ((match = posRegex.exec(text)) !== null) {

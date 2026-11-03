@@ -7,9 +7,11 @@ import { LANGUAGE_LIST, SupportedLanguage, getLanguageInfo } from '@/lib/languag
 interface LanguageSelectorProps {
   className?: string;
   compactOnMobile?: boolean;
+  /** Show only the flag (plus chevron); the language name stays in aria-label/title. */
+  iconOnly?: boolean;
 }
 
-export function LanguageSelector({ className = '', compactOnMobile = true }: LanguageSelectorProps) {
+export function LanguageSelector({ className = '', compactOnMobile = true, iconOnly = false }: LanguageSelectorProps) {
   const { currentLanguage, switchLanguage } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,15 +41,16 @@ export function LanguageSelector({ className = '', compactOnMobile = true }: Lan
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Chọn ngôn ngữ học"
+        aria-label={iconOnly ? `Chọn ngôn ngữ học (đang chọn: ${activeLang.name})` : "Chọn ngôn ngữ học"}
+        title={iconOnly ? activeLang.name : undefined}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] hover:bg-[var(--border)]/30 text-[var(--text-primary)] transition-all active:scale-95 shadow-2xs font-semibold text-xs"
       >
         <span className="text-base leading-none">{activeLang.flag}</span>
         {/* Chữ hiển thị tên ngôn ngữ */}
-        <span className={compactOnMobile ? "hidden sm:inline font-bold" : "font-bold"}>
+        <span className={iconOnly ? "hidden" : compactOnMobile ? "hidden sm:inline font-bold" : "font-bold"}>
           {activeLang.name}
         </span>
-        <span className={compactOnMobile ? "sm:hidden font-bold" : "hidden"}>
+        <span className={compactOnMobile && !iconOnly ? "sm:hidden font-bold" : "hidden"}>
           {activeLang.name.replace('Tiếng ', '')}
         </span>
         <svg
@@ -62,7 +65,7 @@ export function LanguageSelector({ className = '', compactOnMobile = true }: Lan
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 sm:left-0 top-full mt-2 w-52 sm:w-56 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-xl p-2 z-50 animate-fade-up">
+        <div className={`absolute right-0 ${iconOnly ? "" : "sm:left-0"} top-full mt-2 w-52 sm:w-56 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] shadow-xl p-2 z-50 animate-fade-up`}>
           <div className="px-2.5 py-1.5 text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider border-b border-[var(--border)] mb-1">
             Ngôn ngữ đang học
           </div>

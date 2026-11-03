@@ -30,6 +30,8 @@ import { LearningPath, LearningPathSection, LearningPathItem, LearningPathProgre
 import { NotesModule } from './notes/notes.module.js';
 import { StudyNote } from './notes/note.entity.js';
 import { TodosModule } from './todos/todos.module.js';
+import { DictationModule } from './dictation/dictation.module.js';
+import { DictationProgress } from './dictation/dictation-progress.entity.js';
 import { TodoItem } from './todos/todo.entity.js';
 import { FocusModule } from './focus/focus.module.js';
 import { FocusSession } from './focus/focus.entity.js';
@@ -80,6 +82,7 @@ import { StudyBoard } from './study-boards/study-board.entity.js';
             LearningPathProgress,
             StudyNote,
             TodoItem,
+            DictationProgress,
             FocusSession,
             StudyBoard,
           ],
@@ -99,6 +102,7 @@ import { StudyBoard } from './study-boards/study-board.entity.js';
     LearningPathsModule,
     NotesModule,
     TodosModule,
+    DictationModule,
     FocusModule,
     StudyBoardsModule,
   ],

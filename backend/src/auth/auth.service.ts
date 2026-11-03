@@ -125,7 +125,12 @@ export class AuthService {
     user = await this.usersService.findByEmail(normalizedEmail);
     if (user) {
       if (!user.googleId) {
-        throw new BadRequestException('Email đã được đăng ký. Vui lòng đăng nhập bằng email/mật khẩu và liên kết Google trong Hồ sơ.');
+        // Automatically link Google account if email matches
+        user = await this.usersService.linkGoogleAccount(
+          user.id,
+          profile.googleId,
+          !user.avatar ? profile.avatar : undefined,
+        );
       }
       return user;
     }

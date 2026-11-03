@@ -23,6 +23,19 @@ export const mediaApi = {
     return res.json();
   },
 
+  async fetchTranscript(videoId: string) {
+    const res = await fetch(`${API_BASE}/api/media/youtube/fetch-transcript`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify({ videoId }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Failed to fetch transcript');
+    }
+    return res.json();
+  },
+
   async deleteVideoLesson(id: number) {
     const res = await fetch(`${API_BASE}/api/media/youtube/${id}`, {
       method: 'DELETE',

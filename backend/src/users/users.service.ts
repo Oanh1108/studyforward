@@ -132,6 +132,14 @@ export class UsersService {
     await this.repo.update(userId, { password: hashedPassword });
   }
 
+  async linkGoogleAccount(userId: number, googleId: string, avatar?: string): Promise<User> {
+    const updatePayload: Partial<User> = { googleId };
+    if (avatar) updatePayload.avatar = avatar;
+    await this.repo.update(userId, updatePayload);
+    const user = await this.findById(userId);
+    return user!;
+  }
+
   async getUserStats(userId: number, language: string = 'en') {
     const user = await this.findById(userId);
     if (!user) throw new NotFoundException('Người dùng không tồn tại');

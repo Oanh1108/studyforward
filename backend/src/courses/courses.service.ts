@@ -1,12 +1,13 @@
 import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Lesson, CourseLevel, SkillType } from './lesson.entity.js';
+import { DEFAULT_LESSON_CONTENT } from './lesson-content.js';
 import { UserLessonProgress } from './user-lesson-progress.entity.js';
 import { User } from '../users/user.entity.js';
 import { UserActivityLog } from '../users/user-activity-log.entity.js';
 
-const INITIAL_LESSONS: Partial<Lesson>[] = [
+export const INITIAL_LESSONS: Partial<Lesson>[] = [
   {
     id: 'les-1',
     unit: 1,
@@ -137,6 +138,16 @@ export class CoursesService implements OnModuleInit {
       for (const item of INITIAL_LESSONS) {
         await this.lessonRepo.save(this.lessonRepo.create(item));
       }
+    }
+    await this.applyDefaultContent();
+  }
+
+  /** Fills in study material for seeded lessons that do not have any yet (also covers existing databases). */
+  private async applyDefaultContent() {
+    const lessons = await this.lessonRepo.find({ where: { content: IsNull() } });
+    for (const lesson of lessons) {
+      const content = DEFAULT_LESSON_CONTENT[lesson.id];
+      if (content) await this.lessonRepo.update(lesson.id, { content });
     }
   }
 

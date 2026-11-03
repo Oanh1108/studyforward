@@ -1,33 +1,109 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import {
+  Check, Clock, Lock, Play, RotateCcw, Zap, Sparkles, Library, PenLine, Headphones, Mic, BookOpen, Pencil, ArrowRight, Target,
+} from 'lucide-react';
 import { Lesson, CourseLevel, SkillType } from './types';
 import { coursesApi } from '@/lib/coursesApi';
 import { useAuth } from '@/lib/authContext';
-import Link from 'next/link';
-import { IconCheck, IconLock, IconPlay, IconStar } from './icons';
+import { EmptyState, ProgressBar, Skeleton } from './hub/primitives';
 
 interface CoursesViewProps {
   onStartLesson: (lesson: Lesson) => void;
 }
 
-const levelTabs: { id: CourseLevel; label: string; desc: string }[] = [
-  { id: 'A1', label: 'A1 Sơ cấp', desc: 'Từ vựng & câu giao tiếp cơ bản nhất' },
-  { id: 'A2', label: 'A2 Căn bản', desc: 'Phản xạ các tình huống hằng ngày' },
-  { id: 'B1', label: 'B1 Trung cấp', desc: 'Giao tiếp công việc & thuyết trình' },
-  { id: 'B2', label: 'B2 Nâng cao', desc: 'Tranh luận, đàm phán & từ chuyên ngành' },
-  { id: 'Business', label: 'Doanh nghiệp', desc: 'Email, đàm phán, họp quốc tế' },
+type IconType = React.ComponentType<{ className?: string }>;
+
+const levelTabs: { id: CourseLevel; label: string; name: string; desc: string }[] = [
+  { id: 'A1', label: 'A1', name: 'Sơ cấp', desc: 'Từ vựng và câu giao tiếp cơ bản nhất' },
+  { id: 'A2', label: 'A2', name: 'Căn bản', desc: 'Phản xạ các tình huống hằng ngày' },
+  { id: 'B1', label: 'B1', name: 'Trung cấp', desc: 'Giao tiếp công việc và thuyết trình' },
+  { id: 'B2', label: 'B2', name: 'Nâng cao', desc: 'Tranh luận, đàm phán và từ chuyên ngành' },
+  { id: 'Business', label: 'Business', name: 'Doanh nghiệp', desc: 'Email, đàm phán, họp quốc tế' },
 ];
 
-const skillFilters: { id: SkillType; label: string; icon: string }[] = [
-  { id: 'all', label: 'Tất cả', icon: '✨' },
-  { id: 'vocab', label: 'Từ vựng', icon: '📚' },
-  { id: 'grammar', label: 'Ngữ pháp', icon: '✍️' },
-  { id: 'listening', label: 'Nghe', icon: '🎧' },
-  { id: 'speaking', label: 'Nói', icon: '🎙️' },
-  { id: 'reading', label: 'Đọc', icon: '📖' },
-  { id: 'writing', label: 'Viết', icon: '📝' },
+const skillFilters: { id: SkillType; label: string; icon: IconType }[] = [
+  { id: 'all', label: 'Tất cả', icon: Sparkles },
+  { id: 'vocab', label: 'Từ vựng', icon: Library },
+  { id: 'grammar', label: 'Ngữ pháp', icon: PenLine },
+  { id: 'listening', label: 'Nghe', icon: Headphones },
+  { id: 'speaking', label: 'Nói', icon: Mic },
+  { id: 'reading', label: 'Đọc', icon: BookOpen },
+  { id: 'writing', label: 'Viết', icon: Pencil },
 ];
+
+const skillLabel: Record<Lesson['skill'], string> = {
+  vocab: 'Từ vựng',
+  grammar: 'Ngữ pháp',
+  listening: 'Nghe',
+  speaking: 'Nói',
+  reading: 'Đọc',
+  writing: 'Viết',
+};
+
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500';
+
+function LessonRow({ lesson, order, onStart }: { lesson: Lesson; order: number; onStart: (lesson: Lesson) => void }) {
+  const completed = lesson.status === 'completed';
+  const inProgress = lesson.status === 'in_progress';
+  const locked = lesson.status === 'locked';
+
+  const marker = completed
+    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300'
+    : inProgress
+      ? 'bg-indigo-600 text-white'
+      : 'bg-[var(--bg-muted)] text-[var(--text-muted)]';
+
+  return (
+    <li>
+      <button
+        type="button"
+        disabled={locked}
+        onClick={() => onStart(lesson)}
+        className={`group flex w-full items-center gap-4 rounded-[20px] border bg-[var(--bg-card)] p-4 text-left transition-colors ${focusRing} ${
+          inProgress ? 'border-indigo-300 dark:border-indigo-500/50' : 'border-[var(--border)]'
+        } ${locked ? 'cursor-not-allowed opacity-60' : 'hover:border-indigo-400'}`}
+      >
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${marker}`}>
+          {completed ? <Check className="h-5 w-5" /> : inProgress ? <Play className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        </span>
+
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 text-xs text-[var(--text-muted)]">
+            <span className="font-semibold">Bài {order}</span>
+            <span className="rounded-md bg-[var(--bg-muted)] px-1.5 py-0.5 font-medium text-[var(--text-secondary)]">{skillLabel[lesson.skill]}</span>
+            {completed && <span className="font-semibold text-emerald-600 dark:text-emerald-300">Đã hoàn thành</span>}
+            {locked && <span>Hoàn thành bài trước để mở khóa</span>}
+          </span>
+          <span className="mt-1 block truncate text-base font-bold text-[var(--text-primary)]">{lesson.title}</span>
+          <span className="block truncate text-sm text-[var(--text-secondary)]">{lesson.subtitle}</span>
+          {inProgress && typeof lesson.progress === 'number' && lesson.progress > 0 && (
+            <span className="mt-2 block max-w-xs"><ProgressBar value={lesson.progress} label={`Tiến độ ${lesson.title}`} /></span>
+          )}
+        </span>
+
+        <span className="hidden shrink-0 items-center gap-4 text-sm text-[var(--text-secondary)] sm:flex">
+          <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" />{lesson.durationMin} phút</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400"><Zap className="h-4 w-4" />{lesson.xpReward} XP</span>
+        </span>
+
+        {!locked && (
+          <span
+            className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl px-4 text-sm font-bold ${
+              inProgress
+                ? 'bg-indigo-600 text-white group-hover:bg-indigo-700'
+                : 'border border-[var(--border)] text-[var(--text-secondary)] group-hover:bg-[var(--bg-subtle)]'
+            }`}
+          >
+            {completed ? <><RotateCcw className="h-4 w-4" />Ôn lại</> : <>Tiếp tục<ArrowRight className="h-4 w-4" /></>}
+          </span>
+        )}
+      </button>
+    </li>
+  );
+}
 
 export function CoursesView({ onStartLesson }: CoursesViewProps) {
   const { currentLanguage } = useAuth();
@@ -44,7 +120,7 @@ export function CoursesView({ onStartLesson }: CoursesViewProps) {
       const data = await coursesApi.getLessons(selectedLevel, selectedSkill, currentLanguage);
       setLessons(data);
     } catch (err: any) {
-      setError(err?.message || 'Không thể tải danh sách khóa học từ database');
+      setError(err?.message || 'Không thể tải danh sách khóa học');
     } finally {
       setIsLoading(false);
     }
@@ -54,270 +130,133 @@ export function CoursesView({ onStartLesson }: CoursesViewProps) {
     fetchLessons();
   }, [fetchLessons]);
 
+  const level = levelTabs.find((t) => t.id === selectedLevel)!;
   const completedCount = lessons.filter((l) => l.status === 'completed').length;
   const totalCount = lessons.length;
-  const coursePercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const nextLesson = lessons.find((l) => l.status === 'in_progress');
 
   return (
     <div className="space-y-6 pb-20 md:pb-8 animate-fade-up">
-      {/* 1. Header & Level selector */}
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl md:text-2xl font-black text-[var(--text-primary)]">
-              Lộ trình & Khóa học
-            </h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-              Chọn cấp độ phù hợp để học theo chuỗi bài giảng có hệ thống.
-            </p>
-          </div>
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)]">Khóa học</h1>
+        <p className="text-sm text-[var(--text-secondary)]">Chọn cấp độ phù hợp và học theo chuỗi bài giảng có hệ thống.</p>
+      </header>
 
-          {/* Quick stats badge */}
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] px-4 py-2 rounded-xl text-xs flex items-center gap-3">
-            <div>
-              <span className="text-[var(--text-muted)]">Hoàn thành: </span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400">{completedCount}/{totalCount} bài</span>
-            </div>
-            <div className="w-16 bg-[var(--bg-subtle)] h-2 rounded-full overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${coursePercent}%` }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Placement Test Promo Banner */}
-        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h4 className="text-sm font-bold text-indigo-700 dark:text-indigo-400 flex items-center gap-2">
-              <span>🎯</span> Chưa biết học từ đâu?
-            </h4>
-            <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80 mt-0.5">
-              Làm bài kiểm tra đầu vào miễn phí để biết chính xác trình độ và nhận lộ trình phù hợp.
-            </p>
-          </div>
-          <Link
-            href="/placement-test"
-            className="shrink-0 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md hover:bg-indigo-700 transition-all active:scale-95"
-          >
-            Làm bài test ngay →
-          </Link>
-        </div>
-
-        {/* Level Horizontal Scroll Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-3 mt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-          {levelTabs.map((tab) => (
+      {/* Level selector */}
+      <div role="tablist" aria-label="Cấp độ" className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 hide-scrollbar">
+        {levelTabs.map((tab) => {
+          const active = tab.id === selectedLevel;
+          return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={active}
               onClick={() => setSelectedLevel(tab.id)}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap transition-all flex flex-col items-start ${
-                selectedLevel === tab.id
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)]'
+              className={`flex shrink-0 flex-col items-start rounded-2xl border px-4 py-2.5 text-left transition-colors ${focusRing} ${
+                active
+                  ? 'border-indigo-600 bg-indigo-600 text-white'
+                  : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-indigo-400 hover:text-[var(--text-primary)]'
               }`}
             >
-              <span>{tab.label}</span>
+              <span className="text-sm font-bold">{tab.label}</span>
+              <span className={`text-xs ${active ? 'text-indigo-100' : 'text-[var(--text-muted)]'}`}>{tab.name}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* 2. Skill Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0">
-        {skillFilters.map((sf) => (
-          <button
-            key={sf.id}
-            onClick={() => setSelectedSkill(sf.id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-              selectedSkill === sf.id
-                ? 'bg-[var(--brand)] text-white'
-                : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
-            }`}
-          >
-            <span>{sf.icon}</span>
-            <span>{sf.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* 3. Course Overview Banner */}
-      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 md:p-5 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                Lộ trình hiện tại
-              </span>
-              <span className="text-xs text-[var(--text-muted)]">• Cấp độ {selectedLevel}</span>
-            </div>
-            <h3 className="text-base md:text-lg font-bold text-[var(--text-primary)] mt-1">
-              {levelTabs.find((t) => t.id === selectedLevel)?.label} - {levelTabs.find((t) => t.id === selectedLevel)?.desc}
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-xl">
-              Hệ thống bài học chuẩn hóa kết hợp phản xạ từ vựng, ngữ pháp ứng dụng và luyện nói thực tế.
-            </p>
-          </div>
-
-          <div className="shrink-0 bg-[var(--bg-subtle)] p-3 rounded-xl border border-[var(--border)] flex items-center gap-4">
-            <div>
-              <div className="text-xs text-[var(--text-muted)] font-medium">Tiến độ khóa</div>
-              <div className="text-lg font-black text-indigo-600 dark:text-indigo-400">{coursePercent}%</div>
-            </div>
-            <div className="w-24 bg-[var(--border)] h-2 rounded-full overflow-hidden">
-              <div className="bg-indigo-600 h-full rounded-full transition-all duration-500" style={{ width: `${coursePercent}%` }}></div>
+      {/* Level summary: one card with progress, next lesson and placement test */}
+      <section aria-label="Tổng quan cấp độ" className="rounded-[20px] border border-[var(--border)] bg-[var(--bg-card)] p-5 md:p-6">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">{level.label} {level.name}</h2>
+            <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{level.desc}</p>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="w-full max-w-xs"><ProgressBar value={percent} label={`Tiến độ cấp ${level.label}`} /></div>
+              <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-[var(--text-primary)]">{completedCount}/{totalCount} bài · {percent}%</span>
             </div>
           </div>
+          {nextLesson && (
+            <button
+              type="button"
+              onClick={() => onStartLesson(nextLesson)}
+              className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white transition-colors hover:bg-indigo-700 ${focusRing}`}
+            >
+              <Play className="h-4 w-4" /> Học bài tiếp theo
+            </button>
+          )}
         </div>
+        <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-[var(--border)] pt-4 text-sm text-[var(--text-secondary)]">
+          <Target className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+          <span>Chưa biết nên học cấp nào?</span>
+          <Link href="/placement-test" className={`font-semibold text-indigo-600 hover:underline dark:text-indigo-300 ${focusRing}`}>
+            Làm bài kiểm tra đầu vào
+          </Link>
+        </div>
+      </section>
+
+      {/* Skill filter */}
+      <div role="group" aria-label="Lọc theo kỹ năng" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 hide-scrollbar">
+        {skillFilters.map(({ id, label, icon: Icon }) => {
+          const active = id === selectedSkill;
+          return (
+            <button
+              key={id}
+              aria-pressed={active}
+              onClick={() => setSelectedSkill(id)}
+              className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors ${focusRing} ${
+                active
+                  ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/15 dark:text-indigo-300'
+                  : 'border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-overlay)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* 4. Lesson List */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[var(--text-secondary)] uppercase tracking-wider">
-            Danh sách bài học ({lessons.length})
-          </h3>
-          {isLoading && <span className="text-xs text-indigo-600 animate-pulse">Đang tải từ database...</span>}
-        </div>
+      {/* Lessons */}
+      <section aria-label="Danh sách bài học" className="space-y-3">
+        <h2 className="text-base font-bold text-[var(--text-primary)]">
+          Bài học <span className="font-medium text-[var(--text-muted)]">({totalCount})</span>
+        </h2>
 
         {error ? (
-          <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center space-y-3">
-            <p className="text-xs font-semibold text-rose-600">{error}</p>
+          <div role="alert" className="rounded-[20px] border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-500/30 dark:bg-rose-500/10">
+            <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>
             <button
               onClick={fetchLessons}
-              className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold hover:bg-rose-700 transition-colors shadow-sm"
+              className={`mt-3 inline-flex min-h-10 items-center rounded-xl bg-rose-600 px-4 text-sm font-bold text-white hover:bg-rose-700 ${focusRing}`}
             >
               Thử lại
             </button>
           </div>
         ) : isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="rounded-2xl border border-[var(--border)] p-4 bg-[var(--bg-card)] animate-pulse flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-[var(--bg-subtle)]"></div>
-                  <div className="space-y-2">
-                    <div className="w-28 h-3 rounded bg-[var(--bg-subtle)]"></div>
-                    <div className="w-48 h-4 rounded bg-[var(--bg-subtle)]"></div>
-                  </div>
-                </div>
-                <div className="w-20 h-8 rounded-xl bg-[var(--bg-subtle)]"></div>
-              </div>
-            ))}
+          <div className="space-y-3" aria-busy="true" aria-label="Đang tải bài học">
+            {[1, 2, 3].map((n) => <Skeleton key={n} className="h-24 w-full rounded-[20px]" />)}
           </div>
         ) : lessons.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--border)] p-8 text-center bg-[var(--bg-card)] space-y-2">
-            <div className="text-3xl">📖</div>
-            <h4 className="font-bold text-sm text-[var(--text-primary)]">Chưa có bài học cho bộ lọc này</h4>
-            <p className="text-xs text-[var(--text-muted)]">Hãy chọn cấp độ hoặc kỹ năng khác để tiếp tục học.</p>
-          </div>
+          <EmptyState
+            icon={<BookOpen className="h-5 w-5" />}
+            title="Chưa có bài học cho bộ lọc này"
+            description="Chọn cấp độ hoặc kỹ năng khác để tiếp tục học."
+            action={
+              selectedSkill !== 'all' ? (
+                <button onClick={() => setSelectedSkill('all')} className={`inline-flex min-h-10 items-center rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white hover:bg-indigo-700 ${focusRing}`}>
+                  Xem tất cả kỹ năng
+                </button>
+              ) : undefined
+            }
+          />
         ) : (
-          <div className="space-y-2.5">
-            {lessons.map((lesson) => {
-              const isCompleted = lesson.status === 'completed';
-              const isInProgress = lesson.status === 'in_progress';
-              const isLocked = lesson.status === 'locked';
-
-              return (
-                <div
-                  key={lesson.id}
-                  onClick={() => {
-                    if (!isLocked) onStartLesson(lesson);
-                  }}
-                  className={`group rounded-2xl border p-4 transition-all duration-200 flex items-center justify-between gap-4 ${
-                    isLocked
-                      ? 'border-[var(--border)] bg-[var(--bg-subtle)] opacity-70 cursor-not-allowed'
-                      : 'border-[var(--border)] bg-[var(--bg-card)] hover:border-indigo-400 dark:hover:border-indigo-600 hover:shadow-md cursor-pointer'
-                  }`}
-                >
-                  {/* Left info */}
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    {/* Status Indicator Icon */}
-                    <div
-                      className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                        isCompleted
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          : isInProgress
-                          ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 animate-pulse'
-                          : 'bg-[var(--border)] text-[var(--text-muted)]'
-                      }`}
-                    >
-                      {isCompleted ? (
-                        <IconCheck className="w-5 h-5 text-emerald-500" />
-                      ) : isInProgress ? (
-                        <IconPlay className="w-5 h-5 ml-0.5" />
-                      ) : (
-                        <IconLock className="w-5 h-5" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">
-                          Unit {lesson.unit}
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--bg-subtle)] text-[var(--text-secondary)]">
-                          {lesson.skill.toUpperCase()}
-                        </span>
-                        {isCompleted && (
-                          <div className="flex items-center gap-0.5 text-yellow-400">
-                            <IconStar className="w-3.5 h-3.5 fill-current" />
-                            <IconStar className="w-3.5 h-3.5 fill-current" />
-                            <IconStar className="w-3.5 h-3.5 fill-current" />
-                          </div>
-                        )}
-                      </div>
-
-                      <h4 className="font-bold text-sm md:text-base text-[var(--text-primary)] truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {lesson.title}
-                      </h4>
-                      <p className="text-xs text-[var(--text-secondary)] truncate">
-                        {lesson.subtitle}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Right action button */}
-                  <div className="shrink-0 flex items-center gap-3">
-                    <div className="hidden sm:block text-right">
-                      <div className="text-xs font-semibold text-[var(--text-primary)]">
-                        {lesson.durationMin} phút
-                      </div>
-                      <div className="text-[11px] text-amber-500 font-bold">
-                        +{lesson.xpReward} XP
-                      </div>
-                    </div>
-
-                    {isCompleted ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onStartLesson(lesson);
-                        }}
-                        className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-colors"
-                      >
-                        Ôn lại
-                      </button>
-                    ) : isInProgress ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onStartLesson(lesson);
-                        }}
-                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition-all active:scale-95"
-                      >
-                        Tiếp tục →
-                      </button>
-                    ) : (
-                      <div className="p-2 text-[var(--text-muted)]">
-                        <IconLock className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ul className="space-y-3">
+            {lessons.map((lesson, index) => <LessonRow key={lesson.id} lesson={lesson} order={index + 1} onStart={onStartLesson} />)}
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }
-

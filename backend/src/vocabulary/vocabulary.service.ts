@@ -248,7 +248,7 @@ export class VocabularyService implements OnModuleInit {
   ) {
     const folder = await this.folderRepo.findOne({ where: { id, userId } });
     if (!folder) {
-      throw new NotFoundException('Không tìm thấy thư mục');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     // Changing folder language: block if folder already contains words
@@ -304,7 +304,7 @@ export class VocabularyService implements OnModuleInit {
   async deleteFolder(userId: number, id: number) {
     const folder = await this.folderRepo.findOne({ where: { id, userId } });
     if (!folder) {
-      throw new NotFoundException('Không tìm thấy thư mục');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     // Cascade delete all words in this folder
@@ -508,7 +508,7 @@ export class VocabularyService implements OnModuleInit {
   ) {
     const word = await this.customVocabRepo.findOne({ where: { id, userId } });
     if (!word) {
-      throw new NotFoundException('Không tìm thấy từ vựng');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     if (dto.word !== undefined) {
@@ -559,7 +559,7 @@ export class VocabularyService implements OnModuleInit {
   async moveMyWord(userId: number, id: number, targetFolderId: number | null) {
     const word = await this.customVocabRepo.findOne({ where: { id, userId } });
     if (!word) {
-      throw new NotFoundException('Không tìm thấy từ vựng');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     let folderName = 'Danh sách của tôi';
@@ -581,7 +581,7 @@ export class VocabularyService implements OnModuleInit {
   async deleteMyWord(userId: number, id: number) {
     const word = await this.customVocabRepo.findOne({ where: { id, userId } });
     if (!word) {
-      throw new NotFoundException('Không tìm thấy từ vựng');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
     await this.customVocabRepo.remove(word);
     return { success: true, message: 'Đã xóa từ vựng thành công' };
@@ -600,7 +600,7 @@ export class VocabularyService implements OnModuleInit {
       where: { id: wordId, userId },
     });
     if (!word) {
-      throw new NotFoundException('Không tìm thấy từ vựng');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     const now = new Date();
@@ -693,7 +693,7 @@ export class VocabularyService implements OnModuleInit {
       where: { id: data.wordId, userId },
     });
     if (!word) {
-      throw new NotFoundException('Không tìm thấy từ vựng');
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     const parseWordList = (str: string | null | undefined): string[] => {
@@ -771,7 +771,7 @@ export class VocabularyService implements OnModuleInit {
       where: { id: data.wordId, userId },
     });
     if (!word) {
-      throw new NotFoundException("Kh�ng t�m th?y t? v?ng");
+      throw new NotFoundException("Không tìm thấy từ vựng");
     }
 
     const normalizeInputString = (input: string) => {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Check, FolderOpen, Trash2, X } from 'lucide-react';
 import { VocabularyFolder, myVocabApi } from '@/lib/myVocabApi';
 import { useAuth } from '@/lib/authContext';
 import { SupportedLanguage, LANGUAGE_LIST, getLanguageInfo } from '@/lib/languages';
@@ -124,7 +125,7 @@ function FolderModalContent({ isOpen, onClose, folderToEdit, initialMode = 'edit
   return (
     /* Overlay: fixed inset-0 renders at viewport level since we use a Portal at document.body */
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       aria-modal="true"
       role="dialog"
@@ -151,148 +152,150 @@ function FolderModalContent({ isOpen, onClose, folderToEdit, initialMode = 'edit
           isProcessing={isDeleting}
         />
       ) : (
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-          {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 md:p-5 border-b border-[var(--border)]">
-          <div className="flex items-center gap-2.5">
+        <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-lg)] animate-scale-up">
+          {/* Header */}
+          <div className="flex items-center gap-4 px-6 pb-4 pt-6">
             <span
-              className="w-3.5 h-3.5 rounded-full ring-2 ring-white/20"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white transition-colors"
               style={{ backgroundColor: color }}
-            />
-            <h2 className="text-base md:text-lg font-bold text-[var(--text-primary)]">
-              {showDeleteConfirm
-                ? 'Xác nhận xóa thư mục'
-                : folderToEdit
-                ? 'Chỉnh sửa thư mục'
-                : 'Tạo thư mục mới'}
-            </h2>
+            >
+              <FolderOpen className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-extrabold tracking-tight text-[var(--text-primary)]">
+                {folderToEdit ? 'Chỉnh sửa thư mục' : 'Tạo thư mục mới'}
+              </h2>
+              <p className="truncate text-sm text-[var(--text-secondary)]">
+                {name.trim() || 'Đặt tên, chọn màu và ngôn ngữ học'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
+              aria-label="Đóng"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-all"
-            aria-label="Đóng"
-          >
-            ✕
-          </button>
-        </div>
 
-        {/* Modal Body */}
-        <form onSubmit={handleSubmit} className="p-5 md:p-6 space-y-4 overflow-y-auto">
-          {error && (
-              <div className="text-xs p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 font-medium">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex-1 space-y-5 overflow-y-auto px-6 pb-2 pt-2">
+            {error && (
+              <div role="alert" className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-300">
                 {error}
               </div>
             )}
 
-            {/* Folder Name */}
-            <div>
-              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5">
-                Tên thư mục <span className="text-rose-500">*</span>
-              </label>
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="folder-name" className="text-sm font-semibold text-[var(--text-primary)]">
+                  Tên thư mục <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-xs tabular-nums text-[var(--text-muted)]">{name.length}/60</span>
+              </div>
               <input
+                id="folder-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ví dụ: TOEIC, Công việc, Từ mới mỗi ngày..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all"
+                placeholder="Ví dụ: TOEIC, Công việc, Từ mới mỗi ngày"
+                className="h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--brand)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15"
                 autoFocus
                 maxLength={60}
               />
             </div>
 
-            {/* Folder Description */}
-            <div>
-              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1.5">
-                Mô tả (tùy chọn)
+            <div className="space-y-2">
+              <label htmlFor="folder-description" className="text-sm font-semibold text-[var(--text-primary)]">
+                Mô tả <span className="font-normal text-[var(--text-muted)]">(tùy chọn)</span>
               </label>
               <textarea
+                id="folder-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ghi chú mục tiêu hoặc chủ đề của thư mục này..."
+                placeholder="Mục tiêu hoặc chủ đề của thư mục này"
                 rows={2}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all resize-none"
+                className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition focus:border-[var(--brand)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15"
                 maxLength={200}
               />
             </div>
 
-            {/* Color Tag Picker */}
-            <div>
-              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2">
-                Màu sắc nhận diện
-              </label>
-              <div className="flex flex-wrap gap-2.5">
-                {COLOR_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    onClick={() => setColor(preset.value)}
-                    title={preset.name}
-                    className={`w-7 h-7 rounded-full transition-transform flex items-center justify-center ${
-                      color === preset.value
-                        ? 'scale-110 ring-2 ring-offset-2 ring-blue-500'
-                        : 'hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: preset.value }}
-                  >
-                    {color === preset.value && (
-                      <span className="text-white text-[11px] font-black">✓</span>
-                    )}
-                  </button>
-                ))}
+            <fieldset className="space-y-2.5">
+              <legend className="text-sm font-semibold text-[var(--text-primary)]">Màu nhận diện</legend>
+              <div className="flex flex-wrap gap-3">
+                {COLOR_PRESETS.map((preset) => {
+                  const selected = color === preset.value;
+                  return (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => setColor(preset.value)}
+                      title={preset.name}
+                      aria-label={preset.name}
+                      aria-pressed={selected}
+                      className={`flex h-9 w-9 items-center justify-center rounded-full text-white transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
+                        selected ? 'scale-110 ring-2 ring-[var(--text-primary)] ring-offset-2 ring-offset-[var(--bg-card)]' : 'hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: preset.value }}
+                    >
+                      {selected && <Check className="h-4 w-4" strokeWidth={3} />}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            </fieldset>
 
-            {/* Language Selection */}
-            <div>
-              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2">
-                Ngôn ngữ học của thư mục
-              </label>
+            <fieldset className="space-y-2.5">
+              <legend className="text-sm font-semibold text-[var(--text-primary)]">Ngôn ngữ học</legend>
               {hasWords ? (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
-                  <div className="flex items-center gap-2 font-bold mb-1">
+                <div className="rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                  <p className="flex items-center gap-2 font-bold">
                     <span>{getLanguageInfo(language).flag}</span>
                     <span>{getLanguageInfo(language).name} ({getLanguageInfo(language).nativeName})</span>
-                    <span className="ml-auto px-2 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-black uppercase">
-                      Đã khóa
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[var(--text-secondary)]">
-                    Thư mục đang chứa {folderToEdit?.wordCount} từ. Không thể đổi ngôn ngữ để tránh sai lệch dữ liệu từ vựng.
+                    <span className="ml-auto rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-semibold">Đã khóa</span>
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                    Thư mục đang có {folderToEdit?.wordCount} từ nên không thể đổi ngôn ngữ, để tránh sai lệch dữ liệu.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {LANGUAGE_LIST.map((l) => (
-                    <button
-                      key={l.code}
-                      type="button"
-                      onClick={() => setLanguage(l.code)}
-                      className={`px-3 py-2 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all ${
-                        language === l.code
-                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-bold shadow-2xs'
-                          : 'border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      <span className="text-base leading-none">{l.flag}</span>
-                      <span className="truncate">{l.name}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {LANGUAGE_LIST.map((l) => {
+                    const selected = language === l.code;
+                    return (
+                      <button
+                        key={l.code}
+                        type="button"
+                        onClick={() => setLanguage(l.code)}
+                        aria-pressed={selected}
+                        className={`flex min-h-11 items-center gap-2.5 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] ${
+                          selected
+                            ? 'border-[var(--brand)] bg-[var(--brand-light)] text-[var(--brand-text)]'
+                            : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--brand)]/50 hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        <span className="text-base leading-none">{l.flag}</span>
+                        <span className="truncate">{l.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
-            </div>
+            </fieldset>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] mt-4">
+            {/* Actions */}
+            <div className="sticky bottom-0 -mx-6 flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--bg-card)] px-6 py-4">
               {folderToEdit ? (
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-500/10 focus-visible:outline-2 focus-visible:outline-rose-500"
                 >
-                  🗑️ Xóa thư mục
+                  <Trash2 className="h-4 w-4" /> Xóa thư mục
                 </button>
               ) : (
-                <div />
+                <span />
               )}
 
               <div className="flex items-center gap-2">
@@ -300,18 +303,18 @@ function FolderModalContent({ isOpen, onClose, folderToEdit, initialMode = 'edit
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] transition-all"
+                  className="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-[var(--brand)]"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
+                  disabled={isSubmitting || !name.trim()}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--brand)] px-6 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current/30 border-t-current" />
                       <span>Đang lưu...</span>
                     </>
                   ) : folderToEdit ? (

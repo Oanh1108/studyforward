@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { AlertTriangle, Check, FolderOpen, RefreshCw, X } from 'lucide-react';
 import { ReanalyzeCandidate, myVocabApi } from '@/lib/myVocabApi';
 import { SupportedLanguage, getLanguageInfo } from '@/lib/languages';
 
@@ -25,7 +27,20 @@ export function ReanalyzeModal({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [appliedCount, setAppliedCount] = useState<number | null>(null);
 
+  const closeRef = useRef<HTMLButtonElement>(null);
   const langInfo = getLanguageInfo(currentLanguage);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    closeRef.current?.focus();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !isApplying && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, isApplying, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -97,220 +112,201 @@ export function ReanalyzeModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
-        {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--bg-subtle)]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-xl">
-              🔄
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-[var(--text-primary)] flex items-center gap-2">
-                <span>Phân tích lại dữ liệu đã nhập</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
+  const showTable = appliedCount === null && !isLoading && candidates.length > 0;
+  const allSelected = selectedIds.size === candidates.length && candidates.length > 0;
+  const changeLabel: Record<string, string> = {
+    word: 'Tách từ',
+    pos: 'Từ loại',
+    synonyms: 'Đồng nghĩa',
+    antonyms: 'Trái nghĩa',
+    folder: 'Thư mục',
+  };
+
+  // Portalled to <body>: an ancestor with a transform would otherwise make `fixed` cover only part of the page.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-md animate-fade-in sm:p-4"
+      onMouseDown={(e) => e.target === e.currentTarget && !isApplying && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reanalyze-title"
+        className={`relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-[24px] border border-[var(--border)] bg-[var(--bg-card)] shadow-[var(--shadow-lg)] animate-scale-up ${
+          showTable ? 'max-w-4xl' : 'max-w-sm'
+        }`}
+      >
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          disabled={isApplying}
+          aria-label="Đóng"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--brand)] disabled:opacity-40"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {/* Header: only above the table; the short states are centred and need no heading block */}
+        {showTable && (
+          <div className="flex items-start gap-4 px-5 pb-4 pt-5 pr-16 sm:px-6 sm:pr-16">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-light)] text-[var(--brand-text)]">
+              <RefreshCw className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id="reanalyze-title" className="text-lg font-extrabold tracking-tight text-[var(--text-primary)]">
+                  Phân tích lại dữ liệu đã nhập
+                </h2>
+                <span className="rounded-full bg-[var(--bg-muted)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-secondary)]">
                   {langInfo.flag} {langInfo.name}
                 </span>
-              </h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                Tách từ loại, từ đồng nghĩa/trái nghĩa bị gộp trong ô và liên kết thư mục thực tế từ cơ sở dữ liệu.
+              </div>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                Tách từ loại, đồng nghĩa và trái nghĩa bị gộp trong một ô, đồng thời liên kết lại thư mục.
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-lg text-[var(--text-muted)] hover:bg-[var(--bg-card)] transition-colors"
-          >
-            ✕
-          </button>
-        </div>
+        )}
 
-        {/* Content Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+        {/* Body */}
+        <div className={`flex-1 space-y-4 overflow-y-auto ${showTable ? 'px-5 pb-5 sm:px-6' : 'px-6 pb-7 pt-10'}`}>
           {error && (
-            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-semibold flex items-center gap-2">
-              <span>⚠️</span>
+            <div role="alert" className="flex items-start gap-2.5 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-300">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           {appliedCount !== null ? (
-            /* Success State */
-            <div className="py-12 text-center space-y-4 animate-fade-in">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl mx-auto ring-8 ring-emerald-500/5">
-                🎉
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-[var(--text-primary)]">
-                  Cập nhật hoàn tất!
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto">
-                  Đã chuẩn hóa và liên kết thành công <strong>{appliedCount}</strong> từ vựng. Dữ liệu tiến độ học và ID từ được giữ nguyên vẹn.
+            <div role="status" className="space-y-6 text-center animate-fade-in">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                <Check className="h-8 w-8" />
+              </span>
+              <div className="space-y-1.5">
+                <h3 id="reanalyze-title" className="text-xl font-extrabold tracking-tight text-[var(--text-primary)]">Cập nhật hoàn tất</h3>
+                <p className="mx-auto max-w-[17rem] text-sm leading-relaxed text-[var(--text-secondary)]">
+                  Đã chuẩn hóa <strong className="text-[var(--text-primary)]">{appliedCount}</strong> từ vựng. Tiến độ học và ID của từ được giữ nguyên.
                 </p>
               </div>
-              <div className="pt-4 flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all"
-                >
-                  Đóng cửa sổ
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[var(--brand)] px-7 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+              >
+                Xong
+              </button>
             </div>
           ) : isLoading ? (
-            /* Loading State */
-            <div className="py-16 text-center space-y-3">
-              <span className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin inline-block" />
-              <p className="text-xs font-medium text-[var(--text-muted)]">
-                Đang quét toàn bộ từ vựng {langInfo.name} để tìm ký hiệu cần tách...
+            <div role="status" className="flex flex-col items-center gap-4 py-6 text-center">
+              <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--brand)] border-t-transparent" />
+              <h3 id="reanalyze-title" className="text-xl font-extrabold tracking-tight text-[var(--text-primary)]">Đang phân tích</h3>
+              <p className="max-w-xs text-sm text-[var(--text-secondary)]">
+                Đang quét từ vựng {langInfo.name} để tìm chỗ cần tách...
               </p>
             </div>
           ) : candidates.length === 0 ? (
-            /* No Candidates State */
-            <div className="py-12 text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-3xl mx-auto">
-                ✓
+            <div role="status" className="space-y-6 text-center">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+                <Check className="h-8 w-8" />
+              </span>
+              <div className="space-y-1.5">
+                <h3 id="reanalyze-title" className="text-xl font-extrabold tracking-tight text-[var(--text-primary)]">Dữ liệu đã được chuẩn hóa</h3>
+                <p className="mx-auto max-w-[17rem] text-sm leading-relaxed text-[var(--text-secondary)]">
+                  Đã kiểm tra {totalScanned} từ {langInfo.name}. Không có từ nào dính từ loại, ký hiệu đồng nghĩa hoặc thiếu liên kết thư mục.
+                </p>
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
-                Dữ liệu từ vựng đã chuẩn hóa hoàn toàn!
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
-                Đã kiểm tra {totalScanned} từ. Không có từ nào bị dính từ loại (n), (v), ký hiệu đồng nghĩa (=) hoặc thiếu liên kết thư mục.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs font-bold border border-[var(--border)] hover:bg-[var(--bg-subtle)]"
-                >
-                  Đóng
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[var(--border)] px-7 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]"
+              >
+                Đóng
+              </button>
             </div>
           ) : (
-            /* Candidate Preview Table */
-            <div className="space-y-3">
-              {/* Stats Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-800/30 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-indigo-700 dark:text-indigo-300">
-                    🔍 Phát hiện {candidates.length} từ cần chuẩn hóa
-                  </span>
-                  <span className="text-[11px] text-[var(--text-muted)]">
-                    (trên tổng số {totalScanned} từ {langInfo.name})
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-[var(--text-primary)]">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.size === candidates.length && candidates.length > 0}
-                      onChange={handleToggleAll}
-                      className="rounded text-indigo-600 focus:ring-indigo-500"
-                    />
-                    <span>Chọn tất cả ({selectedIds.size}/{candidates.length})</span>
-                  </label>
-                </div>
+            <>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[var(--text-secondary)]">
+                  <strong className="text-[var(--text-primary)]">{candidates.length} từ</strong> cần chuẩn hóa trên tổng {totalScanned} từ {langInfo.name}
+                </p>
+                <label className="inline-flex cursor-pointer select-none items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={handleToggleAll}
+                    className="h-4 w-4 cursor-pointer rounded accent-[var(--brand)]"
+                  />
+                  Chọn tất cả ({selectedIds.size}/{candidates.length})
+                </label>
               </div>
 
-              {/* Table */}
-              <div className="border border-[var(--border)] rounded-xl overflow-x-auto max-h-[50vh]">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-[var(--bg-subtle)] text-[var(--text-secondary)] font-bold sticky top-0 z-10 border-b border-[var(--border)]">
+              <div className="max-h-[50vh] overflow-auto rounded-2xl border border-[var(--border)]">
+                <table className="w-full border-collapse text-left text-sm">
+                  <caption className="sr-only">Các từ sẽ được chuẩn hóa</caption>
+                  <thead className="sticky top-0 z-10 bg-[var(--bg-subtle)] text-xs font-semibold text-[var(--text-secondary)]">
                     <tr>
-                      <th className="p-2.5 w-10 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.size === candidates.length && candidates.length > 0}
-                          onChange={handleToggleAll}
-                          className="rounded text-indigo-600"
-                        />
-                      </th>
-                      <th className="p-2.5 min-w-[150px]">Từ gốc trong CSDL</th>
-                      <th className="p-2.5 min-w-[140px]">Từ sau khi tách</th>
-                      <th className="p-2.5 min-w-[100px]">Từ loại</th>
-                      <th className="p-2.5 min-w-[130px]">Đồng nghĩa</th>
-                      <th className="p-2.5 min-w-[120px]">Trái nghĩa</th>
-                      <th className="p-2.5 min-w-[160px]">Thư mục liên kết</th>
-                      <th className="p-2.5 min-w-[110px]">Thay đổi</th>
+                      <th scope="col" className="w-10 px-3 py-3"><span className="sr-only">Chọn</span></th>
+                      <th scope="col" className="min-w-[200px] px-3 py-3">Từ gốc → Từ sau khi tách</th>
+                      <th scope="col" className="min-w-[90px] px-3 py-3">Từ loại</th>
+                      <th scope="col" className="min-w-[130px] px-3 py-3">Đồng nghĩa</th>
+                      <th scope="col" className="min-w-[120px] px-3 py-3">Trái nghĩa</th>
+                      <th scope="col" className="min-w-[150px] px-3 py-3">Thư mục</th>
+                      <th scope="col" className="min-w-[120px] px-3 py-3">Thay đổi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
+                  <tbody>
                     {candidates.map((item) => {
                       const isSelected = selectedIds.has(item.id);
                       return (
                         <tr
                           key={item.id}
                           onClick={() => handleToggleSelect(item.id)}
-                          className={`cursor-pointer transition-colors ${
-                            isSelected ? 'bg-indigo-50/30 dark:bg-indigo-950/15' : 'opacity-60'
-                          } hover:bg-[var(--bg-subtle)]`}
+                          className={`cursor-pointer border-t border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-subtle)] ${
+                            isSelected ? '' : 'opacity-55'
+                          }`}
                         >
-                          <td className="p-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleSelect(item.id)}
-                              className="rounded text-indigo-600"
+                              aria-label={`Chọn ${item.cleanWord}`}
+                              className="h-4 w-4 cursor-pointer rounded accent-[var(--brand)]"
                             />
                           </td>
-                          <td className="p-2.5 font-mono text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
-                            {item.originalWord}
+                          <td className="px-3 py-3">
+                            <p className="text-xs text-[var(--text-muted)] line-through">{item.originalWord}</p>
+                            <p className="mt-0.5 font-bold text-[var(--text-primary)]">{item.cleanWord}</p>
                           </td>
-                          <td className="p-2.5 font-bold text-[var(--text-primary)] font-sans">
-                            {item.cleanWord}
-                          </td>
-                          <td className="p-2.5">
+                          <td className="px-3 py-3">
                             {item.newPos ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                                {item.newPos}
-                              </span>
+                              <span className="rounded-full bg-[var(--bg-muted)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-secondary)]">{item.newPos}</span>
                             ) : (
                               <span className="text-[var(--text-muted)]">—</span>
                             )}
                           </td>
-                          <td className="p-2.5 text-[var(--text-secondary)]">
-                            {item.newSynonyms ? (
-                              <span className="text-emerald-600 font-medium">
-                                {item.newSynonyms}
-                              </span>
-                            ) : (
-                              <span className="text-[var(--text-muted)]">—</span>
-                            )}
+                          <td className="px-3 py-3 font-medium text-emerald-700 dark:text-emerald-300">
+                            {item.newSynonyms || <span className="text-[var(--text-muted)]">—</span>}
                           </td>
-                          <td className="p-2.5 text-[var(--text-secondary)]">
-                            {item.newAntonyms ? (
-                              <span className="text-rose-500 font-medium">
-                                {item.newAntonyms}
-                              </span>
-                            ) : (
-                              <span className="text-[var(--text-muted)]">—</span>
-                            )}
+                          <td className="px-3 py-3 font-medium text-rose-600 dark:text-rose-300">
+                            {item.newAntonyms || <span className="text-[var(--text-muted)]">—</span>}
                           </td>
-                          <td className="p-2.5 font-semibold text-indigo-600 dark:text-indigo-400">
+                          <td className="px-3 py-3">
                             {item.targetFolderName ? (
-                              <span className="flex items-center gap-1">
-                                <span>📁</span>
-                                <span>{item.targetFolderName}</span>
+                              <span className="inline-flex items-center gap-1.5 font-semibold text-[var(--brand-text)]">
+                                <FolderOpen className="h-4 w-4 shrink-0" />
+                                {item.targetFolderName}
                               </span>
                             ) : (
-                              <span className="text-[var(--text-muted)] italic">Giữ nguyên</span>
+                              <span className="text-[var(--text-muted)]">Giữ nguyên</span>
                             )}
                           </td>
-                          <td className="p-2.5">
+                          <td className="px-3 py-3">
                             <div className="flex flex-wrap gap-1">
                               {item.changeTypes.map((t) => (
-                                <span
-                                  key={t}
-                                  className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[var(--bg-subtle)] border border-[var(--border)] text-[var(--text-secondary)]"
-                                >
-                                  {t === 'word' && 'Tách từ'}
-                                  {t === 'pos' && 'Từ loại'}
-                                  {t === 'synonyms' && 'Đồng nghĩa'}
-                                  {t === 'antonyms' && 'Trái nghĩa'}
-                                  {t === 'folder' && 'Thư mục'}
+                                <span key={t} className="rounded-full bg-[var(--brand-light)] px-2 py-0.5 text-xs font-semibold text-[var(--brand-text)]">
+                                  {changeLabel[t] ?? t}
                                 </span>
                               ))}
                             </div>
@@ -321,17 +317,18 @@ export function ReanalyzeModal({
                   </tbody>
                 </table>
               </div>
-            </div>
+            </>
           )}
         </div>
 
         {/* Footer */}
-        {appliedCount === null && candidates.length > 0 && (
-          <div className="p-3.5 sm:p-4 border-t border-[var(--border)] bg-[var(--bg-subtle)] flex items-center justify-between">
+        {showTable && (
+          <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] px-5 py-4 sm:px-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-card)]"
+              disabled={isApplying}
+              className="inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] focus-visible:outline-2 focus-visible:outline-[var(--brand)] disabled:opacity-40"
             >
               Hủy bỏ
             </button>
@@ -339,20 +336,21 @@ export function ReanalyzeModal({
               type="button"
               onClick={handleApply}
               disabled={isApplying || selectedIds.size === 0}
-              className="px-6 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white shadow-md shadow-indigo-500/20 transition-all flex items-center gap-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--brand)] px-6 text-sm font-bold text-[var(--text-inverse)] shadow-[0_8px_20px_-8px_var(--brand)] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
             >
               {isApplying ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current/30 border-t-current" />
                   <span>Đang áp dụng...</span>
                 </>
               ) : (
-                <span>Xác nhận cập nhật ({selectedIds.size} từ)</span>
+                <span>Cập nhật {selectedIds.size} từ</span>
               )}
             </button>
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

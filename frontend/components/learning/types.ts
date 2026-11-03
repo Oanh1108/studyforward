@@ -1,8 +1,28 @@
-export type ActiveTab = 'dashboard' | 'courses' | 'paths' | 'vocabulary' | 'speaking' | 'dictation' | 'analytics' | 'notes' | 'todos' | 'focus' | 'profile' | 'admin' | 'srs' | 'my-vocab' | 'vocabulary_study' | 'discover' | 'study_board';
+export type ActiveTab = 'dashboard' | 'overview' | 'communication' | 'courses' | 'paths' | 'vocabulary' | 'speaking' | 'dictation' | 'analytics' | 'notes' | 'todos' | 'focus' | 'profile' | 'admin' | 'srs' | 'my-vocab' | 'vocabulary_study' | 'discover' | 'study_board';
 
 export type SkillType = 'all' | 'vocab' | 'grammar' | 'listening' | 'speaking' | 'reading' | 'writing';
 
 export type CourseLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'Business';
+
+export interface KeyTerm {
+  term: string;
+  ipa?: string;
+  meaning: string;
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+/** Study material authored for a lesson (the practice sentence, key terms and a short quiz). */
+export interface LessonContent {
+  sentence: { text: string; meaning: string };
+  keyTerms: KeyTerm[];
+  quiz: QuizQuestion[];
+}
 
 export interface Lesson {
   id: string;
@@ -17,6 +37,8 @@ export interface Lesson {
   score?: number; // e.g. 100%
   stars?: number; // 1-3
   progress?: number; // 0-100%
+  /** Study material for the lesson; absent or null for lessons that have none authored yet. */
+  content?: LessonContent | null;
 }
 
 export interface FlashcardWord {

@@ -170,7 +170,7 @@ export function FocusTimerView({ onNavigate }: { onNavigate?: (tab: string) => v
   const s = Math.floor((remainingMs % 60000) / 1000);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-up px-2 pb-10">
+    <div className="space-y-6 animate-fade-up px-2 pb-10">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-[var(--text-primary)]">Chuyến bay Tập trung ✈️</h2>

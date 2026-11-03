@@ -100,7 +100,7 @@ export function NotesView({ onNavigate }: { onNavigate?: (tab: string, params?: 
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-up">
+    <div className="space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-[var(--text-primary)]">Sổ Ghi chú</h2>

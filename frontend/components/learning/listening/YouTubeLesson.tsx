@@ -56,6 +56,8 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
   const [player, setPlayer] = useState<any>(null);
   const [playerError, setPlayerError] = useState<string | null>(null);
   const [mode, setMode] = useState<'setup' | 'practice' | 'result'>('setup');
+  const [isFetching, setIsFetching] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
   
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
@@ -93,24 +95,50 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
     }
   };
 
-  const handleStartSetup = () => {
+  const handleStartSetup = async () => {
     const id = extractYouTubeId(videoUrl);
     if (!id) {
       alert("Link YouTube không hợp lệ. Vui lòng nhập link đúng.");
       return;
     }
     setVideoId(id);
-    const parsed = parseTranscript(rawTranscript);
-    if (parsed.length === 0) {
-      alert("Vui lòng nhập bản chép lời để có thể thực hành.");
-      return;
+    
+    // If raw transcript is provided manually, use it.
+    if (rawTranscript.trim()) {
+      const parsed = parseTranscript(rawTranscript);
+      if (parsed.length > 0) {
+        setSegments(parsed);
+        setMode('practice');
+        setCurrentSegmentIndex(0);
+        setScore({ correct: 0, total: 0 });
+        setWrongSegments([]);
+        setPlayerError(null);
+        return;
+      }
     }
-    setSegments(parsed);
-    setMode('practice');
-    setCurrentSegmentIndex(0);
-    setScore({ correct: 0, total: 0 });
-    setWrongSegments([]);
-    setPlayerError(null);
+    
+    // Otherwise try to fetch automatically
+    setIsFetching(true);
+    try {
+      const res = await mediaApi.fetchTranscript(id);
+      if (res.success && res.segments && res.segments.length > 0) {
+        setSegments(res.segments);
+        // Stringify back to raw format so it can be saved in the old format
+        setRawTranscript(JSON.stringify(res.segments));
+        
+        setMode('practice');
+        setCurrentSegmentIndex(0);
+        setScore({ correct: 0, total: 0 });
+        setWrongSegments([]);
+        setPlayerError(null);
+      } else {
+        alert("Không thể lấy phụ đề tự động. Vui lòng thử video khác hoặc dán phụ đề thủ công.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Lỗi khi lấy phụ đề. Video có thể không có phụ đề hoặc bị chặn.");
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   const selectSavedLesson = (lesson: VideoLessonData) => {
@@ -278,17 +306,43 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
               <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Tiêu đề bài học:</label>
               <input type="text" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} placeholder="Nhập tiêu đề..." className="input w-full" />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Bản chép lời (Transcript) kèm mốc thời gian:</label>
-              <textarea
-                value={rawTranscript}
-                onChange={e => setRawTranscript(e.target.value)}
-                placeholder="[00:05] Câu tiếng Anh thứ nhất\n[00:10] Câu thứ hai..."
-                className="input w-full h-40 font-mono text-sm"
-              />
-              <p className="text-xs text-[var(--text-muted)] mt-1">* Hệ thống tự động phân tách câu dựa trên mốc thời gian. Bạn có thể tự sửa, nhập hoặc dán phụ đề tải về từ YouTube vào đây.</p>
+            <div className="flex justify-between items-center mt-2">
+              <button 
+                type="button" 
+                onClick={() => setShowManualInput(!showManualInput)}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                {showManualInput ? "Ẩn nhập phụ đề thủ công" : "Nhập phụ đề thủ công (Nếu tự động lấy bị lỗi)"}
+              </button>
             </div>
-            <button onClick={handleStartSetup} className="btn-primary w-full py-3 rounded-xl font-bold">Bắt đầu học</button>
+            
+            {showManualInput && (
+              <div className="animate-fade-up">
+                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Bản chép lời (Transcript) kèm mốc thời gian:</label>
+                <textarea
+                  value={rawTranscript}
+                  onChange={e => setRawTranscript(e.target.value)}
+                  placeholder="[00:05] Câu tiếng Anh thứ nhất\n[00:10] Câu thứ hai..."
+                  className="input w-full h-40 font-mono text-sm"
+                />
+                <p className="text-xs text-[var(--text-muted)] mt-1">* Hệ thống tự động phân tách câu dựa trên mốc thời gian. Bạn có thể tự sửa, nhập hoặc dán phụ đề tải về từ YouTube vào đây.</p>
+              </div>
+            )}
+            
+            <button 
+              onClick={handleStartSetup} 
+              disabled={isFetching || !videoUrl.trim()}
+              className="btn-primary w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+            >
+              {isFetching ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Đang tự động xử lý video...</span>
+                </>
+              ) : (
+                <span>Tạo bài nghe chép</span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -433,8 +487,20 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
                 ref={inputRef}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Control') {
+                    playSegment();
+                  } else if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isChecked && userInput.trim()) {
+                      handleCheckDictation();
+                    } else if (isChecked) {
+                      handleNext();
+                    }
+                  }
+                }}
                 disabled={isChecked}
-                placeholder="Gõ chính xác những gì bạn nghe được..."
+                placeholder="Gõ chính xác những gì bạn nghe được... (Nhấn Ctrl để nghe lại đoạn này, Enter để kiểm tra)"
                 className="w-full h-32 p-4 rounded-xl border-2 border-[var(--border-subtle)] bg-[var(--bg-base)] focus:border-indigo-500 outline-none resize-none transition-all text-lg leading-relaxed"
                 autoFocus
               />

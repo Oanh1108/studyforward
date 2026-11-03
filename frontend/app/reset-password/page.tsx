@@ -252,21 +252,23 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
-      <div className="w-full max-w-md mx-auto flex items-center justify-between mb-6">
+    <div className="min-h-screen flex flex-col py-6 px-4 sm:px-8 bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors">
+      <div className="flex items-center justify-between w-full mb-4">
         <div className="inline-flex items-center gap-2 transition-transform active:scale-95">
           <StudyForwardLogo size="md" />
         </div>
         <ThemeToggle />
       </div>
 
-      <Suspense fallback={
-        <div className="w-full max-w-md mx-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-8 shadow-xl flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        </div>
+      <div className="w-full max-w-md mx-auto my-auto">
+        <Suspense fallback={
+          <div className="w-full max-w-md mx-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-8 shadow-xl flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          </div>
       }>
         <ResetPasswordForm />
       </Suspense>
+      </div>
 
       <div className="text-center text-[11px] text-[var(--text-muted)] mt-6">
         © 2026 StudyForward. Học tiếng Anh giao tiếp & luyện thi thông minh.

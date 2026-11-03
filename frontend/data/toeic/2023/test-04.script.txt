@@ -1,0 +1,34 @@
+# TOEIC 2023 - Test 4 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | A man is looking out a window. | A man is fixing a ceiling tile. | A man is reaching for a coat. | A man is installing a wooden floor.
+2 |  | A wall is covered with vines. | A tree is near a sign. | There are puddles on the road. | A tree has fallen onto the pavement.
+3 |  | A construction worker is repairing a fence. | A set of cones is blocking an entrance. | Some lines are being painted on a roadway. | A man is working outdoors.
+4 |  | A cupboard is filled with kitchen utensils. | A woman is looking at an electrical outlet. | Some papers have been placed on a counter. | Some shelves are being adjusted.
+5 |  | Magazines are on a rack on the wall. | A bookcase is next to a sofa. | A plant has been placed next to a chair. | A ceiling lamp hangs over a carpet.
+6 |  | A man is crouching down next to a wall. | A man is taking measurements of a room. | A man is attaching a door to a frame. | A man is standing on a ladder.
+## PART 2 (question | A | B | C)
+7 |  | Which flowers should we get from Ms. Jones? | I'm sure she'll be happy to switch with you. | She would like the yellow ones. | She's the only one who received the report.
+8 | M-Cn/W-Am | Did you put paper in the copy machine? | I remember that manager very well. | I use notebooks for taking notes. | No, someone already did that.
+9 | W-Br/M-Cn | Can you help me test the new voice mail system? | No, I have a meeting that's about to start. | I wasn't aware that he sent an e-mail. | Yes, I pay my phone bill online.
+10 | M-Cn/W-Br | Why is the marketing team in the conference room? | The office near the lobby. | Because they are attending a training seminar. | Those reports are highly regarded.
+11 | M-Cn/W-Am | Who is the new committee member going to be? | A lawyer from New York. | At the shop next door. | Most of his clients.
+12 | M-Au/W-Br | Why didn't we order more of the same chairs? | You heard all of them? | Because they're very expensive. | I don't think I'll make it.
+13 | M-Cn/W-Br | How many projects have been approved? | One for each department. | I'm going to cook my specialty tonight. | Just a projector please.
+14 | M-Au | Were you running late this morning? | Yes, two please. | She enjoys exercising in the park. | No, I've been here for an hour.
+15 | M-Cn | We should leave early for the restaurant. | Yes, it can be difficult to find parking. | A detailed process. | I started the design early in the day.
+16 | M-Au/W-Br | Why did the price of these shoes increase? | Not after what happened last week. | There is a new manufacturing process. | Everyone who heard the announcement.
+17 | W-Br/M-Cn | Have you written down the instructions for how to operate the machine? | A recent development. | Thank you for doing that. | Yes, I placed them beside it.
+18 | M-Au/W-Am | How did you choose your dentist? | I have a new doctor. | I once wanted to be a teacher. | A friend recommended one to me.
+19 | M-Cn/W-Br | We should send out the invitations for her retirement party. | Actually, I don't remember. | I didn't see who wrote it. | I already did that.
+20 | W-Am | Have you begun planning a vacation? | I've already used all of my time off. | It's a nice place to visit. | It seems unlikely they did.
+21 | M-Cn/M-Au | Where should I look for a used car? | A low price. | Sorry. I'm not very hungry. | I have a friend who is selling one.
+22 | W-Br/M-Au | Didn't Insook move into that office four months ago? | I don't think Insook has copies of those. | I think that's what I heard? | A four o'clock departure.
+23 | M-Au/W-Am | Would you like me to type up the proposal for you? | Which kind did you buy? | Yes, they saw it. | That would be very helpful.
+24 | W-Am/M-Cn | We should print more business cards. | I'm not sure how useful they would be. | A candlemaker. | Let me know if she arrives.
+25 |  | Can I have a copy of the sales report? | Only the original location. | The printer is broken. | She helps the senior manager.
+26 | M-Cn/W-Br | When do you need to renew your passport? | Not since I was at university. | It won't expire for a while yet. | I completed more than I expected.
+27 | W-Br/M-Cn | Do you have this shirt in a larger size? | I don't work here. | I brought some more hangers. | A very suitable color.
+28 | W-Am/M-Au | Aren't you planning to buy some supplies today? | I have a very busy schedule this afternoon. | The closet down the hall. | A member of the committee.
+29 | W-Br/M-Au | Mary's promotion was well deserved, don't you think? | Yes, they've known each other for about ten years. | Yes, Mary has put in a lot of overtime lately. | Mary will go on vacation next month.
+30 | W-Am/M-Au | Should we go ahead with the project or postpone it? | Let's check the budget first. | That's a really good idea. | She'll be at that meeting.
+31 | W-Am | Is Mr. Hernandez joining us for dinner? | Haven't you seen the guest list? | Can he turn it in tomorrow instead? | I'll put it upstairs for now.

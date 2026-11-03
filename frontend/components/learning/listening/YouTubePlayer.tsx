@@ -44,6 +44,8 @@ export function YouTubePlayer({ videoId, onReady, onStateChange, onError }: YouT
           playsinline: 1,
           rel: 0,
           modestbranding: 1,
+          cc_load_policy: 0,
+          iv_load_policy: 3,
         },
         events: {
           onReady: (event: any) => {

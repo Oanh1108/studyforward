@@ -98,6 +98,14 @@ export class SpeakingController {
     );
   }
 
+  @Post('transcribe')
+  @UseGuards(JwtAuthGuard)
+  async transcribeAudio(
+    @Body() body: { audioBase64: string; mimeType: string; language?: string },
+  ) {
+    return this.speakingService.transcribeAudio(body.audioBase64, body.mimeType, body.language || 'en');
+  }
+
   @Put('sessions/:id/progress')
   @UseGuards(JwtAuthGuard)
   async updateSessionProgress(

@@ -87,7 +87,7 @@ export function ProgressTrackerView({ onNavigate }: { onNavigate?: (tab: string)
   const maxMinutes = Math.max(...filteredHistory.map(h => h.minutes), 60);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 animate-fade-up">
+    <div className="space-y-6 animate-fade-up">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-[var(--text-primary)]">Theo dõi tiến bộ</h2>

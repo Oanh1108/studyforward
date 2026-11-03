@@ -405,10 +405,6 @@ export function ExcelImportModal({
       const result = await myVocabApi.bulkImport(payload);
       setImportResult(result);
       setStep('done');
-      onSuccess({
-        folderId: result.folderId ?? null,
-        count: result.added + result.updated,
-      });
     } catch (err: any) {
       setError(err.message || 'Lỗi khi nhập dữ liệu vào database.');
     } finally {
@@ -1400,7 +1396,15 @@ Ví dụ 2 (Bảng Markdown):
               <div className="pt-4">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => {
+                    onClose();
+                    if (importResult) {
+                      onSuccess({
+                        folderId: (importResult as any)?.folderId ?? targetFolderId ?? null,
+                        count: importResult.added + importResult.updated,
+                      });
+                    }
+                  }}
                   className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all"
                 >
                   Hoàn tất & Xem danh sách từ

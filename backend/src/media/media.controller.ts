@@ -21,6 +21,12 @@ export class MediaController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('youtube/fetch-transcript')
+  fetchTranscript(@Body() body: { videoId: string }) {
+    return this.mediaService.fetchTranscript(body.videoId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('youtube')
   saveVideoLesson(
     @Request() req: any,

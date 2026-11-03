@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { LessonContent } from './lesson-content.js';
 
 export type SkillType = 'vocab' | 'grammar' | 'listening' | 'speaking' | 'reading' | 'writing';
 export type CourseLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'Business';
@@ -40,6 +41,10 @@ export class Lesson {
 
   @Column({ type: 'int', default: 1 })
   orderIndex: number;
+
+  /** Study material for the lesson (practice sentence, key terms, quiz). Null until it is authored. */
+  @Column({ type: 'jsonb', nullable: true })
+  content: LessonContent | null;
 
   @CreateDateColumn()
   createdAt: Date;
