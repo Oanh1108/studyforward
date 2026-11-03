@@ -66,6 +66,7 @@ export function WordModal({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<MeaningSuggestion[]>([]);
   const [languageWarning, setLanguageWarning] = useState<string | null>(null);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
   const [selectedAiIndices, setSelectedAiIndices] = useState<number[]>([]);
   const lastQueriedWordRef = useRef<string>('');
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,11 +147,13 @@ export function WordModal({
 
     lastQueriedWordRef.current = clean.toLowerCase();
     setIsAiLoading(true);
+    setAiNotice(null);
     setLanguageWarning(null);
 
     try {
       const res = await myVocabApi.suggestMeanings(clean, effectiveLanguage, example || undefined);
       const suggestions = res.suggestions || [];
+      if (suggestions.length === 0) setAiNotice(`AI chưa gợi ý được cho "${clean}". Bấm "Gợi ý AI" để thử lại hoặc tự nhập nghĩa.`);
       setAiSuggestions(suggestions);
       if (res.languageWarning) {
         setLanguageWarning(res.languageWarning);
@@ -165,7 +168,7 @@ export function WordModal({
         void enrichRest(clean, best.meaning);
       }
     } catch {
-      // Graceful fallback: user can always enter manually
+      setAiNotice("Không kết nối được AI lúc này. Bấm \"Gợi ý AI\" để thử lại hoặc tự nhập nghĩa.");
       setAiSuggestions([]);
     } finally {
       setIsAiLoading(false);
@@ -508,6 +511,12 @@ export function WordModal({
                 <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 <span>AI đang tìm nghĩa tiếng Việt, cách đọc và ví dụ cho {langInfo.name}...</span>
               </div>
+            )}
+
+            {!isAiLoading && aiNotice && (
+              <p role="status" className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+                {aiNotice}
+              </p>
             )}
 
             {/* AI Suggestions Box */}

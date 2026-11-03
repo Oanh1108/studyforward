@@ -1,3 +1,4 @@
+import { geminiFetch } from '../common/gemini.js';
 import { Injectable, OnModuleInit, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,8 +8,6 @@ import { SpeakingSession } from './speaking-session.entity.js';
 import { User } from '../users/user.entity.js';
 import { UserActivityLog } from '../users/user-activity-log.entity.js';
 
-// Text generation model for the Gemini REST calls below; override with GEMINI_MODEL when Google retires it.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 const TRANSCRIPTION_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-flash-lite-latest'];
 
 const INITIAL_SPEAKING_PROMPTS: Partial<SpeakingPrompt>[] = [
@@ -313,9 +312,7 @@ Trả về JSON Array đúng định dạng sau, không kèm markdown code block
 ]`;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey.trim()}`,
-        {
+      const response = await geminiFetch(geminiKey.trim(), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -594,9 +591,7 @@ Trả về JSON đúng định dạng:
   "feedback": "Nhận xét tiếng Việt thật cụ thể. Chỉ ra lỗi sai (nếu có), giải thích tại sao sai (ví dụ 'with' không phù hợp trong cấu trúc gọi tên), gợi ý cách sửa. Dùng in đậm (*) cho các từ cần nhấn mạnh."
 }`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
-        {
+      const response = await geminiFetch(geminiKey, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

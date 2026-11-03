@@ -1,3 +1,4 @@
+import { geminiFetch } from '../common/gemini.js';
 import { Injectable, Logger } from '@nestjs/common';
 
 export interface MeaningSuggestion {
@@ -532,8 +533,6 @@ const BUILTIN_JA_MAP: Record<string, BuiltinWordEntry> = {
   },
 };
 
-// Text generation model for the Gemini REST calls below; override with GEMINI_MODEL when Google retires it.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
 @Injectable()
 export class AiVocabularyService {
@@ -827,9 +826,7 @@ export class AiVocabularyService {
       `Chỉ trả về JSON array thuần.`;
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
-        {
+      const response = await geminiFetch(geminiKey, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -963,9 +960,7 @@ Lưu ý:
 - Không tự bịa từ đồng nghĩa hoặc trái nghĩa nếu không có.
 - Điền NGÔN NGỮ THẬT, không xuất ra văn bản hướng dẫn.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
-        {
+      const response = await geminiFetch(geminiKey, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1050,9 +1045,7 @@ Trả về JSON đúng cấu trúc:
 }
 Chỉ trả về JSON thuần.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
-        {
+      const response = await geminiFetch(geminiKey, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
