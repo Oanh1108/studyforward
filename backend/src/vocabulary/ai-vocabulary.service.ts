@@ -637,13 +637,10 @@ export class AiVocabularyService {
       return aiResults;
     }
 
-    // 3. Fallback Heuristic Generator (Never fails, zero hallucination)
-    const fallbackResults = this.generateLinguisticFallback(cleanWord, lang, context);
-    if (languageWarning) {
-      fallbackResults.forEach((item) => (item.languageWarning = languageWarning));
-    }
-    this.cache.set(cacheKey, fallbackResults);
-    return fallbackResults;
+    // 3. The AI is unavailable and the word is not in the built-in dictionary. Return nothing (and do not cache it)
+    // instead of a made-up "meaning", so the form stays empty for the user to fill in and a later try can succeed.
+    this.logger.warn(`No AI suggestion for "${cleanWord}" (${lang}); leaving the form empty`);
+    return [];
   }
 
   /**

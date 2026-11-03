@@ -150,16 +150,62 @@ export function WordModal({
 
     try {
       const res = await myVocabApi.suggestMeanings(clean, effectiveLanguage, example || undefined);
-      setAiSuggestions(res.suggestions || []);
+      const suggestions = res.suggestions || [];
+      setAiSuggestions(suggestions);
       if (res.languageWarning) {
         setLanguageWarning(res.languageWarning);
       }
       setSelectedAiIndices([]);
+
+      // Typing the word is enough: fill every empty field from the best suggestion, then top up from the dictionary.
+      const best = suggestions[0];
+      if (best) {
+        setSelectedAiIndices([0]);
+        fillFromAi(best, force);
+        void enrichRest(clean, best.meaning);
+      }
     } catch {
       // Graceful fallback: user can always enter manually
       setAiSuggestions([]);
     } finally {
       setIsAiLoading(false);
+    }
+  };
+
+  /** Puts an AI result into the form. Fields the user already filled are kept unless `replaceMeaning` is set. */
+  const fillFromAi = (item: MeaningSuggestion, replaceMeaning = false) => {
+    if (item.meaning && (replaceMeaning || !meaning.trim())) setMeaning(item.meaning);
+    if (item.partOfSpeech) setPartOfSpeech(item.partOfSpeech);
+    if (item.ipa && !ipa) setIpa(item.ipa);
+    if (item.pinyin && !pinyin) setPinyin(item.pinyin);
+    if (item.kana && !kana) setKana(item.kana);
+    if (item.romaji && !romaji) setRomaji(item.romaji);
+    if (item.romaja && !romaja) setRomaja(item.romaja);
+    if (item.thaiReading && !thaiReading) setThaiReading(item.thaiReading);
+    if (item.reading && !reading) setReading(item.reading);
+    if (item.synonyms?.length && !synonyms.trim()) setSynonyms(item.synonyms.join(', '));
+    if (item.antonyms?.length && !antonyms.trim()) setAntonyms(item.antonyms.join(', '));
+    if (!example.trim() && item.example) setExample(item.example);
+    if (!exampleTranslation.trim() && item.exampleTranslation) setExampleTranslation(item.exampleTranslation);
+  };
+
+  /** Synonyms, antonyms and readings usually come from a second lookup; failures are silent, the form stays editable. */
+  const enrichRest = async (searchWord: string, chosenMeaning: string) => {
+    try {
+      const [extra] = await myVocabApi.enrichBatch([{ word: searchWord, meaning: chosenMeaning }], effectiveLanguage);
+      // The user may have moved on to another word while this was loading.
+      if (!extra || lastQueriedWordRef.current !== searchWord.toLowerCase()) return;
+      if (extra.synonyms?.length) setSynonyms((cur) => cur.trim() || extra.synonyms!.join(', '));
+      if (extra.antonyms?.length) setAntonyms((cur) => cur.trim() || extra.antonyms!.join(', '));
+      if (extra.ipa) setIpa((cur) => cur || extra.ipa!);
+      if (extra.pinyin) setPinyin((cur) => cur || extra.pinyin!);
+      if (extra.kana) setKana((cur) => cur || extra.kana!);
+      if (extra.romaji) setRomaji((cur) => cur || extra.romaji!);
+      if (extra.romaja) setRomaja((cur) => cur || extra.romaja!);
+      if (extra.thaiReading) setThaiReading((cur) => cur || extra.thaiReading!);
+      if (extra.reading) setReading((cur) => cur || extra.reading!);
+    } catch {
+      /* optional extras */
     }
   };
 
@@ -473,7 +519,7 @@ export function WordModal({
                     <span>AI gợi ý nghĩa tiếng Việt theo ngữ cảnh ({langInfo.name}):</span>
                   </div>
                   <span className="text-[10px] text-[var(--text-muted)]">
-                    (Chọn để tự động điền)
+                    (Chọn để đổi nghĩa đã điền)
                   </span>
                 </div>
 
@@ -536,7 +582,7 @@ export function WordModal({
                 setMeaning(e.target.value);
                 setError(null);
               }}
-              placeholder="Nhập nghĩa tiếng Việt hoặc tích chọn gợi ý AI..."
+              placeholder="AI tự điền khi bạn nhập từ tiếng Anh, hoặc bạn tự nhập nghĩa..."
               className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-medium"
             />
           </div>
