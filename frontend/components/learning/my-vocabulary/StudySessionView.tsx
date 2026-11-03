@@ -679,41 +679,68 @@ export function StudySessionView({
     });
   };
 
+  const isTrueQuizChoice = (group: 'meaning' | 'synonym' | 'antonym', c: QuizChoice) => {
+    if (!currentWord) return false;
+    const t = normalizeInputString(c.text);
+    const truth =
+      group === 'meaning'
+        ? [isReversed ? currentWord.word : getWordMeaning(currentWord)]
+        : parseWordList(group === 'synonym' ? currentWord.synonyms : currentWord.antonyms);
+    return truth.some((x) => normalizeInputString(x || '') === t);
+  };
+
+  /**
+   * Grades by the TEXT of the answers, not by generated ids. Ids are index-based and get out of sync with the
+   * word (edited synonyms, a restored session...), which marked correct picks as wrong.
+   */
+  const gradeQuiz = (
+    word: MyVocabularyWord,
+    selections: { meaning: string[]; synonym: string[]; antonym: string[] },
+    choices: { meaning: QuizChoice[]; synonym: QuizChoice[]; antonym: QuizChoice[] },
+  ) => {
+    const grade = (group: 'meaning' | 'synonym' | 'antonym', trueTexts: string[]) => {
+      const truth = new Set(trueTexts.map((t) => normalizeInputString(t)).filter(Boolean));
+      const picked = choices[group].filter((c) => selections[group].includes(c.id));
+      const wrong = picked.filter((c) => !truth.has(normalizeInputString(c.text))).map((c) => c.id);
+      const pickedTexts = new Set(picked.map((c) => normalizeInputString(c.text)));
+      const missing = choices[group]
+        .filter((c) => truth.has(normalizeInputString(c.text)) && !pickedTexts.has(normalizeInputString(c.text)))
+        .map((c) => c.id);
+      return { isCorrect: wrong.length === 0 && missing.length === 0, missing, wrong };
+    };
+    const meaningText = isReversed ? word.word : getWordMeaning(word);
+    const meaning = grade('meaning', meaningText ? [meaningText] : []);
+    const synonym = grade('synonym', parseWordList(word.synonyms));
+    const antonym = grade('antonym', parseWordList(word.antonyms));
+    return { isPerfect: meaning.isCorrect && synonym.isCorrect && antonym.isCorrect, meaning, synonym, antonym };
+  };
+
   const handleSubmitQuiz = async () => {
     if (isQuizSubmitted || !currentWord) return;
     setIsQuizSubmitted(true);
     setSaveStatus('saving');
 
-    // Grade locally (same rules as backend) so the verdict shows instantly and never flips
-    const checkGroup = (userAns: string[], trueAns: string[]) => {
-      const missing = trueAns.filter((a) => !userAns.includes(a));
-      const wrong = userAns.filter((a) => !trueAns.includes(a));
-      return { isCorrect: missing.length === 0 && wrong.length === 0, missing, wrong };
-    };
-    const meaningRes = checkGroup(quizSelections.meaning, [`m_${currentWord.id}`]);
-    const synonymRes = checkGroup(quizSelections.synonym, parseWordList(currentWord.synonyms).map((_, i) => `s_${currentWord.id}_${i}`));
-    const antonymRes = checkGroup(quizSelections.antonym, parseWordList(currentWord.antonyms).map((_, i) => `a_${currentWord.id}_${i}`));
-    const isPerfect = meaningRes.isCorrect && synonymRes.isCorrect && antonymRes.isCorrect;
+    const result = gradeQuiz(currentWord, quizSelections, quizGroupChoices);
+    const isPerfect = result.isPerfect;
 
-    setQuizEvalResult({ isPerfect, meaning: meaningRes, synonym: synonymRes, antonym: antonymRes });
+    setQuizEvalResult(result);
     setStudyHistory((prev) => [
       ...prev,
       { word: currentWord, rating: isPerfect ? 3 : 1, isCorrect: isPerfect, userAnswer: JSON.stringify(quizSelections) },
     ]);
 
-    // Server call only records SRS progress
+    // Record SRS progress with the verdict shown to the user (the server must not re-grade it differently)
     try {
-      await myVocabApi.evaluateQuiz({
-        wordId: currentWord.id,
-        selections: quizSelections,
-        recordSrs: true,
-      });
+      await myVocabApi.recordWordStudy(currentWord.id, isPerfect ? 3 : 1);
     } catch (err) {
-      console.warn('Quiz evaluation failed', err);
+      console.warn('Could not save quiz result', err);
     } finally {
       setSaveStatus('saved');
     }
   };
+
+  // Derived so a restored/old saved session can never show "wrong" without the per-option marks.
+  const quizResult = isQuizSubmitted && currentWord ? quizEvalResult ?? gradeQuiz(currentWord, quizSelections, quizGroupChoices) : null;
 
   const handleNextQuizWord = () => {
     setQuizEvalResult(null);
@@ -1573,9 +1600,9 @@ export function StudySessionView({
                             const isSelected = quizSelections.meaning.includes(choice.id);
                             let style = 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)]';
                             let icon = null;
-                            if (isQuizSubmitted && quizEvalResult) {
-                              const isWrong = quizEvalResult.meaning.wrong.includes(choice.id);
-                              const isMissed = quizEvalResult.meaning.missing.includes(choice.id);
+                            if (isQuizSubmitted && quizResult) {
+                              const isWrong = quizResult.meaning.wrong.includes(choice.id);
+                              const isMissed = quizResult.meaning.missing.includes(choice.id);
                               const isCorrect = isSelected && !isWrong && !isMissed;
                               if (isWrong) {
                                 style = 'bg-rose-500/15 border-rose-500 text-[var(--text-primary)]';
@@ -1600,10 +1627,10 @@ export function StudySessionView({
                                 onClick={() => handleToggleQuizSelection('meaning', choice.id)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizEvalResult) ? (
-                                  (quizEvalResult.meaning.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
-                                  (isSelected && !quizEvalResult.meaning.wrong.includes(choice.id) && !quizEvalResult.meaning.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
-                                  (quizEvalResult.meaning.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (
+                                  (quizResult.meaning.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
+                                  (isSelected && !quizResult.meaning.wrong.includes(choice.id) && !quizResult.meaning.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
+                                  (quizResult.meaning.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
                                   'border-[var(--text-muted)] opacity-40'
                                 ) : isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-[var(--text-muted)]'}`}>
                                   {isSelected && <span className="text-[10px]">✓</span>}
@@ -1628,9 +1655,9 @@ export function StudySessionView({
                             const isSelected = quizSelections.synonym.includes(choice.id);
                             let style = 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)]';
                             let icon = null;
-                            if (isQuizSubmitted && quizEvalResult) {
-                              const isWrong = quizEvalResult.synonym.wrong.includes(choice.id);
-                              const isMissed = quizEvalResult.synonym.missing.includes(choice.id);
+                            if (isQuizSubmitted && quizResult) {
+                              const isWrong = quizResult.synonym.wrong.includes(choice.id);
+                              const isMissed = quizResult.synonym.missing.includes(choice.id);
                               const isCorrect = isSelected && !isWrong && !isMissed;
                               if (isWrong) {
                                 style = 'bg-rose-500/15 border-rose-500 text-[var(--text-primary)]';
@@ -1655,10 +1682,10 @@ export function StudySessionView({
                                 onClick={() => handleToggleQuizSelection('synonym', choice.id)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizEvalResult) ? (
-                                  (quizEvalResult.synonym.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
-                                  (isSelected && !quizEvalResult.synonym.wrong.includes(choice.id) && !quizEvalResult.synonym.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
-                                  (quizEvalResult.synonym.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (
+                                  (quizResult.synonym.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
+                                  (isSelected && !quizResult.synonym.wrong.includes(choice.id) && !quizResult.synonym.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
+                                  (quizResult.synonym.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
                                   'border-[var(--text-muted)] opacity-40'
                                 ) : isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-[var(--text-muted)]'}`}>
                                   {isSelected && <span className="text-[10px]">✓</span>}
@@ -1683,9 +1710,9 @@ export function StudySessionView({
                             const isSelected = quizSelections.antonym.includes(choice.id);
                             let style = 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)]';
                             let icon = null;
-                            if (isQuizSubmitted && quizEvalResult) {
-                              const isWrong = quizEvalResult.antonym.wrong.includes(choice.id);
-                              const isMissed = quizEvalResult.antonym.missing.includes(choice.id);
+                            if (isQuizSubmitted && quizResult) {
+                              const isWrong = quizResult.antonym.wrong.includes(choice.id);
+                              const isMissed = quizResult.antonym.missing.includes(choice.id);
                               const isCorrect = isSelected && !isWrong && !isMissed;
                               if (isWrong) {
                                 style = 'bg-rose-500/15 border-rose-500 text-[var(--text-primary)]';
@@ -1710,10 +1737,10 @@ export function StudySessionView({
                                 onClick={() => handleToggleQuizSelection('antonym', choice.id)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizEvalResult) ? (
-                                  (quizEvalResult.antonym.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
-                                  (isSelected && !quizEvalResult.antonym.wrong.includes(choice.id) && !quizEvalResult.antonym.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
-                                  (quizEvalResult.antonym.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (
+                                  (quizResult.antonym.wrong.includes(choice.id)) ? 'bg-rose-500 border-rose-500 text-white' :
+                                  (isSelected && !quizResult.antonym.wrong.includes(choice.id) && !quizResult.antonym.missing.includes(choice.id)) ? 'bg-emerald-500 border-emerald-500 text-white' :
+                                  (quizResult.antonym.missing.includes(choice.id)) ? 'border-emerald-500 text-emerald-500' :
                                   'border-[var(--text-muted)] opacity-40'
                                 ) : isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-[var(--text-muted)]'}`}>
                                   {isSelected && <span className="text-[10px]">✓</span>}
@@ -1739,26 +1766,21 @@ export function StudySessionView({
                   ) : (
                     <div className="p-3.5 mt-4 rounded-xl border bg-[var(--bg-card)] border-[var(--border)] space-y-3 animate-fade-in">
                       <div className="flex items-center gap-2 text-xs font-bold">
-                        {quizEvalResult?.isPerfect ? (
-                          <span className="flex items-center gap-1.5 text-emerald-600">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</span>
-                            <span>Hoàn toàn chính xác!</span>
-                          </span>
-                        ) : (
+                        {quizResult?.isPerfect ? null : (
                           <div className="flex flex-col gap-1.5">
                             <span className="flex items-center gap-1.5 text-rose-600">
                               <span className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px]">✗</span>
                               <span>Chưa chính xác. Đáp án đúng là:</span>
                             </span>
                             <div className="text-[var(--text-secondary)] font-normal text-[11px] pl-5 space-y-0.5">
-                              {quizGroupChoices.meaning.filter(c => c.id.startsWith(`m_${currentWord.id}`)).length > 0 && (
-                                <div><span className="font-semibold">Nghĩa:</span> {quizGroupChoices.meaning.filter(c => c.id.startsWith(`m_${currentWord.id}`)).map(c => c.text).join(', ')}</div>
+                              {quizGroupChoices.meaning.filter(c => isTrueQuizChoice('meaning', c)).length > 0 && (
+                                <div><span className="font-semibold">Nghĩa:</span> {quizGroupChoices.meaning.filter(c => isTrueQuizChoice('meaning', c)).map(c => c.text).join(', ')}</div>
                               )}
-                              {quizGroupChoices.synonym.filter(c => c.id.startsWith(`s_${currentWord.id}`)).length > 0 && (
-                                <div><span className="font-semibold">Đồng nghĩa:</span> {quizGroupChoices.synonym.filter(c => c.id.startsWith(`s_${currentWord.id}`)).map(c => c.text).join(', ')}</div>
+                              {quizGroupChoices.synonym.filter(c => isTrueQuizChoice('synonym', c)).length > 0 && (
+                                <div><span className="font-semibold">Đồng nghĩa:</span> {quizGroupChoices.synonym.filter(c => isTrueQuizChoice('synonym', c)).map(c => c.text).join(', ')}</div>
                               )}
-                              {quizGroupChoices.antonym.filter(c => c.id.startsWith(`a_${currentWord.id}`)).length > 0 && (
-                                <div><span className="font-semibold">Trái nghĩa:</span> {quizGroupChoices.antonym.filter(c => c.id.startsWith(`a_${currentWord.id}`)).map(c => c.text).join(', ')}</div>
+                              {quizGroupChoices.antonym.filter(c => isTrueQuizChoice('antonym', c)).length > 0 && (
+                                <div><span className="font-semibold">Trái nghĩa:</span> {quizGroupChoices.antonym.filter(c => isTrueQuizChoice('antonym', c)).map(c => c.text).join(', ')}</div>
                               )}
                             </div>
                           </div>
