@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BulkImportResponse, myVocabApi } from '@/lib/myVocabApi';
 import { SupportedLanguage } from '@/lib/languages';
 
@@ -12,85 +12,184 @@ interface BulkWordPanelProps {
   onSuccess: (result: { added: number; skipped: number; folderId: number | null }) => void;
 }
 
-interface ParsedLine {
+interface Row {
+  id: number;
   word: string;
-  meaning?: string;
+  meaning: string;
+  /** Reading, part of speech, example... returned by AI for this word. */
+  extra: Record<string, any>;
+  loading: boolean;
+  /** True once the user typed the meaning themselves; AI must not overwrite it. */
+  meaningEdited: boolean;
 }
 
-const MAX_LINES = 100;
+const MAX_ROWS = 100;
+const START_ROWS = 3;
 const ENRICH_CHUNK = 15;
 
-/**
- * One entry per line. Accepted forms:
- *   resilient
- *   resilient - kiên cường        (also –, —, :, =, |, tab)
- */
-export function parseBulkLines(text: string): ParsedLine[] {
-  const seen = new Set<string>();
-  const out: ParsedLine[] = [];
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line) continue;
-    const m = line.match(/^(.+?)(?:\t|\s+[-–—]\s+|\s*[:=|]\s*)(.+)$/);
-    const word = (m ? m[1] : line).trim();
-    const meaning = m ? m[2].trim() : undefined;
-    if (!word) continue;
-    const key = word.toLowerCase();
-    if (seen.has(key)) continue; // dedupe inside the pasted list
-    seen.add(key);
-    out.push({ word, meaning: meaning || undefined });
-  }
-  return out;
+let nextId = 1;
+const newRow = (word = '', meaning = ''): Row => ({
+  id: nextId++,
+  word,
+  meaning,
+  extra: {},
+  loading: false,
+  meaningEdited: !!meaning,
+});
+
+/** "word - meaning" / "word: meaning" / "word<TAB>meaning" -> [word, meaning?] */
+function splitLine(line: string): [string, string | undefined] {
+  const m = line.match(/^(.+?)(?:\t|\s+[-–—]\s+|\s*[:=|]\s*)(.+)$/);
+  return m ? [m[1].trim(), m[2].trim()] : [line.trim(), undefined];
 }
 
+const inputCls =
+  'w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-sans';
+
 export function BulkWordPanel({ folderId, language, languageName, onClose, onSuccess }: BulkWordPanelProps) {
-  const [text, setText] = useState('');
+  const [rows, setRows] = useState<Row[]>(() => Array.from({ length: START_ROWS }, () => newRow()));
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<
-    (BulkImportResponse & { noMeaning: string[] }) | null
-  >(null);
+  const [result, setResult] = useState<(BulkImportResponse & { noMeaning: string[] }) | null>(null);
 
-  const parsed = useMemo(() => parseBulkLines(text), [text]);
-  const tooMany = parsed.length > MAX_LINES;
+  const wordRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const [focusId, setFocusId] = useState<number | null>(null);
+  const lookedUp = useRef<Record<number, string>>({});
+
+  useEffect(() => {
+    if (focusId !== null) {
+      wordRefs.current[focusId]?.focus();
+      setFocusId(null);
+    }
+  }, [focusId, rows]);
+
+  const updateRow = (id: number, patch: Partial<Row>) =>
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+
+  const addRow = (focus = true) => {
+    if (rows.length >= MAX_ROWS) return;
+    const r = newRow();
+    setRows((rs) => [...rs, r]);
+    if (focus) setFocusId(r.id);
+  };
+
+  const removeRow = (id: number) => setRows((rs) => (rs.length <= 1 ? [newRow()] : rs.filter((r) => r.id !== id)));
+
+  /** Quizlet-style: as soon as a word is typed, fetch its meaning and fill the row. */
+  const lookup = async (row: Row) => {
+    const word = row.word.trim();
+    if (!word || lookedUp.current[row.id] === word.toLowerCase()) return;
+    lookedUp.current[row.id] = word.toLowerCase();
+    updateRow(row.id, { loading: true });
+    try {
+      const [res] = await myVocabApi.enrichBatch([{ word, meaning: row.meaningEdited ? row.meaning : undefined }], language);
+      setRows((rs) =>
+        rs.map((r) => {
+          if (r.id !== row.id || r.word.trim().toLowerCase() !== word.toLowerCase()) return { ...r, loading: r.id === row.id ? false : r.loading };
+          const { index: _i, meaning, ...extra } = res || ({} as any);
+          return {
+            ...r,
+            loading: false,
+            extra,
+            meaning: r.meaningEdited ? r.meaning : meaning || r.meaning,
+          };
+        }),
+      );
+    } catch {
+      updateRow(row.id, { loading: false });
+    }
+  };
+
+  /** Pasting several lines into a word box turns each line into its own row. */
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, row: Row) => {
+    const text = e.clipboardData.getData('text');
+    if (!/\r?\n/.test(text.trim())) return;
+    e.preventDefault();
+    const parsed = text
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map(splitLine);
+    const idx = rows.findIndex((r) => r.id === row.id);
+    const fresh = parsed.map(([w, m]) => newRow(w, m || ''));
+    // Replace the box pasted into if it was empty, otherwise insert below it.
+    const replaceCurrent = !row.word.trim() && !row.meaning.trim();
+    const base = replaceCurrent ? rows.filter((r) => r.id !== row.id) : rows;
+    const at = replaceCurrent ? idx : idx + 1;
+    const next = [...base.slice(0, at), ...fresh, ...base.slice(at)].slice(0, MAX_ROWS);
+    setRows(next);
+    // Look the pasted words up in the background so meanings appear without extra clicks.
+    void lookupMany(next);
+  };
+
+  const lookupMany = async (all: Row[]) => {
+    const todo = all.filter((r) => r.word.trim() && !r.meaning.trim() && lookedUp.current[r.id] !== r.word.trim().toLowerCase());
+    for (let s = 0; s < todo.length; s += ENRICH_CHUNK) {
+      const chunk = todo.slice(s, s + ENRICH_CHUNK);
+      chunk.forEach((r) => {
+        lookedUp.current[r.id] = r.word.trim().toLowerCase();
+      });
+      setRows((rs) => rs.map((r) => (chunk.some((c) => c.id === r.id) ? { ...r, loading: true } : r)));
+      try {
+        const res = await myVocabApi.enrichBatch(chunk.map((r) => ({ word: r.word.trim() })), language);
+        setRows((rs) =>
+          rs.map((r) => {
+            const pos = chunk.findIndex((c) => c.id === r.id);
+            if (pos < 0) return r;
+            const hit = res.find((x) => x.index === pos);
+            if (!hit) return { ...r, loading: false };
+            const { index: _i, meaning, ...extra } = hit as any;
+            return { ...r, loading: false, extra, meaning: r.meaningEdited ? r.meaning : meaning || r.meaning };
+          }),
+        );
+      } catch {
+        setRows((rs) => rs.map((r) => (chunk.some((c) => c.id === r.id) ? { ...r, loading: false } : r)));
+      }
+    }
+  };
+
+  const filled = rows.filter((r) => r.word.trim());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (parsed.length === 0 || tooMany) return;
+    if (filled.length === 0) return;
 
     setIsRunning(true);
     setError(null);
     setResult(null);
 
     try {
-      // 1. Ask AI/dictionary to fill whatever the user did not type (meaning, reading, POS, example...).
-      const enriched: Array<Record<string, any>> = parsed.map((p) => ({ word: p.word, meaning: p.meaning }));
-      for (let start = 0; start < parsed.length; start += ENRICH_CHUNK) {
-        const chunk = parsed.slice(start, start + ENRICH_CHUNK);
-        setProgress(`AI đang bổ sung nghĩa và cách đọc... (${Math.min(start + ENRICH_CHUNK, parsed.length)}/${parsed.length})`);
-        try {
-          const res = await myVocabApi.enrichBatch(
-            chunk.map((p) => ({ word: p.word, meaning: p.meaning })),
-            language,
-          );
-          for (const r of res) {
-            const target = enriched[start + r.index];
-            if (!target) continue;
-            const { index: _ignored, meaning, ...rest } = r;
-            Object.assign(target, rest, { meaning: target.meaning || meaning });
+      // Anything still missing a meaning (e.g. AI was slow or skipped) gets one last lookup.
+      const needAi = rows.filter((r) => r.word.trim() && !r.meaning.trim());
+      let current = rows;
+      if (needAi.length > 0) {
+        setProgress('AI đang bổ sung nghĩa còn thiếu...');
+        const patches: Record<number, Partial<Row>> = {};
+        for (let s = 0; s < needAi.length; s += ENRICH_CHUNK) {
+          const chunk = needAi.slice(s, s + ENRICH_CHUNK);
+          try {
+            const res = await myVocabApi.enrichBatch(chunk.map((r) => ({ word: r.word.trim() })), language);
+            for (const x of res) {
+              const target = chunk[x.index];
+              if (!target) continue;
+              const { index: _i, meaning, ...extra } = x as any;
+              patches[target.id] = { extra, meaning: meaning || '' };
+            }
+          } catch {
+            /* handled below as "no meaning" */
           }
-        } catch {
-          /* keep going: user-typed meanings can still be saved */
         }
+        current = rows.map((r) => (patches[r.id] ? { ...r, ...patches[r.id] } : r));
+        setRows(current);
       }
 
-      // 2. Only words that ended up with a meaning can be saved.
-      const ready = enriched.filter((i) => typeof i.meaning === 'string' && i.meaning.trim());
-      const noMeaning = enriched.filter((i) => !(typeof i.meaning === 'string' && i.meaning.trim())).map((i) => i.word as string);
+      const withWord = current.filter((r) => r.word.trim());
+      const ready = withWord.filter((r) => r.meaning.trim());
+      const noMeaning = withWord.filter((r) => !r.meaning.trim());
 
       if (ready.length === 0) {
-        setError('AI chưa tìm được nghĩa cho các từ này. Hãy nhập nghĩa theo dạng "từ - nghĩa" ở mỗi dòng.');
+        setError('Chưa có từ nào có nghĩa. Hãy nhập nghĩa vào cột bên phải.');
         return;
       }
 
@@ -98,27 +197,19 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
       const res = await myVocabApi.bulkImport({
         folderId,
         language,
-        items: ready as any,
+        items: ready.map((r) => ({ ...r.extra, word: r.word.trim(), meaning: r.meaning.trim() })) as any,
         duplicateStrategy: 'skip',
       });
 
       if (res.added > 0) {
         onSuccess({ added: res.added, skipped: res.skipped, folderId: res.folderId ?? folderId });
       }
-      setResult({ ...res, noMeaning });
-      // Leave only the lines that were not saved so the user can fix and retry.
-      if (res.added > 0) {
-        const failed = new Set([...noMeaning, ...res.errors.map((er) => er.word)].map((w) => w.toLowerCase()));
-        setText(
-          text
-            .split(/\r?\n/)
-            .filter((l) => {
-              const p = parseBulkLines(l)[0];
-              return p && failed.has(p.word.toLowerCase());
-            })
-            .join('\n'),
-        );
-      }
+      setResult({ ...res, noMeaning: noMeaning.map((r) => r.word.trim()) });
+
+      // Keep only rows that were not saved so the user can fix and resubmit.
+      const failed = new Set([...noMeaning.map((r) => r.word.trim()), ...res.errors.map((er) => er.word)].map((w) => w.toLowerCase()));
+      const rest = current.filter((r) => failed.has(r.word.trim().toLowerCase()));
+      setRows(rest.length > 0 ? rest : Array.from({ length: START_ROWS }, () => newRow()));
     } catch (err: any) {
       setError(err.message || 'Không thể lưu danh sách từ vựng.');
     } finally {
@@ -128,7 +219,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 overflow-y-auto">
+    <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-3 overflow-y-auto">
       {error && (
         <div className="text-xs p-3 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 font-medium">{error}</div>
       )}
@@ -138,37 +229,91 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
           <p className="font-bold">
             Đã thêm {result.added} từ{result.skipped > 0 ? `, bỏ qua ${result.skipped} từ trùng` : ''}.
           </p>
-          {result.noMeaning.length > 0 && (
-            <p>Chưa có nghĩa (thêm dạng "từ - nghĩa" rồi thử lại): {result.noMeaning.join(', ')}</p>
-          )}
+          {result.noMeaning.length > 0 && <p>Còn thiếu nghĩa: {result.noMeaning.join(', ')}</p>}
           {result.errors.length > 0 && <p>Lỗi: {result.errors.map((er) => `${er.word} (${er.error})`).join(', ')}</p>}
         </div>
       )}
 
-      <div>
-        <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1">
-          Danh sách từ {languageName} (mỗi dòng một từ)
-        </label>
-        <textarea
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            setError(null);
-          }}
-          rows={9}
-          autoFocus
-          disabled={isRunning}
-          placeholder={'resilient\nbreakthrough - bước đột phá\nfulfill: hoàn thành'}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all font-sans resize-y"
-        />
-        <p className="mt-1.5 text-[11px] text-[var(--text-secondary)] leading-relaxed">
-          Chỉ cần nhập từ, AI sẽ tự điền nghĩa, từ loại, phiên âm và ví dụ. Muốn tự đặt nghĩa thì viết{' '}
-          <code>từ - nghĩa</code> (hoặc <code>từ: nghĩa</code>). Từ đã có trong thư mục sẽ được bỏ qua.
-        </p>
-        <p className={`mt-1 text-[11px] font-semibold ${tooMany ? 'text-rose-600' : 'text-indigo-600 dark:text-indigo-400'}`}>
-          {parsed.length} từ{tooMany ? ` — tối đa ${MAX_LINES} từ mỗi lần` : ''}
-        </p>
+      <div className="hidden sm:grid grid-cols-[1.5rem_1fr_1fr_2rem] gap-2 px-0.5 text-[11px] font-bold uppercase tracking-wide text-[var(--text-secondary)]">
+        <span />
+        <span>{languageName}</span>
+        <span>Nghĩa tiếng Việt</span>
+        <span />
       </div>
+
+      <div className="space-y-2">
+        {rows.map((row, i) => {
+          const isLast = i === rows.length - 1;
+          return (
+            <div key={row.id} className="grid grid-cols-[1.5rem_1fr_2rem] sm:grid-cols-[1.5rem_1fr_1fr_2rem] gap-2 items-start">
+              <span className="pt-2.5 text-[11px] font-bold text-[var(--text-muted)] text-center">{i + 1}</span>
+              <input
+                ref={(el) => {
+                  wordRefs.current[row.id] = el;
+                }}
+                type="text"
+                value={row.word}
+                disabled={isRunning}
+                onChange={(e) => {
+                  updateRow(row.id, { word: e.target.value });
+                  setError(null);
+                }}
+                onBlur={() => void lookup(row)}
+                onPaste={(e) => handlePaste(e, row)}
+                placeholder={`Từ ${languageName}`}
+                autoFocus={i === 0}
+                className={`${inputCls} font-semibold`}
+              />
+              <div className="relative col-start-2 sm:col-start-auto row-start-2 sm:row-start-auto col-span-1">
+                <input
+                  type="text"
+                  value={row.meaning}
+                  disabled={isRunning}
+                  onChange={(e) => updateRow(row.id, { meaning: e.target.value, meaningEdited: true })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (isLast) addRow();
+                      else {
+                        const next = rows[i + 1];
+                        setFocusId(next.id);
+                      }
+                    }
+                  }}
+                  placeholder={row.loading ? 'AI đang tìm nghĩa...' : 'AI tự điền, hoặc bạn tự nhập'}
+                  className={inputCls}
+                />
+                {row.loading && (
+                  <span className="absolute right-2.5 top-2.5 w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => removeRow(row.id)}
+                disabled={isRunning}
+                aria-label={`Xóa dòng ${i + 1}`}
+                className="w-8 h-9 rounded-lg text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => addRow()}
+        disabled={isRunning || rows.length >= MAX_ROWS}
+        className="w-full py-2.5 rounded-xl border-2 border-dashed border-[var(--border)] hover:border-indigo-400 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/5 transition-all"
+      >
+        + Thêm dòng
+      </button>
+
+      <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+        Gõ từ xong, AI tự điền nghĩa, từ loại, phiên âm và ví dụ. Nhấn <kbd>Enter</kbd> ở ô nghĩa để sang dòng mới. Dán nhiều dòng
+        vào ô từ sẽ tự tách thành nhiều dòng (hỗ trợ <code>từ - nghĩa</code>). Từ đã có trong thư mục sẽ được bỏ qua.
+      </p>
 
       {progress && (
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium animate-pulse">
@@ -188,10 +333,10 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
         </button>
         <button
           type="submit"
-          disabled={isRunning || parsed.length === 0 || tooMany}
+          disabled={isRunning || filled.length === 0}
           className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white shadow-md shadow-indigo-500/20 transition-all"
         >
-          {isRunning ? 'Đang xử lý...' : `Thêm ${parsed.length || ''} từ`}
+          {isRunning ? 'Đang xử lý...' : `Thêm ${filled.length || ''} từ`}
         </button>
       </div>
     </form>
