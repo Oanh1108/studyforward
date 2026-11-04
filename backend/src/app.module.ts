@@ -37,6 +37,10 @@ import { FocusModule } from './focus/focus.module.js';
 import { FocusSession } from './focus/focus.entity.js';
 import { StudyBoardsModule } from './study-boards/study-boards.module.js';
 import { StudyBoard } from './study-boards/study-board.entity.js';
+import { CommunicationModule } from './communication/communication.module.js';
+import { ConversationSession } from './communication/conversation-session.entity.js';
+import { ConversationMessage } from './communication/conversation-message.entity.js';
+import { ConversationFeedback } from './communication/conversation-feedback.entity.js';
 
 @Module({
   imports: [
@@ -85,6 +89,9 @@ import { StudyBoard } from './study-boards/study-board.entity.js';
             DictationProgress,
             FocusSession,
             StudyBoard,
+            ConversationSession,
+            ConversationMessage,
+            ConversationFeedback,
           ],
           synchronize: true,
           logging: false,
@@ -105,6 +112,7 @@ import { StudyBoard } from './study-boards/study-board.entity.js';
     DictationModule,
     FocusModule,
     StudyBoardsModule,
+    CommunicationModule,
   ],
 })
 export class AppModule {}
