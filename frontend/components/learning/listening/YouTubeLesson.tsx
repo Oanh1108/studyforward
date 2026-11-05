@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { YouTubePlayer } from './YouTubePlayer';
+import { YouTubeSetup } from './YouTubeSetup';
 import { mediaApi } from '@/lib/mediaApi';
 import { extractYouTubeId, parseTranscript, TranscriptSegment, VideoLessonData } from '@/lib/youtubeUtils';
 import { IconMic, IconPlay } from '../icons';
@@ -288,83 +289,22 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
 
   if (mode === 'setup') {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto animate-fade-up">
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Tạo bài luyện tập từ YouTube</h2>
-            <div className="flex bg-[var(--bg-subtle)] p-1 rounded-xl">
-              <button onClick={() => setPracticeType('dictation')} className={`px-4 py-1.5 rounded-lg text-sm font-bold ${practiceType === 'dictation' ? 'bg-white shadow-sm text-indigo-600' : 'text-[var(--text-secondary)]'}`}>Chép chính tả</button>
-              <button onClick={() => setPracticeType('shadowing')} className={`px-4 py-1.5 rounded-lg text-sm font-bold ${practiceType === 'shadowing' ? 'bg-white shadow-sm text-indigo-600' : 'text-[var(--text-secondary)]'}`}>Shadowing</button>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Link YouTube:</label>
-              <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className="input w-full" />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Tiêu đề bài học:</label>
-              <input type="text" value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} placeholder="Nhập tiêu đề..." className="input w-full" />
-            </div>
-            <div className="flex justify-between items-center mt-2">
-              <button 
-                type="button" 
-                onClick={() => setShowManualInput(!showManualInput)}
-                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                {showManualInput ? "Ẩn nhập phụ đề thủ công" : "Nhập phụ đề thủ công (Nếu tự động lấy bị lỗi)"}
-              </button>
-            </div>
-            
-            {showManualInput && (
-              <div className="animate-fade-up">
-                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-1">Bản chép lời (Transcript) kèm mốc thời gian:</label>
-                <textarea
-                  value={rawTranscript}
-                  onChange={e => setRawTranscript(e.target.value)}
-                  placeholder="[00:05] Câu tiếng Anh thứ nhất\n[00:10] Câu thứ hai..."
-                  className="input w-full h-40 font-mono text-sm"
-                />
-                <p className="text-xs text-[var(--text-muted)] mt-1">* Hệ thống tự động phân tách câu dựa trên mốc thời gian. Bạn có thể tự sửa, nhập hoặc dán phụ đề tải về từ YouTube vào đây.</p>
-              </div>
-            )}
-            
-            <button 
-              onClick={handleStartSetup} 
-              disabled={isFetching || !videoUrl.trim()}
-              className="btn-primary w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-            >
-              {isFetching ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Đang tự động xử lý video...</span>
-                </>
-              ) : (
-                <span>Tạo bài nghe chép</span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {savedLessons.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-bold mb-4">Bài học đã lưu</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {savedLessons.map(lesson => (
-                <div key={lesson.id} onClick={() => selectSavedLesson(lesson)} className="bg-[var(--bg-subtle)] border border-[var(--border)] p-4 rounded-xl cursor-pointer hover:border-indigo-400 transition-all flex items-center gap-3">
-                  <div className="w-16 h-10 bg-slate-200 dark:bg-slate-800 rounded flex-shrink-0 flex items-center justify-center text-xl overflow-hidden relative">
-                    <img src={`https://img.youtube.com/vi/${lesson.youtubeVideoId}/default.jpg`} alt="thumbnail" className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm truncate">{lesson.title}</div>
-                    <div className="text-xs text-[var(--text-muted)] mt-0.5">Tiến độ đợt trước: {lesson.scoreCorrect}/{lesson.scoreTotal}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <YouTubeSetup
+        practiceType={practiceType}
+        onPracticeTypeChange={setPracticeType}
+        videoUrl={videoUrl}
+        onVideoUrlChange={setVideoUrl}
+        lessonTitle={lessonTitle}
+        onLessonTitleChange={setLessonTitle}
+        showManualInput={showManualInput}
+        onToggleManualInput={() => setShowManualInput((v) => !v)}
+        rawTranscript={rawTranscript}
+        onRawTranscriptChange={setRawTranscript}
+        isFetching={isFetching}
+        onSubmit={handleStartSetup}
+        savedLessons={savedLessons}
+        onSelectSaved={selectSavedLesson}
+      />
     );
   }
 
