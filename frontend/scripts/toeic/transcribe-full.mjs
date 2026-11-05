@@ -19,6 +19,9 @@ const arg = (name) => {
 const audioFile = arg('audio');
 const out = arg('out');
 // Parts 1 and 2 are all the dictation page needs for some tests, and they end well before the halfway point.
+// --from-seconds / --to-seconds: transcribe only that window (timestamps are shifted back to the whole file), to redo a stretch Whisper skipped
+const fromSeconds = process.argv.includes('--from-seconds') ? Number(arg('from-seconds')) : 0;
+const toSeconds = process.argv.includes('--to-seconds') ? Number(arg('to-seconds')) : Infinity;
 const maxMinutes = process.argv.includes('--max-minutes') ? Number(arg('max-minutes')) : Infinity;
 fs.mkdirSync(path.dirname(out), { recursive: true });
 
@@ -48,12 +51,15 @@ for (let offset = 0; offset < file.length; offset += CHUNK) {
   if (pieces.reduce((s, p) => s + p.length, 0) / 16000 / 60 >= maxMinutes) break;
 }
 decoder.free();
-const audio = new Float32Array(pieces.reduce((s, p) => s + p.length, 0));
+const whole = new Float32Array(pieces.reduce((s, p) => s + p.length, 0));
 let at = 0;
-for (const p of pieces) { audio.set(p, at); at += p.length; }
+for (const p of pieces) { whole.set(p, at); at += p.length; }
+const audio = whole.subarray(Math.floor(fromSeconds * 16000), Math.min(whole.length, Math.floor(toSeconds * 16000)));
 console.log(`decoded ${(audio.length / 16000 / 60).toFixed(1)} min, transcribing...`);
 
 const asr = await pipeline('automatic-speech-recognition', 'onnx-community/whisper-base_timestamped', { dtype: 'q8' });
 const result = await asr(audio, { language: 'english', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5, return_timestamps: 'word' });
-fs.writeFileSync(out, JSON.stringify({ duration: audio.length / 16000, text: result.text, chunks: result.chunks }));
+const shift = fromSeconds;
+const chunks = result.chunks.map((c) => ({ text: c.text, timestamp: [c.timestamp[0] + shift, (c.timestamp[1] ?? c.timestamp[0]) + shift] }));
+fs.writeFileSync(out, JSON.stringify({ duration: audio.length / 16000 + shift, text: result.text, chunks }));
 console.log('done', out);

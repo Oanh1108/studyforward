@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 5 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | The worker is carrying some plants. | The worker is reading a sign. | The worker is pushing a cart. | The worker is writing some notes.
+2 |  | Some of the people are pulling suitcases. | Some of the people are relaxing on benches. | Some of the people are putting luggage onto a rack. | Some of the people are waiting in line to purchase a ticket.
+3 |  | She's looking into her backpack. | She's tying the laces of her boots. | She's hiking on an outdoor path. | She's walking out of a tunnel.
+4 |  | He's holding the handle of a shopping cart. | He's plugging a cord into a wall outlet. | He's looking into a kitchen cupboard. | He's kneeling down on a tile floor.
+5 |  | Seats have been arranged under some umbrellas. | Some street signs are being taken down. | Some bushes are being trimmed. | Some chairs are being folded and stacked.
+6 |  | Some cushions have been laid on the floor. | Books have been piled up by a glass door. | A light fixture is suspended from the ceiling. | A rug has been rolled up against a wall.
+## PART 2 (question | A | B | C)
+7 | W-Br | There's a meeting in the conference room soon, right? | Yes, it's for the whole department. | No, put it in the closet. | The rent is too high.
+8 | M-Au/M-Cn | Why hasn't the mural in the lobby been painted yet? | Red and yellow. | Please pick up the ladder. | Because the artist is out of town.
+9 | M-Cn/W-Br | Do you prefer writing in the morning or the afternoon? | My publisher requested edits. | Thanks for providing a solution. | Mornings are usually better for me.
+10 |  | I suggest we paint the waiting room light blue. | Doctor Park has an opening at three. | That's a good idea. | I prefer the red jacket.
+11 |  | Did you know that the music school is closed on Sundays? | Forty dollars an hour. | No, I didn't know that. | I saw the piano recital.
+12 | W-Am/M-Cn | How do I find the office manager? | The receptionist would know. | Desk lamps and headsets. | Twelve euros.
+13 | M-Au/W-Br | When did you place the order for the lumber? | Yes, it's a great place for hiking. | It's out of stock right now. | The warehouse on William Street.
+14 | M-Cn/W-Br | Where is the new packaging machine? | Ten packages a minute. | We met last Thursday. | We decided to keep the old one.
+15 | W-Br/M-Au | I'll be out of the office this afternoon. | An awfully long commute. | OK, I'll update your schedule. | It's right down the hallway.
+16 | W-Am | Are you taking a vacation once this project is over? | Yes, I'm planning a trip to Barcelona. | This is your second time, isn't it? | Blueprints for a high-rise building.
+17 | M-Au/W-Am | Let's post the sales report to our team's Web page. | We're sharing a taxi to the airport. | I can do that. | A recent hiring decision.
+18 | M-Au/W-Br | Which airline are you planning on using? | The usual one. | A one-way ticket. | Yes, you can use mine.
+19 | M-Cn/W-Br | Where's this shipment of parts being sent? | Around five thirty this evening. | To the assembly plant in Dublin. | Just half the order.
+20 | W-Br/M-Cn | Who paid for lunch? | I just ate. | It closes at five. | Alberto did.
+21 | M-Cn/W-Am | How many employees work in your department? | I don't mind taking notes at the meeting. | A couple dozen I think. | It's seven meters long.
+22 | M-Cn/W-Br | We should leave for our training course soon, shouldn't we? | We still have a few minutes. | There's a map on the wall. | Two sessions per day.
+23 | W-Am/M-Au | Isn't there a limit on travel expenses? | To fix the vending machine. | $100 per day. | Next to the travel agency.
+24 | M-Cn/W-Br | When should I tell the director that I'm interested in the management position? | Yes, we're extending our business hours. | Didn't Andrey direct the play? | I'm not on the hiring team.
+25 | W-Am/M-Au | The layout of the footwear department has changed. | There's a charging station in the cafe. | Yes, a three-bedroom apartment. | The store has a new manager.
+26 | W-Br/M-Cn | Can you look at this month's revenue report? | The news program is informative. | I have some free time tomorrow afternoon. | He started that position in July.
+27 | W-Am/M-Au | Why haven't the windows been replaced yet? | Not too much wind, no. | Look in the filing cabinet. | Did you see the cost estimate?
+28 | W-Br | Isn't your suitcase going to be heavier than the permitted weight? | The building permit arrived today. | There are seats in the lobby. | I'll have to pay a little bit extra.
+29 | M-Cn | Who manufactures the engines for our machines? | Koji is in charge of supplier contracts. | I'm sorry. The storage room is full. | That's a cargo airplane.
+30 | W-Br/M-Cn | Should we meet at the department store on Fifth Street or the one on Grover Lane? | Let's ask Patricia first. | No, I don't mind. | How much does it cost?
+31 | W-Am/M-Au | Which band is playing at the club tonight? | There's always a comedy show on Thursday nights. | Yes, I've played the piano for many years. | The number one hit.

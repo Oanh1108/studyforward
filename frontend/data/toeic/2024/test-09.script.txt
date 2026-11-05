@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 9 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | He's standing on a rug. | He's turning a doorknob. | He's climbing a ladder. | He's painting a wall.
+2 |  | Some shirts have been hung on a clothing rack. | A light fixture is attached to a column. | Some boxes of clothing have been set on the floor. | Some merchandise is on display in a store.
+3 |  | The woman is putting some papers into a file folder. | The woman is typing on a keyboard. | The woman is seated in front of a computer. | The woman is holding a cup.
+4 |  | Some employees are washing some windows. | A shopper is carrying a package. | Some shopping carts have been lined up in a row. | Some products have fallen on the ground.
+5 |  | Snow is being cleared away. | Bricks are being arranged on a walkway. | Tree branches are being trimmed. | A shovel is leaning against a flower pot.
+6 |  | A potted plant is hanging above a window. | There is a lamppost in front of a building. | Some chairs have been arranged in a line. | Some bricks have been piled on a patio.
+## PART 2 (question | A | B | C)
+7 | M-Au/W-Am | Who's covering for Ms. Hamada? | Yes, it may rain later. | No, I have enough. | Her assistant.
+8 | M-Cn/W-Br | Where is the fashion seminar? | It's in room 235. | No. The black one. | Just some blouses.
+9 |  | Why do we have to put on safety goggles? | No, the door on your left. | Because of safety regulations. | A hat and a scarf.
+10 | W-Br/M-Au | What did you do for Mr. Sugiyama's retirement party? | I helped decorate the room. | He's not tired. | Try the file cabinet.
+11 |  | Can I take another bottle of water? | If there are any left. | An old refrigerator. | No, the clock is fast.
+12 | M-Au/W-Br | Isn't this the last train out? | A round-trip ticket to New York. | The office next door. | No, there's one more.
+13 | W-Br/M-Cn | What was the highlight of your visit to the city this weekend? | Definitely the art museum. | Sorry, I already have plans. | Yes, the guidebook was helpful.
+14 | W-Am/M-Cn | When was that news story about the merger published? | A few weeks ago. | A reporter from the Springfield News. | No, I think that's the right address.
+15 | W-Br/M-Cn | We need to install a security system at the office. | It's a new ID badge. | Yes, I think that's a good idea. | I bought some lightbulbs.
+16 | W-Am/M-Cn | Where are the job fairs being held? | I'll take seven of them. | There's a list in the folder. | OK, I can drive.
+17 | M-Cn/W-Br | When can we use the new color printer? | This afternoon. | OK, that's good to hear. | Sure, I can take a photograph.
+18 | M-Au/W-Am | Could you order some more paper plates? | Thanks for the invitation. | He got a job at the restaurant. | We have enough for three months.
+19 | M-Cn/W-Br | Should I pick up the food order for Ms. Santos? | Let's meet next week. | Yes, if you have the time. | I don't cook with vegetable oil.
+20 | W-Am/M-Cn | Why don't you distribute this flyer around the office? | Sure. That's a great idea. | Our flight's being cancelled. | I'll take the elevator.
+21 | M-Cn/W-Br | How often do you go to concerts? | I ride my bicycle to work every day. | No, he's not a professional musician. | I don't have a lot of free time.
+22 | W-Am | Do you want me to fix the printer in your office? | An official document. | Yes, that would be helpful. | I printed it on both sides.
+23 | M-Au/W-Am | Will the company's warehouse be built in the city or farther out? | It'll be in the city. | Yes, he's wearing a red sweater. | Two square kilometers.
+24 | M-Cn/W-Am | The taxi has finally arrived. | Oh, did it get stuck in traffic? | Thanks, but I already have some. | It's their final offer.
+25 | M-Au/W-Br | How can we train all the new team members? | Yes, I worked on those. | It wasn't as long as we thought. | People like watching videos.
+26 | M-Au/W-Am | The party is supposed to start at 6 p.m., right? | I added her name to the guest list. | No, the invitation said seven. | Because the party decorations were expensive.
+27 | M-Cn/W-Br | Does the manager want us to pick up the supplies or have them delivered? | She'll be here soon. | You dropped your pen. | You're right about that.
+28 | W-Am/M-Au | Has Jacob come into the office today? | His briefcase is on his desk. | Yes, it is a nice office. | I can come in for just a minute.
+29 | W-Am/M-Cn | Are you joining the team for today's briefing? | My top client is in town. | Vittorio's Pizzeria. | I enjoyed that film.
+30 | W-Br/M-Au | I'm organizing a healthy eating program at the office. | She studied at that theater program. | Right beside the new projector. | Do you need any help with it?
+31 |  | Is your car expensive to repair? | The largest model available. | Only a few more times. | It's been running perfectly since I bought it.

@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 1 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's eating in a picnic area. | She's waiting in line at a food truck. | She's wiping off a bench. | She's throwing away a plate.
+2 |  | The man is brushing snow off the roof of a car. | The man is standing in the snow beside a car. | The man is shoveling snow from a walkway. | The man is running through the snow.
+3 |  | Some workers are hanging art in a gallery. | Two of the people are having a conversation. | One of the men is rearranging cushions on a sofa. | One of the men is painting a picture.
+4 |  | Vehicles are entering a parking garage. | Clothes hangers are scattered on the ground. | Empty racks are lined up next to a building. | Clothing is being displayed under a tent.
+5 |  | Potted plants have been suspended from a ceiling. | Chairs have been stacked in front of an entryway. | A computer station has been set up on a desk. | A rug has been rolled up against a wall.
+6 |  | One of the men is sweeping a patio. | One of the men is replacing some flooring. | A door has been taken off its frame. | A light fixture has been left on the ground.
+## PART 2 (question | A | B | C)
+7 | W-Br/M-Au | How old is this building? | To ship some materials. | About ten years old. | Company offices, I think.
+8 | W-Am/M-Cn | Can you come to my jazz performance tonight? | I'm sorry I was late for the meeting. | Mostly just local musicians. | Sure, I'll be there.
+9 | W-Br/W-Am | Which apartment submitted a work order? | It's what you did for a living. | Submit your assignment here. | It came from the tenants in B23.
+10 | M-Cn/W-Br | Will you contact the vendor about changing our delivery date? | Of course, I'll take care of it. | An e-mail receipt. | Could I get change for a dollar?
+11 | M-Au/W-Am | Why was the maintenance worker here? | No, he didn't. | From three o'clock until four. | Because a light needed to be fixed.
+12 | W-Am/M-Cn | Did management make a hiring decision yet? | Put it on the highest shelf. | The personnel department. | Yes. They chose Jacob Borgman.
+13 | M-Cn/W-Am | Do you want to eat here in our cafeteria or go out? | He went there yesterday. | Well, maybe a sandwich. | Let's eat here.
+14 | M-Au/W-Br | Didn't you e-mail the employment contract to Mr. Patel yesterday? | Yes, I would agree. | No, I'll send it now. | Check the employee manual.
+15 | M-Au/M-Cn | Our division's picnic is this Saturday, right? | There's a lot of rain in the forecast. | Sure, I like salad. | At the end of this corridor.
+16 | W-Br/W-Am | Would you like coffee or tea? | Just water please. | For a few dollars more. | A fifteen-minute break.
+17 | W-Am/M-Cn | We achieved our sales targets this month. | That's excellent news. | A few times a day. | To the end of April.
+18 | M-Au | How often do you travel for your job? | It turned out well. | Yes, I did find one. | About once a month.
+19 | W-Br/M-Cn | We should hike the Wildflower Trail today. | This seat is available. | I didn't bring boots. | At the visitors' center.
+20 | M-Au/W-Am | You've booked a hotel in London, haven't you? | Very enjoyable thanks. | He usually takes the train. | Yes, I made a reservation last week.
+21 | W-Am | Are there any tickets left for tonight's concert? | It's sold out. | He's a concert violinist. | They already left.
+22 | W-Br/M-Cn | Haven't you used this software before? | Can I take your order? | I haven't had the chance. | About 40 dollars.
+23 | M-Au/W-Br | When is the new blender going to be released? | Only with fruits and vegetables. | In the kitchen cabinet. | The prototype is still being tested.
+24 | M-Au/W-Am | Who's picking up our clients at the airport? | They decided to drive. | At terminal 2. | It's a marketing position.
+25 | M-Cn/M-Au | Where are the red roses that came in this morning? | About three liters of water. | No, I didn't check out the sale. | I needed some for a large bouquet.
+26 | M-Au | This film has been nominated for several awards. | Why don't we go see it? | After the announcement. | He made a great speech.
+27 | M-Cn/W-Br | Who's interested in starting a car pool program? | Thanks, but I can't swim. | Clara's already organizing one. | It's a very interesting article.
+28 | W-Br/M-Cn | Where will I teach my workshop this month? | We just sent an e-mail to all instructors. | Five to seven months. | Yes, it's a beautiful building.
+29 | M-Cn/W-Am | Why are we moving these sweaters to the back of the store? | In the new shopping mall. | Yes, they come in other colors. | Our spring merchandise is arriving soon.
+30 |  | Would you be interested in working on some of these contracts? | Thank you for meeting me. | A contact lens prescription. | I have very limited time.
+31 | M-Cn/W-Am | What type of job are you looking for? | No, at ten a.m. | I really like working with computers. | Just a resume is needed.
