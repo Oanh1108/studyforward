@@ -9,6 +9,7 @@ import {
   YoutubeTranscriptNotAvailableLanguageError,
   YoutubeTranscriptVideoUnavailableError,
 } from 'youtube-transcript';
+import { fetchViaSupadata, groupIntoSegments, type RawTranscriptItem } from './youtube-transcript.util.js';
 
 export type TranscriptErrorCode = 'NO_CAPTIONS' | 'VIDEO_UNAVAILABLE' | 'BLOCKED';
 
@@ -74,44 +75,25 @@ export class MediaService {
   }
 
   async fetchTranscript(videoId: string) {
+    let items: RawTranscriptItem[] | null = null;
     try {
-      const transcriptList = await YoutubeTranscript.fetchTranscript(videoId);
-      
-      // Grouping logic: roughly group into sentences or short phrases.
-      const segments = [];
-      let currentSegment = { startTime: 0, endTime: 0, text: '' };
-      
-      for (const item of transcriptList) {
-        if (!currentSegment.text) {
-          currentSegment.startTime = item.offset / 1000;
-          currentSegment.text = item.text;
-          currentSegment.endTime = (item.offset + item.duration) / 1000;
-        } else {
-          // If the current text is too short or doesn't end with punctuation, append.
-          // Very basic heuristic for grouping:
-          currentSegment.text += ' ' + item.text;
-          currentSegment.endTime = (item.offset + item.duration) / 1000;
-        }
-        
-        // If segment is > 5 seconds long or ends with sentence ending punctuation, push it.
-        const duration = currentSegment.endTime - currentSegment.startTime;
-        const endsWithPunctuation = /[.!?]$/.test(currentSegment.text);
-        if (duration > 5 || endsWithPunctuation) {
-          segments.push({ ...currentSegment });
-          currentSegment = { startTime: 0, endTime: 0, text: '' };
-        }
-      }
-      
-      // Push any remaining segment
-      if (currentSegment.text) {
-        segments.push(currentSegment);
-      }
-      
-      return { success: true, segments };
+      items = await YoutubeTranscript.fetchTranscript(videoId);
     } catch (error) {
       // Keep the real cause in the server log: the response only carries a short code the page can act on.
       console.error(`[youtube transcript] ${videoId}:`, error instanceof Error ? `${error.constructor.name}: ${error.message}` : error);
-      throw new BadRequestException(describeTranscriptError(error));
+      const problem = describeTranscriptError(error);
+      // When YouTube refuses this server (cloud addresses often get refused), ask a transcript service instead.
+      // Skipped when the video simply has no captions, so credits are not spent for nothing.
+      const apiKey = process.env.SUPADATA_API_KEY;
+      if (apiKey && problem.code !== 'NO_CAPTIONS') {
+        try {
+          items = await fetchViaSupadata(videoId, apiKey);
+        } catch (fallbackError) {
+          console.error(`[youtube transcript] fallback failed for ${videoId}:`, fallbackError instanceof Error ? fallbackError.message : fallbackError);
+        }
+      }
+      if (!items || items.length === 0) throw new BadRequestException(problem);
     }
+    return { success: true, segments: groupIntoSegments(items) };
   }
 }
