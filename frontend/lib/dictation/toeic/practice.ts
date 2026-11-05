@@ -1,4 +1,5 @@
 import type { PracticeSegment, PracticeSpec } from '../practice.ts';
+import { audioUrl } from '../audioUrl.ts';
 import { PART_INFO, audioFor, type DictationItem, type ToeicPart, type ToeicTest } from './types.ts';
 
 const toSegments = (item: DictationItem): PracticeSegment[] =>
@@ -16,7 +17,7 @@ export function specForItem(test: ToeicTest, item: DictationItem): PracticeSpec 
     title: test.title,
     subtitle: `${info.title} · ${info.subtitle} · ${item.label}`,
     segments: toSegments(item),
-    audioSrc: audioFor(test, item.part),
+    audioSrc: audioUrl(audioFor(test, item.part)),
     groups: [group(test, item)],
   };
 }
@@ -29,7 +30,7 @@ export function specForPart(test: ToeicTest, part: ToeicPart): PracticeSpec {
     title: test.title,
     subtitle: `${info.title} · ${info.subtitle} · cả phần`,
     segments: items.flatMap(toSegments),
-    audioSrc: audioFor(test, part),
+    audioSrc: audioUrl(audioFor(test, part)),
     groups: items.map((i) => group(test, i)),
   };
 }
