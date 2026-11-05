@@ -6,6 +6,10 @@ import { YouTubeSetup } from './YouTubeSetup';
 import { mediaApi } from '@/lib/mediaApi';
 import { extractYouTubeId, parseTranscript, TranscriptSegment, VideoLessonData } from '@/lib/youtubeUtils';
 import { IconMic, IconPlay } from '../icons';
+import { readSession, writeSession } from '@/lib/sessionState';
+import { sanitizeYouTubeLesson } from '@/lib/youtubeLessonState';
+
+const LESSON_STORAGE_KEY = 'dictation:youtube-lesson';
 
 function cleanText(text: string): string[] {
   return text.toLowerCase().replace(/[^\w\s\']/g, '').split(/\s+/).filter(Boolean);
@@ -86,6 +90,31 @@ export function YouTubeLesson({ initialMode = 'dictation', onPracticingChange }:
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [savedLessons, setSavedLessons] = useState<VideoLessonData[]>([]);
   const [wrongSegments, setWrongSegments] = useState<number[]>([]);
+
+  // A reload brings the lesson back where it was (setup, which sentence, score); kept per browser tab
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const saved = sanitizeYouTubeLesson(readSession(LESSON_STORAGE_KEY), initialMode);
+    if (saved) {
+      setPracticeType(saved.practiceType);
+      setVideoUrl(saved.videoUrl);
+      setVideoId(saved.videoId);
+      setRawTranscript(saved.rawTranscript);
+      setSegments(saved.segments);
+      setLessonTitle(saved.lessonTitle);
+      setMode(saved.mode);
+      setCurrentSegmentIndex(saved.currentSegmentIndex);
+      setScore(saved.score);
+      setWrongSegments(saved.wrongSegments);
+    }
+    setRestored(true);
+    // only on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!restored) return;
+    writeSession(LESSON_STORAGE_KEY, { practiceType, videoUrl, videoId, rawTranscript, segments, lessonTitle, mode, currentSegmentIndex, score, wrongSegments });
+  }, [restored, practiceType, videoUrl, videoId, rawTranscript, segments, lessonTitle, mode, currentSegmentIndex, score, wrongSegments]);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<any>(null);
@@ -296,6 +325,8 @@ export function YouTubeLesson({ initialMode = 'dictation', onPracticingChange }:
       }
     }
   };
+
+  if (!restored) return null; // until the saved lesson is applied, so the setup form does not flash
 
   if (mode === 'setup') {
     return (

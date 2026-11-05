@@ -72,6 +72,8 @@ function ItemRow({ item, best, onStart }: { item: DictationItem; best?: number; 
 export interface ToeicNav {
   testId: string | null;
   part: ToeicPart;
+  /** The year chosen on the list of tests. */
+  year?: number;
 }
 
 export function ToeicBrowser({
@@ -87,15 +89,19 @@ export function ToeicBrowser({
 }) {
   const years = toeicYears();
   const test = nav.testId ? years.flatMap((y) => y.tests).find((t) => t.id === nav.testId) : undefined;
-  const [year, setYear] = useState(years.find((y) => y.tests.some((t) => t.id === nav.testId))?.year ?? years[0]?.year);
+  const [year, setYearState] = useState(years.find((y) => y.tests.some((t) => t.id === nav.testId))?.year ?? nav.year ?? years[0]?.year);
+  const setYear = (y: number) => {
+    setYearState(y);
+    onNavChange({ ...nav, year: y });
+  };
   const part = nav.part;
   const tests = years.find((y) => y.year === year)?.tests ?? [];
 
   const open = (id: string) => {
-    onNavChange({ testId: id, part: 1 });
+    onNavChange({ testId: id, part: 1, year });
     window.scrollTo({ top: 0 });
   };
-  const setPart = (p: ToeicPart) => onNavChange({ testId: nav.testId, part: p });
+  const setPart = (p: ToeicPart) => onNavChange({ testId: nav.testId, part: p, year });
 
   // ---------- Page 1: choose a test ----------
   if (!test) {
@@ -166,7 +172,7 @@ export function ToeicBrowser({
       <div className="space-y-4">
         <button
           type="button"
-          onClick={() => onNavChange({ testId: null, part: 1 })}
+          onClick={() => onNavChange({ testId: null, part: 1, year })}
           className={`group -ml-2 inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)] ${focusRing}`}
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Tất cả đề
