@@ -45,7 +45,7 @@ function diffWords(targetStr: string, userStr: string) {
   return lcs;
 }
 
-export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'dictation' | 'shadowing' }) {
+export function YouTubeLesson({ initialMode = 'dictation', onPracticingChange }: { initialMode?: 'dictation' | 'shadowing'; onPracticingChange?: (practicing: boolean) => void }) {
   const [practiceType, setPracticeType] = useState<'dictation' | 'shadowing'>(initialMode);
   
   const [videoUrl, setVideoUrl] = useState('');
@@ -60,6 +60,12 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
   const [isFetching, setIsFetching] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const practicing = mode !== 'setup';
+  // Lets the page around us make room (hide its title and tabs) while a lesson is running
+  useEffect(() => {
+    onPracticingChange?.(practicing);
+    return () => onPracticingChange?.(false);
+  }, [practicing, onPracticingChange]);
   
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
@@ -330,9 +336,9 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
   }
 
   return (
-    <div className="space-y-6 animate-fade-up max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
-      {/* Left side: Video Player */}
-      <div className="lg:col-span-2 space-y-4">
+    <div className="grid w-full animate-fade-up grid-cols-1 gap-6 lg:grid-cols-5">
+      {/* Left side: Video Player, kept in view while the answer card scrolls */}
+      <div className="space-y-4 lg:sticky lg:top-24 lg:col-span-3 lg:self-start">
         {videoId && (
           <div className="aspect-video w-full rounded-2xl overflow-hidden border border-[var(--border)] shadow-sm bg-black relative">
             <YouTubePlayer videoId={videoId} onReady={(p) => setPlayer(p)} onError={handlePlayerError} />
@@ -374,7 +380,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
       </div>
 
       {/* Right side: Input and Eval */}
-      <div className="lg:col-span-3 space-y-4">
+      <div className="space-y-4 lg:col-span-2">
         <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-lg">{lessonTitle}</h3>
@@ -446,7 +452,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
                 }}
                 disabled={isChecked}
                 placeholder="Gõ chính xác những gì bạn nghe được... (Nhấn Ctrl để nghe lại đoạn này, Enter để kiểm tra)"
-                className="w-full h-32 p-4 rounded-xl border-2 border-[var(--border-subtle)] bg-[var(--bg-base)] focus:border-indigo-500 outline-none resize-none transition-all text-lg leading-relaxed"
+                className="h-40 w-full resize-none rounded-xl border-2 border-[var(--border-subtle)] bg-[var(--bg-base)] p-4 text-xl leading-relaxed outline-none transition-all focus:border-indigo-500 lg:h-56"
                 autoFocus
               />
 

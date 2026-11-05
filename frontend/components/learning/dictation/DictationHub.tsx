@@ -20,8 +20,9 @@ export function DictationHub() {
   const [section, setSection] = useState<Section>('toeic');
   const [session, setSession] = useState<{ spec: PracticeSpec; run: number } | null>(null);
   const [toeicNav, setToeicNav] = useState<ToeicNav>({ testId: null, part: 1 });
+  const [youtubePracticing, setYoutubePracticing] = useState(false);
   // Inside a test the page title and source tabs make way for the test itself.
-  const insideTest = section === 'toeic' && toeicNav.testId !== null;
+  const insideTest = (section === 'toeic' && toeicNav.testId !== null) || (section === 'youtube' && youtubePracticing);
   const { progress, record } = usePracticeProgress();
 
   if (session) {
@@ -69,7 +70,7 @@ export function DictationHub() {
 
       <div role="tabpanel">
         {section === 'toeic' && <ToeicBrowser progress={progress} nav={toeicNav} onNavChange={setToeicNav} onStart={start} />}
-        {section === 'youtube' && <YouTubeLesson />}
+        {section === 'youtube' && <YouTubeLesson onPracticingChange={setYoutubePracticing} />}
       </div>
     </div>
   );
