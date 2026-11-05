@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "node --test \"lib/**/*.test.ts\" \"components/**/*.test.ts\"",
     "toeic:transcribe": "node scripts/toeic/transcribe-audio.mjs",
-    "toeic:build": "node scripts/toeic/build-test.ts"
+    "toeic:build": "node scripts/toeic/build-test.ts",
+    "toeic:upload-audio": "node scripts/toeic/upload-audio.mjs"
   },
   "dependencies": {
     "@babel/parser": "^7.29.9",
@@ -34,6 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/blob": "^2.8.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "mpg123-decoder": "^1.0.3",

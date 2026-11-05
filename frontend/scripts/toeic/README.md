@@ -23,3 +23,15 @@ part's recording. These scripts find them automatically; the transcript itself s
    `node scripts/toeic/script-from-asr.mjs --asr-dir tmp/asr-2023-01 --year 2023 --test 1 --out data/toeic/2023/test-01.script.txt --ocr tmp/ocr-2023-01.txt`
    Read the list it prints of sentences that differ from the PDF, and fix what Whisper heard wrong (names, numbers, repeated lines).
 4. **Build** with `--parts 1,2`: `node scripts/toeic/build-test.ts --year 2023 --test 1 --script data/toeic/2023/test-01.script.txt --asr tmp/asr-2023-01 --parts 1,2`, then register the test in `lib/dictation/toeic/index.ts`.
+
+## Playing the recordings on the deployed site
+
+The recordings (`public/audio/toeic/`) are git-ignored, so a deploy does not contain them and every `/audio/toeic/...`
+request on the live site is a 404. They are served from Vercel Blob instead:
+
+1. Vercel dashboard > Storage > Create > Blob. Copy the read/write token.
+2. `$env:BLOB_READ_WRITE_TOKEN="<token>"; npm run toeic:upload-audio` (from `frontend/`). It prints `NEXT_PUBLIC_AUDIO_BASE_URL=...`.
+3. In the Vercel project, add that environment variable and redeploy.
+
+Run the upload again after adding new recordings. Locally, leave `NEXT_PUBLIC_AUDIO_BASE_URL` unset and the files in
+`public/` are used.
