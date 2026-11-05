@@ -8,6 +8,8 @@ import type { PracticeSegment, PracticeSpec, SegmentOutcome } from './types';
 import { PracticeSummary } from './PracticeSummary';
 import { useSegmentPlayer } from './useSegmentPlayer';
 import { translateToVietnamese } from '@/lib/dictation/translate';
+import { practiceStorageKey, restorePracticeProgress } from '@/lib/dictation/persisted';
+import { clearSession, readSession, writeSession } from '@/lib/sessionState';
 
 interface PracticeSessionProps {
   spec: PracticeSpec;
@@ -112,12 +114,33 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
   const [translations, setTranslations] = useState<Record<string, string | null>>({});
   const [retryTick, setRetryTick] = useState(0);
 
+  // After a reload, carry on at the same sentence: the position is kept per browser tab
+  const storageKey = practiceStorageKey(spec);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const saved = restorePracticeProgress(spec, readSession(storageKey));
+    if (saved) {
+      setQueue(saved.queue);
+      setIndex(saved.index);
+      setInput(saved.input);
+      setOutcomes(saved.outcomes);
+      setFinished(saved.finished);
+    }
+    setReady(true);
+    // only when this session starts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    writeSession(storageKey, { queueIds: queue.map((s) => s.id), index, input, outcomes, finished });
+  }, [ready, storageKey, queue, index, input, outcomes, finished]);
+
   const segment = queue[index];
   const playSegment = () => segment && play({ text: segment.text, clip: segment.clip, audioSrc: spec.audioSrc, rate: speed });
 
   // Play each sentence as soon as it comes up, and put the cursor in the answer box.
   useEffect(() => {
-    if (finished || !segment) return;
+    if (!ready || finished || !segment) return;
     const timer = setTimeout(() => {
       play({ text: segment.text, clip: segment.clip, audioSrc: spec.audioSrc, rate: speed });
       inputRef.current?.focus();
@@ -125,7 +148,7 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
     return () => clearTimeout(timer);
     // Only when the sentence changes: changing speed should not restart playback by itself.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [segment?.id, finished]);
+  }, [segment?.id, finished, ready]);
 
   const check = () => {
     if (!segment || result || !input.trim()) return;
@@ -186,6 +209,7 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
 
   const exit = () => {
     stop();
+    clearSession(storageKey);
     onExit();
   };
 
@@ -229,6 +253,8 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [input, index, finished]);
+
+  if (!ready) return null; // until the saved position is applied, so the first sentence does not flash
 
   if (finished) {
     return (

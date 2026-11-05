@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Headphones, MonitorPlay } from 'lucide-react';
 import { scoreGroups } from '@/lib/dictation/practice';
+import { practiceStorageKey, sanitizeActivePractice, sanitizeToeicNav, type ActivePractice } from '@/lib/dictation/persisted';
+import { clearSession, useSessionState } from '@/lib/sessionState';
 import { YouTubeLesson } from '../listening/YouTubeLesson';
 import { PracticeSession } from './PracticeSession';
 import { ToeicBrowser, type ToeicNav } from './ToeicBrowser';
@@ -16,14 +18,20 @@ const SECTIONS: { id: Section; label: string; icon: React.ComponentType<{ classN
   { id: 'youtube', label: 'YouTube', icon: MonitorPlay },
 ];
 
+const sanitizeSection = (raw: unknown): Section | undefined => (raw === 'toeic' || raw === 'youtube' ? raw : undefined);
+
 export function DictationHub() {
-  const [section, setSection] = useState<Section>('toeic');
-  const [session, setSession] = useState<{ spec: PracticeSpec; run: number } | null>(null);
-  const [toeicNav, setToeicNav] = useState<ToeicNav>({ testId: null, part: 1 });
+  // Where the user is (tab, test, running session) is kept per browser tab, so a reload brings the page back as it was.
+  const [section, setSection, sectionRestored] = useSessionState<Section>('dictation:section', 'toeic', sanitizeSection);
+  const [session, setSession, sessionRestored] = useSessionState<ActivePractice | null>('dictation:session', null, sanitizeActivePractice);
+  const [toeicNav, setToeicNav, navRestored] = useSessionState<ToeicNav>('dictation:toeic-nav', { testId: null, part: 1 }, sanitizeToeicNav);
   const [youtubePracticing, setYoutubePracticing] = useState(false);
   // Inside a test the page title and source tabs make way for the test itself.
   const insideTest = (section === 'toeic' && toeicNav.testId !== null) || (section === 'youtube' && youtubePracticing);
   const { progress, record } = usePracticeProgress();
+
+  // Wait for the saved position, so the page does not flash the first tab before jumping to where the user was.
+  if (!sectionRestored || !sessionRestored || !navRestored) return <div className="min-h-96" aria-busy="true" />;
 
   if (session) {
     return (
@@ -36,7 +44,11 @@ export function DictationHub() {
     );
   }
 
-  const start = (spec: PracticeSpec) => setSession((prev) => ({ spec, run: (prev?.run ?? 0) + 1 }));
+  const start = (spec: PracticeSpec) => {
+    // a fresh start, not a reload: forget where an earlier run of this exercise stopped
+    clearSession(practiceStorageKey(spec));
+    setSession((prev) => ({ spec, run: (prev?.run ?? 0) + 1 }));
+  };
 
   return (
     <div className="space-y-6 animate-fade-up">
