@@ -2,7 +2,33 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserVideoLesson } from './media.entity.js';
-import { YoutubeTranscript } from 'youtube-transcript';
+import {
+  YoutubeTranscript,
+  YoutubeTranscriptDisabledError,
+  YoutubeTranscriptNotAvailableError,
+  YoutubeTranscriptNotAvailableLanguageError,
+  YoutubeTranscriptVideoUnavailableError,
+} from 'youtube-transcript';
+
+export type TranscriptErrorCode = 'NO_CAPTIONS' | 'VIDEO_UNAVAILABLE' | 'BLOCKED';
+
+/** Tells "this video has no captions" apart from "YouTube refused our server", which need different advice. */
+export function describeTranscriptError(error: unknown): { message: string; code: TranscriptErrorCode } {
+  if (
+    error instanceof YoutubeTranscriptDisabledError ||
+    error instanceof YoutubeTranscriptNotAvailableError ||
+    error instanceof YoutubeTranscriptNotAvailableLanguageError
+  ) {
+    return { code: 'NO_CAPTIONS', message: 'Video này không có phụ đề để lấy tự động.' };
+  }
+  if (error instanceof YoutubeTranscriptVideoUnavailableError) {
+    return { code: 'VIDEO_UNAVAILABLE', message: 'Không tìm thấy video này, hoặc video bị giới hạn nên không lấy được phụ đề.' };
+  }
+  return {
+    code: 'BLOCKED',
+    message: 'YouTube đang từ chối yêu cầu lấy phụ đề từ máy chủ (thường gặp khi máy chủ nằm trên dịch vụ cloud).',
+  };
+}
 
 @Injectable()
 export class MediaService {
@@ -83,7 +109,9 @@ export class MediaService {
       
       return { success: true, segments };
     } catch (error) {
-      throw new BadRequestException('Không thể lấy transcript tự động cho video này. Video có thể không có phụ đề hoặc bị chặn lấy phụ đề.');
+      // Keep the real cause in the server log: the response only carries a short code the page can act on.
+      console.error(`[youtube transcript] ${videoId}:`, error instanceof Error ? `${error.constructor.name}: ${error.message}` : error);
+      throw new BadRequestException(describeTranscriptError(error));
     }
   }
 }

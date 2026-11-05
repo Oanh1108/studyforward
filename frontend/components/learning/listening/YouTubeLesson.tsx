@@ -59,6 +59,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
   const [mode, setMode] = useState<'setup' | 'practice' | 'result'>('setup');
   const [isFetching, setIsFetching] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
@@ -120,6 +121,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
     
     // Otherwise try to fetch automatically
     setIsFetching(true);
+    setFetchError(null);
     try {
       const res = await mediaApi.fetchTranscript(id);
       if (res.success && res.segments && res.segments.length > 0) {
@@ -133,10 +135,12 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
         setWrongSegments([]);
         setPlayerError(null);
       } else {
-        alert("Không thể lấy phụ đề tự động. Vui lòng thử video khác hoặc dán phụ đề thủ công.");
+        setFetchError("Không lấy được phụ đề tự động cho video này.");
+        setShowManualInput(true);
       }
     } catch (err: any) {
-      alert(err.message || "Lỗi khi lấy phụ đề. Video có thể không có phụ đề hoặc bị chặn.");
+      setFetchError(err.message || "Không lấy được phụ đề tự động cho video này.");
+      setShowManualInput(true);
     } finally {
       setIsFetching(false);
     }
@@ -293,7 +297,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
         practiceType={practiceType}
         onPracticeTypeChange={setPracticeType}
         videoUrl={videoUrl}
-        onVideoUrlChange={setVideoUrl}
+        onVideoUrlChange={(url) => { setVideoUrl(url); setFetchError(null); }}
         lessonTitle={lessonTitle}
         onLessonTitleChange={setLessonTitle}
         showManualInput={showManualInput}
@@ -301,6 +305,7 @@ export function YouTubeLesson({ initialMode = 'dictation' }: { initialMode?: 'di
         rawTranscript={rawTranscript}
         onRawTranscriptChange={setRawTranscript}
         isFetching={isFetching}
+        fetchError={fetchError}
         onSubmit={handleStartSetup}
         savedLessons={savedLessons}
         onSelectSaved={selectSavedLesson}

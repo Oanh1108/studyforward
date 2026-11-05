@@ -30,8 +30,9 @@ export const mediaApi = {
       body: JSON.stringify({ videoId }),
     });
     if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText || 'Failed to fetch transcript');
+      // The backend answers { message, code }: surface the readable message, not the raw JSON
+      const body = await res.json().catch(() => null);
+      throw Object.assign(new Error(body?.message || 'Không lấy được phụ đề tự động.'), { code: body?.code as string | undefined });
     }
     return res.json();
   },
