@@ -44,9 +44,6 @@ export function DictationHub() {
       <>
       <header>
         <h1 className="text-2xl font-extrabold tracking-tight text-[var(--text-primary)]">Nghe chép chính tả</h1>
-        <p className="mt-1 max-w-2xl text-sm text-[var(--text-secondary)]">
-          Nghe một câu, gõ lại thật chính xác, rồi xem mình sai ở từ nào. Hệ thống bỏ qua dấu câu và chữ hoa, và coi &ldquo;25&rdquo; giống &ldquo;twenty-five&rdquo;.
-        </p>
       </header>
 
       <div role="tablist" aria-label="Nguồn bài luyện" className="inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-[var(--border)] bg-[var(--bg-card)] p-1 hide-scrollbar">

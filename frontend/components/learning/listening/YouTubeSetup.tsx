@@ -73,16 +73,16 @@ export function YouTubeSetup({
   const invalid = typed && !videoId;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 animate-fade-up">
+    <div className="w-full space-y-8 animate-fade-up">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (videoId && !isFetching) onSubmit();
         }}
         aria-busy={isFetching}
-        className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] md:items-start"
+        className="grid gap-6 lg:grid-cols-5 lg:items-start"
       >
-        <section aria-labelledby="yt-setup-title" className="space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 md:p-6">
+        <section aria-labelledby="yt-setup-title" className="space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 md:p-8 lg:col-span-3">
           <div>
             <h2 id="yt-setup-title" className="text-xl font-bold tracking-tight text-[var(--text-primary)]">Tạo bài luyện tập từ YouTube</h2>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">Dán link video, hệ thống tự lấy phụ đề và chia thành từng đoạn ngắn để luyện.</p>
@@ -184,7 +184,7 @@ export function YouTubeSetup({
           </div>
         </section>
 
-        <aside className="space-y-4 md:sticky md:top-24">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:col-span-2">
           <VideoPreview videoId={videoId} title={lessonTitle} />
           <button
             type="submit"
@@ -207,7 +207,7 @@ export function YouTubeSetup({
       {savedLessons.length > 0 && (
         <section aria-labelledby="yt-saved-title">
           <h3 id="yt-saved-title" className="mb-3 text-lg font-bold text-[var(--text-primary)]">Bài học đã lưu</h3>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {savedLessons.map((lesson) => {
               const correct = lesson.scoreCorrect ?? 0;
               const total = lesson.scoreTotal ?? 0;
