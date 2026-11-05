@@ -18,6 +18,7 @@ import { SupportedLanguage, getLanguageInfo, getPrimaryReading } from '@/lib/lan
 import { userStatsApi } from '@/lib/userStatsApi';
 import { Select } from '@/components/ui/Select';
 import { FolderList } from './FolderList';
+import { readSession, writeSession } from '@/lib/sessionState';
 
 interface VocabVisibilityConfig {
   showWord: boolean;
@@ -94,6 +95,26 @@ export function MyVocabularyView({ onOpenStudySession }: MyVocabularyViewProps =
 
   // Pagination / Load more for long word lists
   const [visibleCount, setVisibleCount] = useState<number>(30);
+
+  // A reload keeps the filters of the list the user was looking at (per folder, per browser tab).
+  // Opening another folder resets them as before; this only restores them once, on mount.
+  const [filtersRestored, setFiltersRestored] = useState(false);
+  useEffect(() => {
+    const saved = readSession(`sf_vocab_filters_${selectedFolderId ?? 'list'}`) as Record<string, unknown> | undefined;
+    if (saved && typeof saved === 'object') {
+      if (typeof saved.searchKeyword === 'string') setSearchKeyword(saved.searchKeyword);
+      if (saved.statusFilter === 'all' || saved.statusFilter === 'new' || saved.statusFilter === 'learning' || saved.statusFilter === 'mastered') setStatusFilter(saved.statusFilter);
+      if (typeof saved.folderSearchQuery === 'string') setFolderSearchQuery(saved.folderSearchQuery);
+      if (saved.folderSortBy === 'recent' || saved.folderSortBy === 'az' || saved.folderSortBy === 'count') setFolderSortBy(saved.folderSortBy);
+    }
+    setFiltersRestored(true);
+    // only on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!filtersRestored) return;
+    writeSession(`sf_vocab_filters_${selectedFolderId ?? 'list'}`, { searchKeyword, statusFilter, folderSearchQuery, folderSortBy });
+  }, [filtersRestored, selectedFolderId, searchKeyword, statusFilter, folderSearchQuery, folderSortBy]);
 
   // Helper to extract Vietnamese meaning from standard and backward-compatible fields
   const getWordMeaning = (item: MyVocabularyWord | any): string => {
