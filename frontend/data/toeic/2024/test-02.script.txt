@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 2 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's inserting a cord into an outlet. | She's pressing a button on a machine. | She's gripping the handle of a drawer. | She's tacking a notice onto the wall.
+2 |  | Some window shutters are being replaced. | A pillow is being arranged on a seat. | An outdoor table is being cleared off. | Some wooden boards are being painted.
+3 |  | Some utensils have been discarded in a bin. | Some bottles are being emptied into a sink. | A rolling chair has been placed next to a counter. | Some drawers have been left open.
+4 |  | A man is chopping some wood into pieces. | Leaves are scattered across the grass. | A man is closing a window. | Wood is piled near a fence.
+5 |  | People are standing in line in a lobby. | Items are being loaded into shopping bags. | Tents have been set up in a parking area. | A worker is putting up a canopy.
+6 |  | Some luggage is stacked next to an escalator. | A suitcase is being lifted onto a shuttle bus. | Some suitcases are displayed in a shop window. | A luggage rack has two levels.
+## PART 2 (question | A | B | C)
+7 | M-Au/W-Am | Have the machines on the factory floor been cleaned? | No, not yet. | It's in the shipping container. | I just put it in the trash bin.
+8 | M-Au/W-Br | How much will the budget increase next year? | About ten percent. | Three hours, I think. | At the bank's main branch.
+9 | W-Br/M-Cn | You're going to water the plants before you leave, aren't you? | I walked the whole way. | Yes, right after lunch. | In the breakroom.
+10 | W-Am/M-Cn | Aren't you going to schedule an eye doctor appointment? | Those glasses look nice on you. | I already scheduled one. | The seminar is three days long.
+11 | W-Am | I'm going to try to fix this printer. | You're right, it doesn't fit. | Double-sided copies. | Are you sure it can be repaired?
+12 | W-Am/M-Cn | What should we do with these brochures? | A trip to the seashore. | Yes, I found it already. | I'll leave them at the front desk.
+13 |  | Has the policy meeting been rescheduled? | We have lots of desk calendar designs. | Yes, it's happening tomorrow instead. | This soup I ordered is delicious.
+14 | W-Am/M-Cn | Why don't we stop by the office cafeteria on our way to the workshop? | Sure, we have time for that. | A full service buffet. | The topic is professional networking.
+15 | M-Cn/W-Br | Have you tried our famous pasta dish? | We need a table for five. | Yes, it was delicious. | I'll try to make it on time.
+16 | M-Au/W-Br | Who's the opening act at tonight's concert? | Could you turn up the volume? | A jazz singer from France. | The position has been filled.
+17 | M-Au | When do the product demonstrations start? | The schedule was e-mailed last Friday. | Some innovative features. | In Room 202, I think.
+18 | M-Au/W-Br | I tried updating the Web site, but it didn't work. | That date works for me. | Usually our online reviews. | Just send me the changes you want.
+19 | W-Am/M-Au | Did you hire a new welding specialist? | The part's back-ordered. | Yes, he starts tomorrow. | No, it should be higher.
+20 | W-Br/M-Au | How was the color palette for the lobby chosen? | Blue and orange. | It was fine, thanks. | I wasn't involved.
+21 | W-Br | When are we ordering more supplies for the office? | In the storage closet. | Next week on Monday. | The new desk looks great.
+22 | W-Am/M-Cn | The battery for the water pump is going to be solar powered, right? | We're still in the planning stages. | $140 per year. | Yes, I'd love a glass of water.
+23 |  | Where can I buy a charger for this laptop? | Around three o'clock. | I can order one for you. | A limited return policy.
+24 |  | Do I need to reserve a meeting room? | Yes, let me show you how. | The service is good. | My slide presentation.
+25 | M-Cn/W-Br | When's the new department director supposed to start? | It's an hour long. | Ms. Pavlova isn't retiring for several weeks. | No, that department's upstairs.
+26 |  | Should I deliver these pizzas, or will you? | No thanks, I'm not hungry. | Ten dollars for two. | They're being picked up.
+27 | M-Au/W-Br | This month's shipment schedule has been revised. | I couldn't find them either. | Which dates have been changed? | Two dollars per pound.
+28 | M-Au/W-Br | How much will the repairs cost? | The work is covered under the warranty plan. | Yes, it's also available in red. | In about two weeks.
+29 | W-Br/M-Au | Why don't we provide more samples of the wallpaper patterns? | The newspaper is delivered daily. | An interior design course. | There are plenty in the binders.
+30 | W-Am/M-Cn | Can you give me a tour of the property this afternoon? | Sorry, I won't have time until tomorrow. | It has a very modern design. | A house on Maple Street.
+31 | W-Br/M-Au | Who's scheduled to test the product today? | We're waiting for confirmation. | It's a great album, right? | About six weeks ago.

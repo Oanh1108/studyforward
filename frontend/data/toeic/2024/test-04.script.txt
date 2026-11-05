@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 4 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | He's cleaning the floor. | He's setting a plant on a shelf. | He's pouring some liquid into a cup. | He's ironing a shirt.
+2 |  | They're glancing at a monitor. | They're putting pens in a jar. | They're wiping off a desk. | They're examining a document.
+3 |  | Some people are taking a ride on a boat. | A boat is floating under a bridge. | A boat is being loaded with cargo. | Some people are rowing a boat past a lighthouse.
+4 |  | There's a fire burning in a fireplace. | There's a guitar beside a fireplace. | Some cables have been left on the ground in a pile. | A television is being packed into a box.
+5 |  | Some people are riding bicycles through a field. | Some people are moving a picnic table. | There are some mountains in the distance. | A bicycle has fallen over on the ground.
+6 |  | Some couches have been pushed against a wall. | Some lights have been hung from the ceiling. | Some cushions have been stacked on the floor. | Some flowers have been arranged in a vase.
+## PART 2 (question | A | B | C)
+7 | M-Au/W-Am | Does the shop open on Sundays? | Yes, at one o'clock. | Because we drove. | I'd like to return this item, please.
+8 | W-Br/M-Au | Where did these oranges come from? | Here's a basket you can use. | From a supplier in California. | That umbrella is a nice color.
+9 | W-Am/W-Br | Should I make the dinner reservation for Friday or Saturday? | The Beachside Bistro. | Saturday is better. | A large plate of pasta.
+10 | M-Au/W-Br | Will Dr. Ivanova be late today? | No, you shouldn't have to wait long. | It's just under the desk. | Sure, I can do that for you.
+11 | M-Au/M-Cn | Aren't there locker rooms at this gym? | These socks are quite comfortable. | She teaches an exercise class. | Yes, they're on the lower floor.
+12 | M-Cn/W-Am | Who needs a copy of my safety training certificate? | Maxime does. | You can hang your vest on that hook. | No, I'm certain about that.
+13 |  | Could you phone Mr. Ferros and let him know we're in the hotel lobby? | Thank you. It was just renovated. | A free continental breakfast. | Yes, of course.
+14 |  | Where does she sell her handmade jewelry? | They'll give you a discount. | A pair of earrings. | At a store in the city center.
+15 |  | You're taking a business class in the afternoon, aren't you? | Actually, it's in the morning. | That office is on the corner. | I have the train schedule here.
+16 |  | Could I see some sample floral arrangements before I order? | It's for an award ceremony. | A charge for expedited delivery. | Certainly. I have some right here.
+17 |  | Don't you want to buy the black sofa? | Some customer reviews. | We already have one. | I take my coffee with sugar.
+18 | M-Au/W-Am | Do you have this jacket in a larger size? | Oh, I'm not a sales associate. | I've read the information packet. | A very large uniform.
+19 | W-Am/M-Au | Where did you first learn about the job opening? | Are there any outdoor tables available? | The door to the building is still open. | I read an online newspaper every morning.
+20 | W-Br/M-Cn | Should I bring anything to the meeting? | Probably in the conference room. | They were hired by our manager. | Do we have enough handouts?
+21 |  | What was the total charge for the hotel stay? | I'd have to look at the receipt. | The fitness center is across from the reception desk. | I'll be eating breakfast in my room.
+22 | M-Cn/W-Br | Why did you pursue a career in video game design? | Because I have a talent for it. | This is my new laptop. | It's on the other shelf.
+23 | W-Br/M-Au | I'd like to attend the job fair next month. | The speech was inspiring. | Tunji updated the memo. | Registration closed yesterday.
+24 | W-Br/M-Cn | Hasn't anyone called you back for the second interview yet? | A new phone number. | Yes, any available position. | I'm still waiting.
+25 | M-Au/W-Am | How many tickets do we need for tonight's concert? | The theater is on Johnson Avenue. | At seven thirty sharp. | I'll buy mine at the door.
+26 | W-Am/M-Cn | When are they going to decide who to hire? | A much higher salary. | A lot of good resumes have come in. | In the building across the street.
+27 | M-Au/W-Am | I had a chance to look over the contract this morning. | Their contact information. | Early next week. | What did you think of it?
+28 | W-Am | How are the database updates coming along? | I've been really busy with the Williams account. | Some customer addresses. | She arrives on Wednesday.
+29 | M-Au/W-Am | When can I bring these boxes into the warehouse? | Ten in a package. | Thanks. I just bought it. | We'll need to clear some space.
+30 | M-Cn/W-Br | The market on Fifth Street is closed for a week. | Some new clothes. | Is there another one nearby? | The price has been marked down.
+31 |  | Does the company pay for professional development courses? | Insook helped develop a new product. | We do have a significant budget surplus. | He's always so professional.

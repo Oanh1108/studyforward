@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 6 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's shoveling snow from a walkway. | She's using walking sticks. | She's removing her cap. | She's drinking from a water bottle.
+2 |  | A woman is carrying a tray. | A woman is pushing a food trolley. | Some people are leaving a restaurant. | Some diners are looking out a window.
+3 |  | The man is holding a bucket of water. | The man is replacing a tire. | The man is watering a tree. | The man is scrubbing the front of a car.
+4 |  | Some tiles are being installed on a roof. | An outdoor dining area is unoccupied. | Flowers have been placed on tables. | Some chairs have been arranged around a fountain.
+5 |  | Some people are gathered on top of a building. | Some trees are blocking the entrance to a stairway. | A woman is taking some stairs to a lower level. | A woman is walking across a pedestrian bridge.
+6 |  | Some wooden planter boxes have been set next to each other. | Some wood logs have been piled in a corner. | The outside walls of a house are made of bricks. | Some windows are being installed.
+## PART 2 (question | A | B | C)
+7 | M-Cn/M-Au | Who's going to take home the leftover cake? | Marcel said he would. | A lovely selection of desserts. | No. I thought it started at noon.
+8 | W-Br/M-Au | Can you tell me where the security office is? | Today's my first day here. | A photograph for the badge. | Because it's after lunch.
+9 | W-Am/W-Br | What's the best way to contact you? | On my mobile phone. | No, I have to wear glasses. | This resume is better.
+10 | W-Br/M-Cn | Who's joining us for the Waterfront Boat Ride? | Conference room three. | The admission fee is reasonable. | Everybody on our team is coming.
+11 | W-Am/M-Au | Could you request a technician to repair the packaging machine? | Three years of technical school. | Sure, I'll do that. | The blue one with gold trim.
+12 | W-Br | How many copies of the proposal should I make? | There's blue paper in the cabinet. | Yes, it was my idea. | Fifty should be enough for everyone.
+13 | M-Au/W-Am | Why is Jonathan leaving early? | To catch the six o'clock train. | On the early morning news. | That's where he lives now.
+14 | W-Br/M-Au | Where's the company party being held? | It's a publishing firm. | Party of five at the table in the corner. | At the Chesterville Hotel.
+15 | W-Am/M-Au | Did you want to sign up for a one-year magazine subscription? | How much will it cost? | Near the service center. | Akiko works at the front desk.
+16 |  | Does this pasta come with a side salad? | We do have a tablecloth. | No, I'm afraid not. | I like it too.
+17 |  | When can we meet about the invoices? | Supplies for the office. | I'm free after two. | Probably on Harold's desk.
+18 | M-Au/W-Am | Would you like me to help you open a savings account? | I've already counted them. | That'd be great. | Fifty euros each.
+19 | W-Am/M-Au | When did you post the job opening? | On the bulletin board in the hallway. | It's been on the Web site for a month. | Can you close the door?
+20 | W-Am/M-Cn | Are you applying for the manager position? | About sixteen more employees. | I'll check her schedule again. | Yes. I hope I get it.
+21 | M-Au/M-Cn | Are you traveling in business class or economy? | My flight was just canceled. | My focus is history. | London, then New York.
+22 | W-Am | The number of subscribers for our magazine has decreased recently. | There's room in the budget for more advertising. | An annual membership fee. | There are six folders on the table.
+23 | W-Am/M-Cn | How do you clean the solar panels without damaging them? | The glass can be any color you want. | No, the sun isn't out today. | I pay a company to do all the maintenance.
+24 | W-Br | When will I receive my certificate in the mail? | I'll have to check with the office. | Turn left at the light. | No, thank you.
+25 | M-Cn/W-Br | Don't we sell Ramirez lawn mowers? | The plants need more water. | Sorry, refunds are not allowed. | I work in the home decor area.
+26 | W-Am/M-Cn | Should we meet to discuss our research project? | A Publishing Manual. | Put something on my calendar. | Alphabetical order is fine, I think.
+27 | W-Br/W-Am | When does the cleaning staff leave for the day? | A supply closet in the hall. | By six o'clock usually. | The leaves come out in the spring.
+28 | W-Br | How would you like to pay for these shoes today? | With a store gift card. | I wear a size 38. | A friend recommended them.
+29 | M-Au | It's an effective advertisement, isn't it? | I've heard that sales have increased. | The next issue of the magazine. | Isn't the policy in effect already?
+30 | W-Br/M-Au | Why don't we take a walk after lunch? | The sales report is due at one o'clock. | No, in parking area B. | I'll have spaghetti, please.
+31 |  | I decided to move the seasonal merchandise to the front of the store. | Did you put some of it in the window display? | For our summer clothing collection? | The moving van is coming tomorrow.

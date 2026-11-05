@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 3 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's cleaning an oven. | She's moving a pot. | She's opening a cabinet. | She's holding a towel.
+2 |  | They're putting trash in a bag. | They're taking off their jackets. | They're facing a shelving unit. | They're painting a room.
+3 |  | One of the men is removing his hat. | A line of customers extends out a door. | Some workers are installing a sign. | Musicians have gathered in a circle.
+4 |  | Some tools have been left on a chair. | Some tool sets have been laid out. | A cup of coffee has spilled. | A table leg is being repaired.
+5 |  | A railing is being removed. | A roof is under construction. | Some workers are carrying a ladder. | Some workers are holding sheets of metal.
+6 |  | A ladder has been leaned against a tree. | There are piles of tree branches discarded in a field. | Wooden benches have been arranged in a circle. | A wooden structure has been built near some trees.
+## PART 2 (question | A | B | C)
+7 |  | Why is there no flour on the shelf? | Because it's out of stock. | Those roses smell nice. | No, the other cake.
+8 | M-Au/W-Am | When will the catering company arrive? | At four o'clock. | That's a delicious flavor. | Many vegetarian options.
+9 |  | When's the meeting scheduled to start? | At a networking event. | I started this job six years ago. | Right after lunch.
+10 | W-Am/M-Cn | How much will the repairs cost? | I have two pairs of shoes. | Around 200 dollars. | The restaurant downtown.
+11 | M-Au/W-Br | You went to the dentist this morning, didn't you? | Oh, I've already had breakfast. | Yes, for an annual checkup. | Let's take the bus.
+12 | W-Am/M-Cn | Where should we put the new printer? | In the corner by the stairs. | The third page of the document. | A reusable ink cartridge.
+13 |  | What type of plant do you have in your office? | Whenever I sit at my desk. | Thanks. I just bought it. | One that doesn't require much water.
+14 | M-Au/W-Am | There was a sale at the furniture store. | No. It wasn't in storage. | Did you buy anything? | Some old receipts.
+15 | M-Au/W-Br | Can you show me how to submit a tech help ticket? | Let me send you the link. | A broken power cable. | No, over ten minutes.
+16 |  | Where is the power button on this device? | I've never used that model before. | Ten euros per hour. | We charge more for color photographs.
+17 | W-Am/W-Br | Do you want to take a walk now or would later be better? | A nearby lake. | I'm free to walk now. | No, I don't use a fitness tracker.
+18 |  | I ordered some new equipment for the factory. | The news program on Channel Ten. | Great. I can't wait to use it. | The car dealership.
+19 | M-Cn/W-Am | There's a nice place to rent on Mercer Street. | I just renewed my current lease. | It was a great show. | A standard rental application.
+20 | W-Br/M-Cn | Is the heating system working? | Yes, that's my Web site. | A five kilometer run. | I just called maintenance.
+21 |  | Isn't the roadwork in front of City Hall finished yet? | I just finished my conference presentation. | A lot of traffic in the evening. | No, they still have another month to go.
+22 | W-Br/M-Au | Who will lead the new employee training today? | We're using a recorded video. | Yes, right after lunch. | Classroom 124.
+23 | M-Au/W-Br | Is the safety inspection scheduled for this month or next month? | I thought I saved the file. | The factory supervisor. | It's this Wednesday.
+24 | W-Br/M-Au | When is the harvest festival taking place? | It's a week from tomorrow. | Sure, I can take it. | The park next to the art museum.
+25 | M-Cn/M-Au | Was your new laptop expensive? | Do you have a new password? | I had a discount coupon. | On top of the cabinet.
+26 | W-Br/W-Am | Why don't we go on our camping trip next weekend? | Yes, that table lamp is quite nice. | Should we go left or right? | I have a performance scheduled with my band.
+27 | M-Cn/M-Au | The workshop for this afternoon was postponed, wasn't it? | At the post office. | I haven't checked my e-mail. | A ticket for two o'clock, please.
+28 | W-Am/M-Au | How were our production figures last month? | They produce electric cars. | Nine o'clock in the morning. | We were closed down for a week.
+29 | W-Br/M-Cn | When can I see the speech therapist? | A one hour session. | Just a microphone. | How about tomorrow afternoon?
+30 | W-Am/M-Cn | Aren't you picking up the clients from the airport? | A product demonstration. | No, I believe Tomoko is doing that. | He prefers an aisle seat.
+31 |  | How was your morning client meeting? | It's great to meet you. | No, over in conference room two. | The contract is now officially signed.

@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 10 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | The man is reaching above a shelf. | The man is adjusting his glasses. | The man is paying for an item. | The man is trying on gloves.
+2 |  | She's opening an umbrella over a dining area. | She's standing on a patio near a house. | She's taking a tool out of a storage cupboard. | She's picking up some cushions off the ground.
+3 |  | They're raking some leaves. | They're shoveling soil into a bag. | They're working in a garden. | They're watering some flowers.
+4 |  | Some food has been laid out on platters. | Some chairs are lined up against the wall. | Some floor tiles are being installed. | Some dinner plates have been placed in a sink.
+5 |  | A worker is changing a lightbulb. | A worker is handing a box to a customer. | A worker is crouching down behind a counter. | A worker is cleaning a window.
+6 |  | Some potted plants are on both sides of an entrance. | An awning is shading a parking area. | Some signs are posted on a brick building. | Some furniture is propping open a door.
+## PART 2 (question | A | B | C)
+7 | W-Am/M-Au | When will you deliver the furniture I ordered? | By Tuesday at the latest. | To several clients. | I bought a trailer.
+8 | W-Br/M-Cn | Is your flight tomorrow or this afternoon? | In flight snacks. | It's this afternoon. | At baggage claim.
+9 | M-Cn | How often does the research team schedule training sessions? | The team leader, I think. | Some new software. | Every other week.
+10 | W-Am/M-Au | Can I pay my bill with a credit card? | Sure, that's fine. | I don't believe him either. | The gas station on your right.
+11 | M-Cn | The project proposal still needs work. | The other office. | No, it's still not working. | I can help you with it.
+12 | W-Am/M-Cn | Where do you plan to stay during your visit to the city? | I thought the building had twelve floors. | Oh, just to present at a conference. | At a friend's house.
+13 |  | How did you improve the processing speed? | That's a question for Silvia. | What's the speed limit? | I don't like to swim.
+14 | W-Br/M-Cn | Do you take exercise classes too, or just dance classes? | The instructor teaches in the mornings. | These shoes fit perfectly. | I only take dance.
+15 | M-Cn/W-Am | When will the new coffee machine be installed in the lobby? | No, it wasn't expensive. | The front door is unlocked. | Within the next few days.
+16 | W-Am/M-Cn | The new marketing director will be hired soon, won't she? | Didn't you check your e-mail? | It's about ten minutes from here. | No, a little lower.
+17 | M-Au/W-Br | I really need some help with the presentation graphics. | Insook can do those for you. | A conference in Chicago. | No. In research and development.
+18 | W-Am/W-Br | Who can I talk to about scheduling a haircut? | Will you be available tomorrow afternoon? | Not too short on the sides, please. | Thanks. The scheduling software has been helpful.
+19 | W-Br/M-Au | Did you already prepare the agenda for the department meeting? | We should close the windows. | It was postponed. | I bought them at the department store.
+20 | M-Cn/W-Am | Do you take your coffee with or without milk? | The coffee shop on Bayview Avenue. | I prefer drinking tea. | We'll need to place an order for paper.
+21 | M-Au/M-Cn | Why are you installing new software? | Because our current software is outdated. | We rented a large stall. | I'm going to wear a jacket.
+22 |  | When will next month's cost projections be ready? | That portable projector was recently replaced. | An unexpected surplus. | I sent an e-mail a few minutes ago.
+23 | M-Au/M-Cn | Would you ask Tae-Joon to help set up the product display? | Several kinds of headsets. | No, I can do it myself. | I can't see the bottom line of the chart.
+24 | W-Am | Which version of the contract do you have? | He's a general contractor. | On the second floor. | The final one.
+25 | W-Br/W-Am | Why isn't Ms. Perez here yet? | No, I can't hear anything. | Company headquarters. | Because she's meeting with her manager.
+26 |  | I heard that our company might be merging with another one. | Oh, I didn't know that. | A good selling product. | Akira told me to put it there.
+27 | W-Br/M-Au | Could you ask the next patient to come in? | It's in the cabinet. | The waiting room is empty. | They're both studying nursing.
+28 | M-Au/W-Am | Are the blueberries ready to harvest? | I'll try the strawberry flavor. | We have a view of the beach. | It's not summertime yet.
+29 | M-Cn/W-Br | How long will it take us to get to the theater? | Tickets for the performance are sold out. | At seven o'clock, I think. | Actually, I don't have a preference.
+30 | M-Au/M-Cn | Are you going to send a report or give a presentation to our clients? | We enjoyed their talk. | I'll probably do both. | Twenty people attended.
+31 | W-Am/W-Br | When should we hang up the posters for our conference? | Sure. My car will be fixed soon. | Next to the main entrance. | The design still needs to be finalized.

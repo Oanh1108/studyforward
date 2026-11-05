@@ -1,0 +1,34 @@
+# TOEIC 2024 - Test 8 listening script, Parts 1 and 2 (draft from the recording's speech recognition, names checked against the PDF OCR; read through before use). Format: see lib/dictation/toeic/script.ts
+## PART 1 (4 statements each)
+1 |  | She's taking off her badge. | She's leaning over a desk. | She's locking the door. | She's lifting a bin.
+2 |  | A man is repairing a railing. | A man is climbing some stairs. | A man is carrying a ladder. | A man is looking up at a roof.
+3 |  | A person is swimming in a lake. | A sign is posted on a building. | A bird is resting on a pole. | A person is rowing a boat.
+4 |  | One of the workers is opening a display case. | One of the workers is tying a necktie. | The workers are behind a counter. | The workers are greeting some customers.
+5 |  | Some rocks are piled in a wheelbarrow. | Some telephone wires are suspended over a road. | Some benches are occupied. | Some trees are shading a picnic table.
+6 |  | Some papers have been pinned to a bulletin board. | A clock has been set on a bedside table. | A painting has been propped against a chair. | Some medical equipment has been placed on a shelf.
+## PART 2 (question | A | B | C)
+7 | W-Br/M-Au | Who's picking up the newspaper? | Some paper napkins. | Camille said she will. | He took out the trash.
+8 | W-Br/M-Cn | When is your doctor's appointment? | This afternoon. | That's a good point. | At a medical clinic.
+9 | M-Cn/W-Am | Why don't we have a company picnic? | Potato salad and green beans. | Because it costs a lot of money. | I already have that one.
+10 | W-Br/M-Au | What do you think I should take to the conference? | In the lobby. | Just your laptop. | A three o'clock shift.
+11 | M-Au/W-Br | Where's the festival being held? | A music concert. | Probably sometime in December. | In the town center.
+12 |  | Who do I present my proposal to? | A hotel reservation. | The acquisitions committee. | At noon today.
+13 | M-Cn/W-Am | Could you please look up the location on your phone? | Here's my phone number. | OK, one moment. | The weather is nice right now.
+14 | W-Am/M-Au | Isn't the accounting seminar tomorrow? | I'd like to open an account, please. | Actually, it's on Friday. | Time management.
+15 | M-Cn/W-Br | When's the dishwasher being repaired? | The technician came this morning. | I store the knives in a separate drawer. | The bread is in the pantry.
+16 | W-Br/M-Cn | Should we move the employee lounge to the basement? | He attended the talk. | The reservation is for two people. | No, it's too dark down there.
+17 | M-Au/W-Am | You changed the color printer cartridge recently, didn't you? | Right, just a few days ago. | They're painting the walls blue. | A different password.
+18 | W-Br/M-Au | We're not going to be able to fit everyone in this space. | A professional development workshop. | There's a larger room down the hallway. | These shoes are exactly the right size.
+19 | M-Cn/W-Am | Is it easiest for me to take a bus to the city center? | A new department store. | When did you buy it? | I usually do.
+20 | W-Br/W-Am | Are you able to make a prototype soon? | Yes, my team is working on it. | I thought it was very innovative. | He's a good typist.
+21 |  | Where can I buy a lamp like that? | On my desk. | I got this one as a gift. | After my client meeting.
+22 | M-Cn/W-Am | How often do you have to install updates? | This letter needs more postage. | An incorrect serial code. | Waseem is the software administrator.
+23 | W-Br/M-Cn | Let's talk about your project after lunch. | Because her microphone is broken. | I'm leaving work early today. | I have two pairs of shoes.
+24 | M-Cn/W-Am | Is there a list of guests who have been invited? | Room 305 is being prepared for you. | The caterer has all the necessary information. | A banquet hall on Main Street.
+25 | M-Au/W-Br | Would it be cheaper to ship by express mail or overnight delivery? | Express mail is less expensive. | I'd like a large. | It's in the next shipment.
+26 |  | How do I turn on the air conditioner in this office? | The temperature is controlled automatically. | Turn left after the post office. | No I shut off all the lights.
+27 | W-Am/W-Br | Have you trained Hikaru to use the new microscope? | I have my own car. | That's enough, thanks. | I misplaced the instruction manual.
+28 | W-Am/M-Au | We're meeting this week to discuss the upcoming merger. | I have it on my calendar. | Please merge onto the highway. | A law firm in Glenview.
+29 |  | How long will we have to wait for a taxi to arrive? | About twelve kilometers. | No, I don't think so. | Would you prefer to walk?
+30 | W-Br | Did the deal to lease the equipment go through? | A one-bedroom apartment. | The supply catalog is in the filing cabinet. | Not yet, but we hope to have it finalized this quarter.
+31 |  | Would you like to take this vehicle for a test drive? | Because there's no parking available. | I heard a new model is coming out in March. | Only two doors.
