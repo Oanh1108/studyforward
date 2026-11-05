@@ -222,6 +222,14 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
     };
   });
 
+  // Start two lines tall and grow with what is typed, instead of leaving a big empty box
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [input, index, finished]);
+
   if (finished) {
     return (
       <PracticeSummary
@@ -408,11 +416,11 @@ export function PracticeSession({ spec, onExit, onComplete }: PracticeSessionPro
               value={input}
               onChange={(e) => setInput(e.target.value)}
               readOnly={!!result}
-              rows={6}
+              rows={2}
               autoComplete="off"
               spellCheck={false}
               placeholder="Gõ những gì bạn nghe được..."
-              className="w-full resize-none rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3 text-xl leading-9 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:bg-[var(--bg-card)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15 read-only:opacity-80"
+              className="max-h-56 min-h-24 w-full resize-none overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3 text-xl leading-9 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--brand)] focus:bg-[var(--bg-card)] focus:outline-none focus:ring-4 focus:ring-[var(--brand)]/15 read-only:opacity-80"
             />
           </div>
 
