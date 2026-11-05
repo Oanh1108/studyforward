@@ -6,6 +6,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StudyForwardLogo } from "@/components/StudyForwardLogo";
 import { useAuth } from "@/lib/authContext";
+import { warmBackend } from "@/lib/warmBackend";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,6 +30,11 @@ export default function LoginPage() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("/dashboard");
+
+  // The backend may be asleep: wake it now so "Sign in with Google" does not wait on it
+  useEffect(() => {
+    warmBackend();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -307,6 +313,11 @@ export default function LoginPage() {
               )}
               <span>Google</span>
             </button>
+            {isGoogleSubmitting && (
+              <p role="status" className="text-center text-xs text-[var(--text-secondary)]">
+                Đang kết nối tới Google. Nếu máy chủ vừa được đánh thức, bước này có thể mất tới 1 phút.
+              </p>
+            )}
           </div>
         </form>
 
