@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { VocabularyFolder, MyVocabularyWord, myVocabApi } from '@/lib/myVocabApi';
 import { speakText, isAudioSupported } from '../speechHelper';
 import { useAuth } from '@/lib/authContext';
+import { clearSession, readSession, writeSession } from '@/lib/sessionState';
 import {
   SupportedLanguage,
   getLanguageInfo,
@@ -256,7 +257,9 @@ export function StudySessionView({
           parsed.language === currentLanguage
         ) {
           setSavedSessionToResume(parsed);
-          if (onResumeRequested) {
+          // A reload in the middle of a session carries on with it instead of asking (see the flag set while studying)
+          const reloadedMidSession = readSession(`${sessionStorageKey}:active`) === parsed.sessionId;
+          if (onResumeRequested || reloadedMidSession) {
             resumeSavedSession(parsed);
           }
           return;
@@ -345,6 +348,34 @@ export function StudySessionView({
     quizEvalResult,
     isQuizSubmitted,
   ]);
+
+  // While studying, mark this tab as "in the middle of session X". Cleanups run when the user leaves the session or the
+  // page; a reload runs none, so the mark survives a reload and the check above resumes the session.
+  useEffect(() => {
+    if (phase !== 'studying' || !sessionId) return;
+    const key = `${sessionStorageKey}:active`;
+    writeSession(key, sessionId);
+    return () => clearSession(key);
+  }, [phase, sessionId, sessionStorageKey]);
+
+  // The same for the result screen, so a reload there shows the result again instead of the setup page
+  useEffect(() => {
+    if (phase !== 'summary') return;
+    const key = `${sessionStorageKey}:summary`;
+    writeSession(key, { studyMode, deck, studyHistory, activeSeconds });
+    return () => clearSession(key);
+  }, [phase, sessionStorageKey, studyMode, deck, studyHistory, activeSeconds]);
+  useEffect(() => {
+    const saved = readSession(`${sessionStorageKey}:summary`) as { studyMode?: StudyMode; deck?: MyVocabularyWord[]; studyHistory?: typeof studyHistory; activeSeconds?: number } | undefined;
+    if (!saved || !Array.isArray(saved.deck) || saved.deck.length === 0 || !Array.isArray(saved.studyHistory)) return;
+    if (saved.studyMode) setStudyMode(saved.studyMode);
+    setDeck(saved.deck);
+    setStudyHistory(saved.studyHistory);
+    setActiveSeconds(saved.activeSeconds ?? 0);
+    setPhase('summary');
+    // only on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentPool = sessionWordPool;
 
