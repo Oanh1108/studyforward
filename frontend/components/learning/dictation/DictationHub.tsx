@@ -1,20 +1,18 @@
 "use client";
 
 import React, { useState } from 'react';
-import { BookOpen, Headphones, MonitorPlay } from 'lucide-react';
+import { Headphones, MonitorPlay } from 'lucide-react';
 import { scoreGroups } from '@/lib/dictation/practice';
 import { YouTubeLesson } from '../listening/YouTubeLesson';
 import { PracticeSession } from './PracticeSession';
-import { SampleBrowser } from './SampleBrowser';
 import { ToeicBrowser, type ToeicNav } from './ToeicBrowser';
 import { usePracticeProgress } from './usePracticeProgress';
 import type { PracticeSpec } from './types';
 
-type Section = 'toeic' | 'sample' | 'youtube';
+type Section = 'toeic' | 'youtube';
 
 const SECTIONS: { id: Section; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'toeic', label: 'Đề TOEIC', icon: Headphones },
-  { id: 'sample', label: 'Bài mẫu', icon: BookOpen },
   { id: 'youtube', label: 'YouTube', icon: MonitorPlay },
 ];
 
@@ -71,7 +69,6 @@ export function DictationHub() {
 
       <div role="tabpanel">
         {section === 'toeic' && <ToeicBrowser progress={progress} nav={toeicNav} onNavChange={setToeicNav} onStart={start} />}
-        {section === 'sample' && <SampleBrowser progress={progress} onStart={start} />}
         {section === 'youtube' && <YouTubeLesson />}
       </div>
     </div>
