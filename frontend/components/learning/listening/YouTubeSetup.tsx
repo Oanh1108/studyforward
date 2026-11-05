@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ChevronDown, Headphones, Link2, Loader2, Mic, PlayCircle } from 'lucide-react';
+import { AlertTriangle, ChevronDown, Headphones, Link2, Loader2, Mic, PlayCircle } from 'lucide-react';
 import { extractYouTubeId, type VideoLessonData } from '@/lib/youtubeUtils';
 
 export type PracticeType = 'dictation' | 'shadowing';
@@ -18,6 +18,8 @@ interface YouTubeSetupProps {
   rawTranscript: string;
   onRawTranscriptChange: (text: string) => void;
   isFetching: boolean;
+  /** Why the automatic subtitle fetch failed, shown with what to do next. */
+  fetchError?: string | null;
   onSubmit: () => void;
   savedLessons: VideoLessonData[];
   onSelectSaved: (lesson: VideoLessonData) => void;
@@ -61,6 +63,7 @@ export function YouTubeSetup({
   rawTranscript,
   onRawTranscriptChange,
   isFetching,
+  fetchError,
   onSubmit,
   savedLessons,
   onSelectSaved,
@@ -140,6 +143,16 @@ export function YouTubeSetup({
             <input id="yt-title" type="text" value={lessonTitle} onChange={(e) => onLessonTitleChange(e.target.value)} placeholder="YouTube Practice" className={fieldClass} />
           </div>
 
+          {fetchError && (
+            <div role="alert" className="flex gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <div className="min-w-0 space-y-2 text-sm text-[var(--text-primary)]">
+                <p className="font-semibold">{fetchError}</p>
+                <p className="text-[var(--text-secondary)]">Bạn vẫn luyện được: mở video trên YouTube, bấm <strong>... (Thêm)</strong> &gt; <strong>Hiện bản chép lời</strong>, copy toàn bộ rồi dán vào ô &ldquo;Nhập phụ đề thủ công&rdquo; bên dưới, sau đó bấm Tạo bài nghe chép lại.</p>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border border-[var(--border)]">
             <button
               type="button"
@@ -161,11 +174,11 @@ export function YouTubeSetup({
                   id="yt-transcript"
                   value={rawTranscript}
                   onChange={(e) => onRawTranscriptChange(e.target.value)}
-                  placeholder={'[00:05] Câu tiếng Anh thứ nhất\n[00:10] Câu thứ hai...'}
+                  placeholder={'0:05\nCâu tiếng Anh thứ nhất\n0:10\nCâu thứ hai...'}
                   rows={6}
                   className={`${fieldClass} font-mono text-sm`}
                 />
-                <p className="text-xs text-[var(--text-muted)]">Hệ thống chia câu theo mốc thời gian. Bạn có thể gõ hoặc dán phụ đề tải từ YouTube vào đây.</p>
+                <p className="text-xs text-[var(--text-muted)]">Dán nguyên bản chép lời copy từ YouTube (mỗi mốc thời gian một dòng, chữ ở dòng dưới), hoặc gõ dạng [00:05] câu thứ nhất.</p>
               </div>
             )}
           </div>
