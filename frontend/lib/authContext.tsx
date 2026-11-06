@@ -30,6 +30,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * How long the page waits for the backend to confirm the saved sign-in before carrying on with the saved profile.
+ * Without a limit, a slow or asleep backend leaves the whole site on a spinner.
+ */
+const SESSION_CHECK_TIMEOUT_MS = 8000;
+
+function fetchWithTimeout(url: string, init: RequestInit, ms = SESSION_CHECK_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://studyforward.onrender.com' : 'http://localhost:3002')).replace(/\/+$/, '');
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -148,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
+      const res = await fetchWithTimeout(`${API_BASE}/api/auth/me`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${activeToken}`,
@@ -196,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    fetch(`${API_BASE}/api/auth/me`, {
+    fetchWithTimeout(`${API_BASE}/api/auth/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${activeToken}` },
       credentials: "include",
