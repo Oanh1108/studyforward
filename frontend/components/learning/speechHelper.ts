@@ -113,3 +113,10 @@ export function speakText(
     }
   });
 }
+
+export function stopSpeech(): void {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+

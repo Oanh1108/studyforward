@@ -709,6 +709,15 @@ export function StudySessionView({
     });
   };
 
+  // Clicking an option reads it aloud (synonym/antonym options, and meaning
+  // options when they are foreign-language words) and toggles it before submit.
+  const handleQuizChoiceClick = (group: 'meaning' | 'synonym' | 'antonym', choice: { id: string; text: string }) => {
+    if (group !== 'meaning' || isReversed) {
+      void handlePronounce(choice.text, currentWord?.language);
+    }
+    handleToggleQuizSelection(group, choice.id);
+  };
+
   const isTrueQuizChoice = (group: 'meaning' | 'synonym' | 'antonym', c: QuizChoice) => {
     if (!currentWord) return false;
     const t = normalizeInputString(c.text);
@@ -1653,8 +1662,7 @@ export function StudySessionView({
                             return (
                               <button
                                 key={idx}
-                                disabled={isQuizSubmitted}
-                                onClick={() => handleToggleQuizSelection('meaning', choice.id)}
+                                onClick={() => handleQuizChoiceClick('meaning', choice)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (
@@ -1708,8 +1716,7 @@ export function StudySessionView({
                             return (
                               <button
                                 key={idx}
-                                disabled={isQuizSubmitted}
-                                onClick={() => handleToggleQuizSelection('synonym', choice.id)}
+                                onClick={() => handleQuizChoiceClick('synonym', choice)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (
@@ -1763,8 +1770,7 @@ export function StudySessionView({
                             return (
                               <button
                                 key={idx}
-                                disabled={isQuizSubmitted}
-                                onClick={() => handleToggleQuizSelection('antonym', choice.id)}
+                                onClick={() => handleQuizChoiceClick('antonym', choice)}
                                 className={`p-2.5 min-h-[44px] rounded-xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-2.5 ${style}`}
                               >
                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${(isQuizSubmitted && quizResult) ? (

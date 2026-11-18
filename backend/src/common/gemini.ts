@@ -3,7 +3,16 @@
  * Same shape as fetch(url, init) minus the URL: pass the API key and the request init (method, headers, body).
  */
 const MODELS = Array.from(
-  new Set([process.env.GEMINI_MODEL, 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.7-flash'].filter(Boolean) as string[]),
+  new Set([
+    process.env.GEMINI_MODEL,
+    'gemini-3.1-flash-lite-preview',
+    'gemini-3.1-flash-lite',
+    'gemini-3-flash-preview',
+    'gemini-3.5-flash',
+    'gemini-3.6-flash',
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+  ].filter(Boolean) as string[]),
 );
 const RETRY_SAME_MODEL = new Set([503]);
 // 429 is a quota limit on that model: waiting does not help, another model might.

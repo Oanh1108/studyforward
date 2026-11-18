@@ -25,7 +25,8 @@ const questions = [
   },
 ];
 
-export default function ExamPage({ params }: { params: { id: string } }) {
+export default async function ExamPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const answered = [1, 3]; // mock answered
 
   return (
@@ -37,7 +38,7 @@ export default function ExamPage({ params }: { params: { id: string } }) {
         <div className="w-full px-6 sm:px-8 h-14 flex items-center justify-between">
           <div>
             <div className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
-              TOEIC Practice Test {params.id}
+              TOEIC Practice Test {id}
             </div>
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
               {answered.length}/{questions.length} câu đã trả lời

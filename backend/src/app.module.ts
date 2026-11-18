@@ -37,6 +37,7 @@ import { FocusModule } from './focus/focus.module.js';
 import { FocusSession } from './focus/focus.entity.js';
 import { StudyBoardsModule } from './study-boards/study-boards.module.js';
 import { StudyBoard } from './study-boards/study-board.entity.js';
+import { CommunicationModule } from './communication/communication.module.js';
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import { StudyBoard } from './study-boards/study-board.entity.js';
     DictationModule,
     FocusModule,
     StudyBoardsModule,
+    CommunicationModule,
   ],
 })
 export class AppModule {}
