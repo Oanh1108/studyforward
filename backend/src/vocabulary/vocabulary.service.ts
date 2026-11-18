@@ -620,7 +620,8 @@ export class VocabularyService implements OnModuleInit {
       else ratingNum = parseInt(lower, 10) || 3;
     }
 
-    const f = fsrs();
+    // Day-based scheduling only: with short-term steps a reviewed word was due again within minutes
+    const f = fsrs({ enable_short_term: false });
     
     // Construct current FSRS card
     let card: Card;

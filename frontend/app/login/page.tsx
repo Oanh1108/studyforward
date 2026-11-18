@@ -16,9 +16,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("rememberMe") === "true";
+      return localStorage.getItem("rememberMe") !== "false";
     }
-    return false;
+    return true;
   });
   const [showPassword, setShowPassword] = useState(false);
 

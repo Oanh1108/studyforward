@@ -278,7 +278,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem("user", JSON.stringify(receivedUser));
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
-        localStorage.removeItem("rememberMe");
+        localStorage.setItem("rememberMe", "false");
       }
 
       setUser(receivedUser);
