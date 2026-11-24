@@ -114,8 +114,8 @@ export function ExcelImportModal({
 
 
   // AI Options
-  const [autoEnrich, setAutoEnrich] = useState(true);
-  const [aiSuggestMeaning, setAiSuggestMeaning] = useState(true);
+  const [autoEnrich, setAutoEnrich] = useState(false);
+  const [aiSuggestMeaning, setAiSuggestMeaning] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [aiProgress, setAiProgress] = useState<{ current: number; total: number } | null>(null);
 

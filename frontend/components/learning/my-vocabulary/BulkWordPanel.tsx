@@ -25,7 +25,6 @@ interface Row {
 
 const MAX_ROWS = 100;
 const START_ROWS = 3;
-const ENRICH_CHUNK = 15;
 
 let nextId = 1;
 const newRow = (word = '', meaning = ''): Row => ({
@@ -55,7 +54,6 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
 
   const wordRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [focusId, setFocusId] = useState<number | null>(null);
-  const lookedUp = useRef<Record<number, string>>({});
 
   useEffect(() => {
     if (focusId !== null) {
@@ -76,11 +74,10 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
 
   const removeRow = (id: number) => setRows((rs) => (rs.length <= 1 ? [newRow()] : rs.filter((r) => r.id !== id)));
 
-  /** Quizlet-style: as soon as a word is typed, fetch its meaning and fill the row. */
+  /** Only runs when the user presses the AI button on a row; nothing is filled automatically. */
   const lookup = async (row: Row) => {
     const word = row.word.trim();
-    if (!word || lookedUp.current[row.id] === word.toLowerCase()) return;
-    lookedUp.current[row.id] = word.toLowerCase();
+    if (!word || row.loading) return;
     updateRow(row.id, { loading: true });
     try {
       const [res] = await myVocabApi.enrichBatch([{ word, meaning: row.meaningEdited ? row.meaning : undefined }], language);
@@ -119,34 +116,6 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
     const at = replaceCurrent ? idx : idx + 1;
     const next = [...base.slice(0, at), ...fresh, ...base.slice(at)].slice(0, MAX_ROWS);
     setRows(next);
-    // Look the pasted words up in the background so meanings appear without extra clicks.
-    void lookupMany(next);
-  };
-
-  const lookupMany = async (all: Row[]) => {
-    const todo = all.filter((r) => r.word.trim() && !r.meaning.trim() && lookedUp.current[r.id] !== r.word.trim().toLowerCase());
-    for (let s = 0; s < todo.length; s += ENRICH_CHUNK) {
-      const chunk = todo.slice(s, s + ENRICH_CHUNK);
-      chunk.forEach((r) => {
-        lookedUp.current[r.id] = r.word.trim().toLowerCase();
-      });
-      setRows((rs) => rs.map((r) => (chunk.some((c) => c.id === r.id) ? { ...r, loading: true } : r)));
-      try {
-        const res = await myVocabApi.enrichBatch(chunk.map((r) => ({ word: r.word.trim() })), language);
-        setRows((rs) =>
-          rs.map((r) => {
-            const pos = chunk.findIndex((c) => c.id === r.id);
-            if (pos < 0) return r;
-            const hit = res.find((x) => x.index === pos);
-            if (!hit) return { ...r, loading: false };
-            const { index: _i, meaning, ...extra } = hit as any;
-            return { ...r, loading: false, extra, meaning: r.meaningEdited ? r.meaning : meaning || r.meaning };
-          }),
-        );
-      } catch {
-        setRows((rs) => rs.map((r) => (chunk.some((c) => c.id === r.id) ? { ...r, loading: false } : r)));
-      }
-    }
   };
 
   const filled = rows.filter((r) => r.word.trim());
@@ -160,36 +129,14 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
     setResult(null);
 
     try {
-      // Anything still missing a meaning (e.g. AI was slow or skipped) gets one last lookup.
-      const needAi = rows.filter((r) => r.word.trim() && !r.meaning.trim());
-      let current = rows;
-      if (needAi.length > 0) {
-        setProgress('AI đang bổ sung nghĩa còn thiếu...');
-        const patches: Record<number, Partial<Row>> = {};
-        for (let s = 0; s < needAi.length; s += ENRICH_CHUNK) {
-          const chunk = needAi.slice(s, s + ENRICH_CHUNK);
-          try {
-            const res = await myVocabApi.enrichBatch(chunk.map((r) => ({ word: r.word.trim() })), language);
-            for (const x of res) {
-              const target = chunk[x.index];
-              if (!target) continue;
-              const { index: _i, meaning, ...extra } = x as any;
-              patches[target.id] = { extra, meaning: meaning || '' };
-            }
-          } catch {
-            /* handled below as "no meaning" */
-          }
-        }
-        current = rows.map((r) => (patches[r.id] ? { ...r, ...patches[r.id] } : r));
-        setRows(current);
-      }
+      const current = rows;
 
       const withWord = current.filter((r) => r.word.trim());
       const ready = withWord.filter((r) => r.meaning.trim());
       const noMeaning = withWord.filter((r) => !r.meaning.trim());
 
       if (ready.length === 0) {
-        setError('Chưa có từ nào có nghĩa. Hãy nhập nghĩa vào cột bên phải.');
+        setError('Chưa có từ nào có nghĩa. Hãy nhập nghĩa vào cột bên phải hoặc bấm ✨ AI.');
         return;
       }
 
@@ -263,7 +210,6 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
                   updateRow(row.id, { word: e.target.value });
                   setError(null);
                 }}
-                onBlur={() => void lookup(row)}
                 onPaste={(e) => handlePaste(e, row)}
                 placeholder={`Từ ${languageName}`}
                 autoFocus={i === 0}
@@ -288,11 +234,22 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
                       else setFocusId(rows[i + 1].id);
                     }
                   }}
-                  placeholder={row.loading ? 'AI đang tìm nghĩa...' : 'AI tự điền, hoặc bạn tự nhập'}
-                  className={`${inputCls} resize-none overflow-hidden leading-snug`}
+                  placeholder={row.loading ? 'AI đang tìm nghĩa...' : 'Nhập nghĩa, hoặc bấm ✨ AI để gợi ý'}
+                  className={`${inputCls} resize-none overflow-hidden leading-snug pr-16`}
                 />
-                {row.loading && (
+                {row.loading ? (
                   <span className="absolute right-3 top-3.5 w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void lookup(row)}
+                    disabled={isRunning || !row.word.trim()}
+                    title="Dùng AI điền nghĩa và thông tin còn thiếu cho từ này"
+                    aria-label={`Dùng AI cho dòng ${i + 1}`}
+                    className="absolute right-2 top-2.5 px-2 py-1 rounded-lg text-[11px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  >
+                    ✨ AI
+                  </button>
                 )}
               </div>
               <button
@@ -319,7 +276,7 @@ export function BulkWordPanel({ folderId, language, languageName, onClose, onSuc
       </button>
 
       <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
-        Gõ từ xong, AI tự điền nghĩa, từ loại, phiên âm và ví dụ. Nhấn <kbd>Enter</kbd> ở ô nghĩa để sang dòng mới. Dán nhiều dòng
+        Chỉ dòng nào bạn bấm <strong>✨ AI</strong> mới được AI điền thêm nghĩa, từ loại, phiên âm, ví dụ...; các dòng khác giữ nguyên những gì bạn nhập. Nhấn <kbd>Enter</kbd> ở ô nghĩa để sang dòng mới. Dán nhiều dòng
         vào ô từ sẽ tự tách thành nhiều dòng (hỗ trợ <code>từ - nghĩa</code>). Từ đã có trong thư mục sẽ được bỏ qua.
       </p>
 
